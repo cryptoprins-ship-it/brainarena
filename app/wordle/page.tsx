@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, type Locale } from "@/lib/i18n";
 import { dailyWord, randomWord } from "@/lib/dailyWord";
 import { bumpStreak, breakStreak, getStreak, getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const ROWS = 6;
 const COLS = 5;
@@ -205,6 +207,7 @@ export default function WordlePage() {
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Wordle</h1>
@@ -255,6 +258,16 @@ export default function WordlePage() {
           </div>
         ))}
       </div>
+
+      {done ? (
+        <EndScreenAddon
+          game="wordle"
+          score={done === "win" ? ROWS - guesses.length + 1 : 0}
+          time={elapsed}
+          rank={submitted?.rank}
+          meta={{ guesses: guesses.length, won: done === "win", target }}
+        />
+      ) : null}
 
       {showModal ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={() => setShowModal(false)}>

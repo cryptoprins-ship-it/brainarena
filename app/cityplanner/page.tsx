@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const SIZE = 8;
 const ROUNDS = 20;
@@ -164,6 +166,7 @@ export default function CityPlannerPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">CityPlanner</h1>
@@ -209,6 +212,15 @@ export default function CityPlannerPage() {
         <div>🏠 next to 🏭: −2</div>
         <div>Connected 🛣️ network: bonus</div>
       </div>
+
+      {done ? (
+        <EndScreenAddon
+          game="cityplanner"
+          score={total}
+          rank={submitted?.rank}
+          meta={{ rating: ratingFor(total), bonus }}
+        />
+      ) : null}
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">

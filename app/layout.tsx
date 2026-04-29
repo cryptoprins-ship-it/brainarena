@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import Link from "next/link";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import NavBar from "@/components/NavBar";
+import AchievementToast from "@/components/AchievementToast";
 import "./globals.css";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
@@ -48,28 +48,9 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
-        <header className="border-b border-[#2a2a2a] bg-[#0a0a0a]">
-          <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
-            <Link href="/" className="text-lg font-bold tracking-tight">
-              <span className="text-white">Brain</span>
-              <span className="text-indigo-400">Arena</span>
-            </Link>
-            <div className="flex flex-wrap items-center gap-1 text-sm">
-              <Link href="/wordle" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Wordle</Link>
-              <Link href="/boggle" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Boggle</Link>
-              <Link href="/sudoku" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Sudoku</Link>
-              <Link href="/typing" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Typing</Link>
-              <Link href="/tiledrop" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">TileDrop</Link>
-              <Link href="/wordbuild" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">WordBuild</Link>
-              <Link href="/colormatch" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">ColorMatch</Link>
-              <Link href="/cityplanner" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">CityPlanner</Link>
-              <Link href="/letterstack" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">LetterStack</Link>
-              <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Leaderboard</Link>
-            </div>
-            <LanguageSwitcher />
-          </nav>
-        </header>
+        <NavBar />
         <main className="flex-1">{children}</main>
+        <AchievementToast />
         <footer className="border-t border-[#2a2a2a] bg-[#0a0a0a] px-4 py-6 text-center text-xs text-gray-500">
           © {new Date().getFullYear()} BrainArena · Free daily puzzles & word games
         </footer>

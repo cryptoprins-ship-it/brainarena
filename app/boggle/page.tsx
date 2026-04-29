@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const SIZE = 4;
 const DURATION = 180; // seconds
@@ -143,6 +145,7 @@ export default function BogglePage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Boggle</h1>
@@ -208,6 +211,16 @@ export default function BogglePage() {
           </ul>
         </div>
       </div>
+
+      {done ? (
+        <EndScreenAddon
+          game="boggle"
+          score={score}
+          time={DURATION}
+          rank={submitted?.rank}
+          meta={{ found: found.length }}
+        />
+      ) : null}
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">

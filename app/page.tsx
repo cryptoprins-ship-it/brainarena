@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { livePlayerCount } from "@/lib/scores";
+import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib/achievements";
 
 const GAMES: {
   href: string;
@@ -130,18 +131,64 @@ const GAMES: {
 
 export default function HomePage() {
   const [players, setPlayers] = useState<number | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
     setPlayers(livePlayerCount());
+    setStats(loadStats());
     const id = window.setInterval(() => setPlayers(livePlayerCount()), 6000);
     return () => window.clearInterval(id);
   }, []);
+
+  const recentMedals = useMemo<Achievement[]>(() => {
+    if (!stats) return [];
+    return listAchievements(stats)
+      .filter((a) => a.unlocked && a.unlockedAt)
+      .sort((a, b) => (b.unlockedAt ?? "").localeCompare(a.unlockedAt ?? ""))
+      .slice(0, 3);
+  }, [stats]);
+
+  const showWelcome = stats && stats.streakDays > 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const playedToday = stats?.lastPlayed === today;
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <div id="adsense-top" className="w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
         Advertisement
       </div>
+
+      {showWelcome ? (
+        <section className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
+          <span className="font-bold">Welcome back!</span>{" "}
+          <span className="text-amber-200">🔥 {stats!.streakDays} day streak</span>{" "}
+          {playedToday ? "— locked in for today." : "— play any game today to keep it alive."}
+        </section>
+      ) : null}
+
+      {stats && stats.totalGames > 0 ? (
+        <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <Mini label="Games today" value={Object.values(stats.gamesPerType).reduce((a, b) => a + b, 0) - (stats.totalGames - (playedToday ? 1 : 0))} />
+          <Mini label="Total games" value={stats.totalGames} />
+          <Mini label="Best streak" value={`${stats.bestStreak} d`} />
+          <Mini label="Medals" value={recentMedals.length === 0 ? Object.keys(stats.unlocked).length : Object.keys(stats.unlocked).length} />
+        </section>
+      ) : null}
+
+      {recentMedals.length > 0 ? (
+        <section className="mt-4 flex items-center gap-3 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
+          <span className="text-xs uppercase tracking-wider text-gray-500">Latest medals</span>
+          <div className="flex flex-wrap items-center gap-2">
+            {recentMedals.map((m) => (
+              <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-[#0a0a0a] border border-indigo-500/30 px-2 py-1 text-xs">
+                <span className="text-base">{m.icon}</span>
+                {m.name}
+              </span>
+            ))}
+          </div>
+          <Link href="/achievements" className="ml-auto text-xs text-indigo-300 hover:text-indigo-200">All →</Link>
+        </section>
+      ) : null}
 
       <section className="mt-8 rounded-2xl border border-[#2a2a2a] bg-gradient-to-br from-indigo-500/15 to-transparent p-6 md:p-8">
         <p className="text-xs uppercase tracking-widest text-indigo-300">Daily Challenge</p>
@@ -205,6 +252,15 @@ export default function HomePage() {
       <div id="adsense-bottom" className="mt-8 w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
         Advertisement
       </div>
+    </div>
+  );
+}
+
+function Mini({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
+      <p className="text-[10px] uppercase tracking-wider text-gray-500">{label}</p>
+      <p className="mt-1 text-base font-bold tabular-nums">{value}</p>
     </div>
   );
 }

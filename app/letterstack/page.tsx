@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { isInWordList } from "@/lib/dailyWord";
 import { useLocale } from "@/lib/i18n";
 import { getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTTTTUUUVVWWXYYZ";
 const STACK_LIMIT = 10;
@@ -174,6 +176,7 @@ export default function LetterStackPage() {
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">LetterStack</h1>
@@ -237,6 +240,15 @@ export default function LetterStackPage() {
           <button key={c} onClick={() => { tryCatch(c); setInput((i) => (i + c).slice(0, 16)); }} className="rounded bg-[#1a1a1a] py-2 text-sm font-bold uppercase border border-[#2a2a2a]">{c}</button>
         ))}
       </div>
+
+      {over ? (
+        <EndScreenAddon
+          game="letterstack"
+          score={score}
+          rank={submitted?.rank}
+          meta={{ missed }}
+        />
+      ) : null}
 
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RAL } from "@/lib/ralColors";
 import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const ROUNDS = 10;
 const ROUND_MS = 5000;
@@ -133,6 +135,7 @@ export default function ColorMatchPage() {
   if (done) {
     return (
       <div className="mx-auto w-full max-w-md px-4 py-8">
+        <StreakBanner />
         <h1 className="text-3xl font-black">Final score: {score}</h1>
         <p className="mt-1 text-sm text-gray-300">{correct}/{ROUNDS} correct · <span className="text-indigo-300">{ratingFor(correct)}</span></p>
 
@@ -151,6 +154,13 @@ export default function ColorMatchPage() {
             <p className="text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
           )}
         </div>
+
+        <EndScreenAddon
+          game="colormatch"
+          score={score}
+          rank={submitted?.rank}
+          meta={{ correct, rating: ratingFor(correct) }}
+        />
 
         <a
           href="https://renisual.com/render"
@@ -176,6 +186,7 @@ export default function ColorMatchPage() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">ColorMatch</h1>

@@ -15,6 +15,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "colormatch",
     "cityplanner",
     "letterstack",
+    "achievements",
     "leaderboard",
   ].map((p) => ({
     url: p ? `${BASE}/${p}` : BASE,

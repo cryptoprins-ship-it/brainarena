@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { pickText } from "@/lib/typingTexts";
 import { getName, setName, submitScore } from "@/lib/scores";
+import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 
 const DURATION = 60;
 
@@ -94,6 +96,7 @@ export default function TypingPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
+      <StreakBanner />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Typing Speed</h1>
@@ -138,6 +141,16 @@ export default function TypingPage() {
       <button onClick={reset} className="mt-3 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 text-sm">
         Restart
       </button>
+
+      {done ? (
+        <EndScreenAddon
+          game="typing"
+          score={stats.wpm}
+          time={stats.elapsed}
+          rank={submitted?.rank}
+          meta={{ accuracy: stats.accuracy }}
+        />
+      ) : null}
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
