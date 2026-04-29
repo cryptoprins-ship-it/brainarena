@@ -1,65 +1,210 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { livePlayerCount } from "@/lib/scores";
+
+const GAMES: {
+  href: string;
+  title: string;
+  blurb: string;
+  preview: React.ReactNode;
+  accent: string;
+}[] = [
+  {
+    href: "/wordle",
+    title: "Wordle",
+    blurb: "Guess the 5-letter word in 6 tries. New word daily.",
+    accent: "from-emerald-500/20 to-emerald-500/0",
+    preview: (
+      <div className="flex gap-1">
+        <div className="h-7 w-7 rounded bg-[#538d4e] text-center text-sm font-bold leading-7">B</div>
+        <div className="h-7 w-7 rounded bg-[#b59f3b] text-center text-sm font-bold leading-7">R</div>
+        <div className="h-7 w-7 rounded bg-[#3a3a3c] text-center text-sm font-bold leading-7">A</div>
+        <div className="h-7 w-7 rounded bg-[#538d4e] text-center text-sm font-bold leading-7">I</div>
+        <div className="h-7 w-7 rounded bg-[#3a3a3c] text-center text-sm font-bold leading-7">N</div>
+      </div>
+    ),
+  },
+  {
+    href: "/boggle",
+    title: "Boggle",
+    blurb: "Find as many words as you can in 3 minutes.",
+    accent: "from-amber-500/20 to-amber-500/0",
+    preview: (
+      <div className="grid grid-cols-4 gap-1">
+        {["A","R","E","N","O","B","I","T","P","L","Y","S","M","U","K","D"].map((c, i) => (
+          <div key={i} className="h-6 w-6 rounded bg-[#2a2a2a] text-center text-[11px] font-bold leading-6">{c}</div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    href: "/sudoku",
+    title: "Sudoku",
+    blurb: "Daily puzzle. Easy, medium or hard.",
+    accent: "from-sky-500/20 to-sky-500/0",
+    preview: (
+      <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px text-[10px] leading-5 font-bold">
+        {[5,3,1,7,9,4,6,8,2].map((n, i) => (
+          <div key={i} className="h-5 w-5 bg-[#1a1a1a] text-center">{n}</div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    href: "/typing",
+    title: "Typing",
+    blurb: "How many words per minute can you hit?",
+    accent: "from-pink-500/20 to-pink-500/0",
+    preview: (
+      <div className="text-2xl font-black tabular-nums">
+        72<span className="text-xs font-medium text-gray-400 ml-1">WPM</span>
+      </div>
+    ),
+  },
+  {
+    href: "/tiledrop",
+    title: "TileDrop",
+    blurb: "Stack falling tiles. Clear lines. Don't top out.",
+    accent: "from-fuchsia-500/20 to-fuchsia-500/0",
+    preview: (
+      <div className="grid grid-cols-4 gap-px">
+        {[0,1,2,3].flatMap((r) =>
+          [0,1,2,3].map((k) => {
+            const filled = r === 3 || (r === 2 && (k === 1 || k === 2));
+            const colors = ["#22d3ee","#fb7185","#fbbf24","#34d399"];
+            return (
+              <div
+                key={`${r}-${k}`}
+                className="h-3 w-3 rounded-sm"
+                style={{ background: filled ? colors[r] : "#2a2a2a" }}
+              />
+            );
+          })
+        )}
+      </div>
+    ),
+  },
+  {
+    href: "/wordbuild",
+    title: "WordBuild",
+    blurb: "Type words, build a house — short = bricks, long = roof.",
+    accent: "from-orange-500/20 to-orange-500/0",
+    preview: (
+      <div className="text-2xl">🏠</div>
+    ),
+  },
+  {
+    href: "/colormatch",
+    title: "ColorMatch",
+    blurb: "Identify RAL color codes used by professionals.",
+    accent: "from-rose-500/20 to-rose-500/0",
+    preview: (
+      <div className="flex gap-1">
+        <div className="h-7 w-7 rounded" style={{ background: "#642424" }} />
+        <div className="h-7 w-7 rounded" style={{ background: "#0E294B" }} />
+        <div className="h-7 w-7 rounded" style={{ background: "#114232" }} />
+      </div>
+    ),
+  },
+  {
+    href: "/cityplanner",
+    title: "CityPlanner",
+    blurb: "Place houses, parks, factories. Build a metropolis.",
+    accent: "from-lime-500/20 to-lime-500/0",
+    preview: (
+      <div className="text-2xl">🏙️</div>
+    ),
+  },
+  {
+    href: "/letterstack",
+    title: "LetterStack",
+    blurb: "Catch falling letters. Form words. Don't overflow.",
+    accent: "from-violet-500/20 to-violet-500/0",
+    preview: (
+      <div className="text-2xl font-black">A B<br />C D</div>
+    ),
+  },
+];
+
+export default function HomePage() {
+  const [players, setPlayers] = useState<number | null>(null);
+
+  useEffect(() => {
+    setPlayers(livePlayerCount());
+    const id = window.setInterval(() => setPlayers(livePlayerCount()), 6000);
+    return () => window.clearInterval(id);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <div id="adsense-top" className="w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
+        Advertisement
+      </div>
+
+      <section className="mt-8 rounded-2xl border border-[#2a2a2a] bg-gradient-to-br from-indigo-500/15 to-transparent p-6 md:p-8">
+        <p className="text-xs uppercase tracking-widest text-indigo-300">Daily Challenge</p>
+        <h1 className="mt-2 text-3xl font-black md:text-5xl">
+          New puzzles every day. <span className="text-indigo-400">Beat them all.</span>
+        </h1>
+        <p className="mt-3 max-w-2xl text-sm text-gray-300 md:text-base">
+          Nine free puzzle and word games. Same daily challenge for everyone — race the world.
+        </p>
+        <p className="mt-4 text-sm text-gray-400">
+          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500 mr-2 align-middle" />
+          {players ? `${players.toLocaleString()} players today` : "Loading…"}
+        </p>
+        <p className="mt-3 text-xs text-gray-500">
+          🎮 9 Games <span className="mx-2">|</span> 🌍 5 Languages <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+        </p>
+      </section>
+
+      <section className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
+        {GAMES.map((g) => (
+          <Link
+            key={g.href}
+            href={g.href}
+            className="group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${g.accent}`} />
+            <div className="relative flex h-full flex-col gap-4">
+              <div className="flex items-center justify-center rounded-xl bg-[#0a0a0a] p-3">
+                {g.preview}
+              </div>
+              <div>
+                <h2 className="text-lg font-bold">{g.title}</h2>
+                <p className="mt-1 text-xs text-gray-400">{g.blurb}</p>
+              </div>
+              <span className="mt-auto text-xs font-semibold text-indigo-300 group-hover:text-indigo-200">
+                Play →
+              </span>
+            </div>
+          </Link>
+        ))}
+      </section>
+
+      <section className="mt-8 grid gap-4 md:grid-cols-3">
+        <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
+          <p className="text-xs uppercase tracking-widest text-gray-500">Today</p>
+          <h3 className="mt-1 text-xl font-bold">5 daily puzzles</h3>
+          <p className="mt-2 text-sm text-gray-400">Synced worldwide. Beat your streak.</p>
         </div>
-      </main>
+        <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
+          <p className="text-xs uppercase tracking-widest text-gray-500">Languages</p>
+          <h3 className="mt-1 text-xl font-bold">EN · NL · DE · FR · ES</h3>
+          <p className="mt-2 text-sm text-gray-400">Auto-detect, switch any time.</p>
+        </div>
+        <Link href="/leaderboard" className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 hover:border-indigo-400/40">
+          <p className="text-xs uppercase tracking-widest text-gray-500">Compete</p>
+          <h3 className="mt-1 text-xl font-bold">Global Leaderboard →</h3>
+          <p className="mt-2 text-sm text-gray-400">Can you beat #1 today?</p>
+        </Link>
+      </section>
+
+      <div id="adsense-bottom" className="mt-8 w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
+        Advertisement
+      </div>
     </div>
   );
 }

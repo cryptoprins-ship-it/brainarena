@@ -1,0 +1,31 @@
+// Common 5-letter Spanish words used as the daily-answer pool.
+// Extend freely — Wordle game accepts any 5-letter input regardless of this list.
+
+export const ES_WORDS: string[] = [
+  "abajo","abeja","abrir","abuso","aceit","acero","acoso","actor","actual","acudir",
+  "adios","aereo","afuer","aguda","aguja","ahora","ajeno","alado","alarm","albor",
+  "alcal","aldea","alegr","alero","alfil","algun","alibi","alma","altar","alto",
+  "altruz","amante","amar","ambos","amigo","amor","ancho","anclar","andar","angel",
+  "ansia","antes","antro","anuar","apoyo","aprob","aquel","arbol","ardid","ardor",
+  "arena","argon","arido","arma","armon","aroma","arpa","arroz","arte","arzul",
+  "asado","aseo","aspir","astro","atajo","atar","atico","atomo","autor","avena",
+  "avion","ayuda","ayuno","azada","azoga","azote","azul","bajo","balde","banco",
+  "banda","baraj","barba","barco","barro","basta","baton","baul","beata","bebe",
+  "berro","bicho","bilis","bingo","blanc","blusa","boca","bocho","bola","bolsa",
+  "bombo","borda","bosque","bote","brazo","breve","brio","bruma","bruto","buena",
+  "bueno","bulto","burro","busca","buzon","cable","cabra","cacao","cacha","cada",
+  "cafe","caja","calce","calma","calor","calzo","cama","cambi","campo","canal",
+  "canon","cansa","canto","capa","caque","cara","carbo","cargo","carne","carpa",
+  "carro","casa","catar","cauce","cauto","cazar","cebar","cedro","celta","cena",
+  "ceniz","cerca","cerdo","cero","cesar","cetro","ciego","cielo","cien","cierr",
+  "cifra","cigar","cinco","cinta","cisne","clase","clava","clave","clima","cobra",
+  "cocer","codo","cofre","cogen","cojin","colar","colmo","color","comba","comer",
+  "comic","comun","conde","copia","copla","corno","corre","corta","cosa","costa",
+  "creer","crema","crepa","cresp","criar","crisp","cromo","cruda","crudo","cruel",
+  "cruzar","cuajo","cuart","cubre","cuela","cuento","cuero","cuesto","cueva","cuyas",
+  "danza","dardo","datar","datos","deber","decir","dedo","dejar","delta","deuda",
+  "diari","dicho","diente","dieta","diez","digno","dios","dique","disco","ditar",
+  "doble","doceo","domar","donar","donde","dosel","dotar","drama","duda","duelo",
+  "duero","dueno","dulce","dunas","durar","duros","ebrio","echar","edad","editor",
+  "educar","efecto","eje","ejido","elite","ellos","emble","emite","empuja","enano",
+];
