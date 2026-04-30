@@ -31,6 +31,16 @@ html, body {
   font-family: var(--font-sans);
 }
 
+/* Locale-aware fonts: Inter (default) lacks Devanagari and CJK glyphs, so
+   swap in the Noto family for hi/ja to avoid tofu (□) characters. The
+   variables come from next/font/google in app/layout.tsx. */
+html[lang="hi"], html[lang="hi"] body {
+  font-family: var(--font-noto-deva), var(--font-sans);
+}
+html[lang="ja"], html[lang="ja"] body {
+  font-family: var(--font-noto-jp), var(--font-sans);
+}
+
 @keyframes flip {
   0% { transform: rotateX(0); }
   50% { transform: rotateX(90deg); }

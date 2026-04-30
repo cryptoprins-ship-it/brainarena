@@ -1,0 +1,7 @@
+# BrainArena · ads.txt
+# Will be populated by Google AdSense after approval.
+# After approval, replace this comment with the line AdSense gives you,
+# typically of the form:
+#   google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0
+#
+# Reference: https://iabtechlab.com/ads-txt/

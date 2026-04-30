@@ -1,16 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
+import EndScreenAddon from "@/components/EndScreenAddon";
 import { useLocale } from "@/lib/i18n";
+import { generateKronen, dayIndex, type KronenPuzzle } from "@/lib/games/kronen";
 
 type Difficulty = "easy" | "medium" | "hard";
+type CellMark = 0 | 1 | 2; // 0 empty, 1 X, 2 crown
+
 const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 8, hard: 10 };
+const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
+const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 const BEST_KEY = (d: Difficulty) => `brainarena-kronen-best-${d}`;
 
-// Warmer, distinctly non-LinkedIn palette: terracotta / sage / ochre / dusty blue / mauve / sand / clay / steel.
-export const KRONEN_PALETTE = [
+// Warm, distinctly non-LinkedIn palette.
+const KRONEN_PALETTE = [
   "#c97b63", // terracotta
   "#7a8d6c", // sage
   "#bca06a", // ochre
@@ -23,31 +29,171 @@ export const KRONEN_PALETTE = [
   "#7d8b78", // stone
 ];
 
+type Move = { idx: number; prev: CellMark; next: CellMark };
+
 export default function KronenPage() {
   const { t, locale } = useLocale();
+
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
+  const [seedNonce, setSeedNonce] = useState(0);
+  const [puzzle, setPuzzle] = useState<KronenPuzzle | null>(null);
+  const [marks, setMarks] = useState<CellMark[]>([]);
+  const [history, setHistory] = useState<Move[]>([]);
+  const [hintsLeft, setHintsLeft] = useState(HINTS_FOR.easy);
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
+  const [elapsed, setElapsed] = useState(0);
+  const [done, setDone] = useState(false);
+  const startedAt = useRef<number | null>(null);
 
-  const size = SIZE_FOR[difficulty];
+  // Build a daily seed tied to UTC day + difficulty + nonce. The nonce lets
+  // "New game" within the same day produce a fresh puzzle; nonce=0 is the
+  // shared daily so leaderboard entries match across players.
+  const seed = useMemo(
+    () => dayIndex() * 1009 + DIFF_INDEX[difficulty] * 17 + seedNonce,
+    [difficulty, seedNonce]
+  );
 
+  // Generate puzzle whenever seed/difficulty changes.
+  useEffect(() => {
+    const size = SIZE_FOR[difficulty];
+    const p = generateKronen(size, seed);
+    setPuzzle(p);
+    setMarks(new Array(size * size).fill(0));
+    setHistory([]);
+    setHintsLeft(HINTS_FOR[difficulty]);
+    setElapsed(0);
+    setDone(false);
+    startedAt.current = null;
+  }, [difficulty, seed]);
+
+  // Best-time per difficulty.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = localStorage.getItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
-  // Demo region partition for the placeholder grid: stripe by row so the
-  // palette is visible and the warm-tone identity is established before the
-  // real generator lands.
-  const placeholder = useMemo(() => {
-    const cells: { idx: number; region: number }[] = [];
-    for (let r = 0; r < size; r++) {
-      for (let c = 0; c < size; c++) {
-        cells.push({ idx: r * size + c, region: r % KRONEN_PALETTE.length });
+  // Timer.
+  useEffect(() => {
+    if (done) return;
+    const id = window.setInterval(() => {
+      if (startedAt.current) setElapsed(Math.floor((Date.now() - startedAt.current) / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [done]);
+
+  // Win detection: every row has exactly one crown placed at the solution column.
+  const isWin = useCallback(
+    (current: CellMark[]) => {
+      if (!puzzle) return false;
+      const { size, solution } = puzzle;
+      for (let r = 0; r < size; r++) {
+        const want = solution[r];
+        for (let c = 0; c < size; c++) {
+          const isCrown = current[r * size + c] === 2;
+          if (c === want && !isCrown) return false;
+          if (c !== want && isCrown) return false;
+        }
       }
+      return true;
+    },
+    [puzzle]
+  );
+
+  const onCellClick = useCallback(
+    (idx: number) => {
+      if (done || !puzzle) return;
+      if (!startedAt.current) startedAt.current = Date.now();
+      setMarks((prev) => {
+        const next: CellMark[] = [...prev];
+        const cur = next[idx];
+        const nxt: CellMark = (((cur + 1) % 3) as CellMark);
+        next[idx] = nxt;
+        setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
+        if (isWin(next)) {
+          setDone(true);
+          const t = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
+          setElapsed(t);
+          // Persist best time.
+          const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+          if (!prevBest || t < prevBest) {
+            localStorage.setItem(BEST_KEY(difficulty), String(t));
+            setBestSeconds(t);
+          }
+        }
+        return next;
+      });
+    },
+    [difficulty, done, elapsed, isWin, puzzle]
+  );
+
+  const onUndo = useCallback(() => {
+    if (done) return;
+    setHistory((h) => {
+      if (!h.length) return h;
+      const last = h[h.length - 1];
+      setMarks((m) => {
+        const next = [...m];
+        next[last.idx] = last.prev;
+        return next;
+      });
+      return h.slice(0, -1);
+    });
+  }, [done]);
+
+  const onHint = useCallback(() => {
+    if (done || !puzzle || hintsLeft <= 0) return;
+    const { size, solution } = puzzle;
+    // Pick a row whose crown isn't yet correctly placed.
+    const candidates: number[] = [];
+    for (let r = 0; r < size; r++) {
+      const want = solution[r];
+      const idx = r * size + want;
+      if (marks[idx] !== 2) candidates.push(idx);
     }
-    return cells;
-  }, [size]);
+    if (!candidates.length) return;
+    const idx = candidates[Math.floor(Math.random() * candidates.length)];
+    if (!startedAt.current) startedAt.current = Date.now();
+    setMarks((prev) => {
+      const next = [...prev];
+      const cur = next[idx];
+      next[idx] = 2;
+      setHistory((h) => [...h, { idx, prev: cur, next: 2 }]);
+      if (isWin(next)) {
+        setDone(true);
+        const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
+        setElapsed(tt);
+        const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+        if (!prevBest || tt < prevBest) {
+          localStorage.setItem(BEST_KEY(difficulty), String(tt));
+          setBestSeconds(tt);
+        }
+      }
+      return next;
+    });
+    setHintsLeft((h) => h - 1);
+  }, [difficulty, done, elapsed, hintsLeft, isWin, marks, puzzle]);
+
+  const onReset = useCallback(() => {
+    if (!puzzle) return;
+    setMarks(new Array(puzzle.size * puzzle.size).fill(0));
+    setHistory([]);
+    setDone(false);
+    setElapsed(0);
+    startedAt.current = null;
+  }, [puzzle]);
+
+  const onNewGame = useCallback(() => setSeedNonce((n) => n + 1), []);
+
+  if (!puzzle) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-4 py-6">
+        <p className="text-sm text-gray-400">Loading…</p>
+      </div>
+    );
+  }
+
+  const size = puzzle.size;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -57,31 +203,115 @@ export default function KronenPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">{t("game_kronen")}</h1>
-          <p className="text-xs text-gray-400">{t("game_kronen_desc")} · {locale.toUpperCase()}</p>
+          <p className="text-xs text-gray-400">
+            {t("game_kronen_desc")} · {locale.toUpperCase()} · ⏱ <span className="font-mono">{elapsed}s</span>
+          </p>
         </div>
         <DifficultyToggle value={difficulty} onChange={setDifficulty} />
       </div>
-
-      <p className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
-        Generator coming up next — the region puzzle will fill this slot. Palette below shows the warm-tone identity.
-      </p>
 
       <div
         className="mx-auto mt-5 grid gap-[2px] rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] p-[2px]"
         style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
       >
-        {placeholder.map((c) => (
-          <div
-            key={c.idx}
-            className="aspect-square grid place-items-center text-base font-bold text-white/80"
-            style={{ background: KRONEN_PALETTE[c.region] }}
-          />
-        ))}
+        {puzzle.regions.map((region, idx) => {
+          const mark = marks[idx];
+          const r = Math.floor(idx / size);
+          const c = idx % size;
+          const conflict = mark === 2 && hasConflict(idx, marks, puzzle);
+          return (
+            <button
+              key={idx}
+              type="button"
+              aria-label={`row ${r + 1} col ${c + 1}`}
+              onClick={() => onCellClick(idx)}
+              disabled={done}
+              className={`aspect-square grid place-items-center text-lg font-bold transition active:scale-[0.97] ${
+                conflict ? "ring-2 ring-red-400" : ""
+              }`}
+              style={{ background: KRONEN_PALETTE[region % KRONEN_PALETTE.length] }}
+            >
+              {mark === 2 ? (
+                <span className="text-2xl leading-none text-[#0a0a0a] drop-shadow">♛</span>
+              ) : mark === 1 ? (
+                <span className="text-base leading-none text-[#0a0a0a]/70">×</span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
-      <Controls bestSeconds={bestSeconds} disabled />
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={onNewGame}
+            className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-bold hover:opacity-90"
+          >
+            {t("new_game")}
+          </button>
+          <button
+            onClick={onHint}
+            disabled={hintsLeft <= 0 || done}
+            className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40"
+          >
+            {t("hint")} ({hintsLeft})
+          </button>
+          <button
+            onClick={onUndo}
+            disabled={!history.length || done}
+            className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40"
+          >
+            {t("undo")}
+          </button>
+          <button
+            onClick={onReset}
+            className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm"
+          >
+            {t("reset")}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
+        </p>
+      </div>
+
+      {done ? (
+        <>
+          <div className="mt-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
+            <p className="font-bold text-emerald-200">{t("solved")}</p>
+            <p className="mt-1 text-emerald-100">
+              {t("your_time")}: <span className="font-mono">{elapsed}s</span>
+              {bestSeconds === elapsed ? <span className="ml-2 text-amber-300">★ {t("best_time").toLowerCase()}</span> : null}
+            </p>
+          </div>
+          <EndScreenAddon
+            game="kronen"
+            score={Math.max(1, 100000 - elapsed)}
+            time={elapsed}
+            meta={{ difficulty, won: true, hintsUsed: HINTS_FOR[difficulty] - hintsLeft }}
+          />
+        </>
+      ) : null}
     </div>
   );
+}
+
+function hasConflict(idx: number, marks: CellMark[], puzzle: KronenPuzzle): boolean {
+  const { size, regions } = puzzle;
+  if (marks[idx] !== 2) return false;
+  const r = Math.floor(idx / size);
+  const c = idx % size;
+  // Same row / column / region duplicate?
+  for (let i = 0; i < size * size; i++) {
+    if (i === idx || marks[i] !== 2) continue;
+    const ri = Math.floor(i / size);
+    const ci = i % size;
+    if (ri === r) return true;
+    if (ci === c) return true;
+    if (regions[i] === regions[idx]) return true;
+    if (Math.abs(ri - r) <= 1 && Math.abs(ci - c) <= 1) return true;
+  }
+  return false;
 }
 
 function DifficultyToggle({
@@ -99,28 +329,13 @@ function DifficultyToggle({
         <button
           key={d}
           onClick={() => onChange(d)}
-          className={`rounded-md px-3 py-1.5 capitalize ${value === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
+          className={`rounded-md px-3 py-1.5 capitalize ${
+            value === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"
+          }`}
         >
           {t(d)}
         </button>
       ))}
-    </div>
-  );
-}
-
-function Controls({ bestSeconds, disabled }: { bestSeconds: number | null; disabled: boolean }) {
-  const { t } = useLocale();
-  return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex flex-wrap gap-2">
-        <button disabled={disabled} className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-bold disabled:opacity-40">{t("new_game")}</button>
-        <button disabled={disabled} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40">{t("hint")}</button>
-        <button disabled={disabled} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40">{t("undo")}</button>
-        <button disabled={disabled} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40">{t("reset")}</button>
-      </div>
-      <p className="text-xs text-gray-500">
-        {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
-      </p>
     </div>
   );
 }

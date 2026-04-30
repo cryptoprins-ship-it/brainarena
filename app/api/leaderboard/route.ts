@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import path from "node:path";
 import fs from "node:fs/promises";
+import { z } from "zod";
+import { apiLimit, scoreLimit, clientKeyFromRequest, rateLimitResponse } from "@/lib/ratelimit";
+import { verifyOrigin } from "@/lib/verifyOrigin";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,7 +31,7 @@ export type ScoreEntry = {
   time?: number;
   language?: string;
   country?: string;
-  date: string;          // ISO timestamp
+  date: string;
   meta?: Record<string, unknown>;
 };
 
@@ -57,7 +61,6 @@ async function writeScores(g: Game, list: ScoreEntry[]) {
 }
 
 function sortFor(g: Game) {
-  // Higher = better for everything except Sudoku (time-based) — there, lower time wins.
   return (a: ScoreEntry, b: ScoreEntry) =>
     g === "sudoku"
       ? (a.time ?? Infinity) - (b.time ?? Infinity)
@@ -74,12 +77,31 @@ function withinPeriod(date: string, period: string): boolean {
   return true;
 }
 
+// Schema validates BEFORE we touch the filesystem so a malformed POST can
+// never wedge the JSON file. `meta` is intentionally permissive — game
+// pages pass through arbitrary contextual telemetry there.
+const scoreSchema = z.object({
+  game: z.enum(GAMES),
+  name: z.string().trim().min(1).max(24).default("Anonymous"),
+  score: z.number().finite().min(0).max(10_000_000),
+  time: z.number().finite().min(0).max(86400).optional(),
+  language: z.string().max(5).optional(),
+  country: z.string().max(4).optional(),
+  meta: z.record(z.string(), z.unknown()).optional(),
+});
+
 export async function GET(req: Request) {
+  const forbidden = verifyOrigin(req);
+  if (forbidden) return forbidden;
+
+  const { success, reset } = await apiLimit.limit(clientKeyFromRequest(req));
+  if (!success) return rateLimitResponse(reset);
+
   const url = new URL(req.url);
   const game = url.searchParams.get("game");
   const period = url.searchParams.get("period") ?? "alltime";
   if (!isGame(game)) {
-    return NextResponse.json({ error: "invalid game" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_game" }, { status: 400 });
   }
   const list = await readScores(game);
   const filtered = list.filter((e) => withinPeriod(e.date, period));
@@ -88,31 +110,37 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  let body: unknown;
+  const forbidden = verifyOrigin(req);
+  if (forbidden) return forbidden;
+
+  const ip = clientKeyFromRequest(req);
+  const { success, reset } = await scoreLimit.limit(ip);
+  if (!success) return rateLimitResponse(reset);
+
+  let raw: unknown;
   try {
-    body = await req.json();
+    raw = await req.json();
   } catch {
-    return NextResponse.json({ error: "invalid json" }, { status: 400 });
+    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
-  const b = body as Partial<ScoreEntry> & { game?: string };
-  if (!isGame(b.game ?? null)) {
-    return NextResponse.json({ error: "invalid game" }, { status: 400 });
+
+  const parsed = scoreSchema.safeParse(raw);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "invalid_input", issues: parsed.error.flatten() },
+      { status: 400 }
+    );
   }
-  const game = b.game as Game;
-  const name = String(b.name ?? "").slice(0, 24).trim() || "Anonymous";
-  const score = Number.isFinite(b.score) ? Number(b.score) : 0;
-  const time = b.time != null && Number.isFinite(b.time) ? Number(b.time) : undefined;
-  const language = typeof b.language === "string" ? b.language.slice(0, 5) : undefined;
-  const country = typeof b.country === "string" ? b.country.slice(0, 4) : undefined;
-  const meta = b.meta && typeof b.meta === "object" ? (b.meta as Record<string, unknown>) : undefined;
+  const data = parsed.data;
+  const game = data.game;
 
   const entry: ScoreEntry = {
-    name,
-    score,
-    time,
-    language,
-    country,
-    meta,
+    name: data.name || "Anonymous",
+    score: Math.floor(data.score),
+    time: data.time != null ? Math.floor(data.time) : undefined,
+    language: data.language,
+    country: data.country,
+    meta: data.meta,
     date: new Date().toISOString(),
   };
 
@@ -122,8 +150,9 @@ export async function POST(req: Request) {
   const trimmed = list.slice(0, MAX_ENTRIES);
   try {
     await writeScores(game, trimmed);
-  } catch (e) {
-    return NextResponse.json({ error: "write failed", detail: String(e) }, { status: 500 });
+  } catch (err) {
+    logger.error({ err, game }, "leaderboard_write_failed");
+    return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
   const rank = trimmed.findIndex((e) => e === entry) + 1;
   return NextResponse.json({ ok: true, rank });

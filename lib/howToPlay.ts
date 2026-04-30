@@ -733,12 +733,453 @@ const ES: Record<GameKey, HowToPlayEntry> = {
   },
 };
 
+// TBD: native review (machine-translated, Brazilian Portuguese pass).
+const PT_BR: Record<GameKey, HowToPlayEntry> = {
+  wordle: {
+    label: "Wordle",
+    href: "/wordle",
+    summary: "Adivinha a palavra de 5 letras em 6 tentativas.",
+    rules: [
+      "Escreve uma palavra de 5 letras e prime Enter para confirmar.",
+      "Verde = letra certa, sítio certo. Amarelo = letra certa, sítio errado. Cinzento = não está na palavra.",
+      "Tens 6 tentativas por puzzle.",
+      "Uma palavra diária por idioma — igual para todos. Ativa Ilimitado para jogar sem fim.",
+      "Resolver a diária mantém a tua sequência viva.",
+    ],
+  },
+  boggle: {
+    label: "Boggle",
+    href: "/boggle",
+    summary: "Encontra o máximo de palavras numa grelha 4×4 em 3 minutos.",
+    rules: [
+      "Toca em letras adjacentes (incluindo diagonais) para formar uma palavra.",
+      "A célula atual fica verde; toca outra vez para recuar um passo.",
+      "Mínimo de 3 letras; cada célula só se usa uma vez por palavra.",
+      "Enter ou Submeter valida a palavra. Esc limpa o trajeto.",
+      "Pontos: 3 letras = 1, 4 = 2, 5 = 4, 6 = 7, 7+ = 11.",
+    ],
+  },
+  sudoku: {
+    label: "Sudoku",
+    href: "/sudoku",
+    summary: "Preenche a grelha 9×9 para que cada linha, coluna e bloco 3×3 tenha 1–9 uma vez.",
+    rules: [
+      "Toca numa célula e depois num número 1–9 (ou usa o teclado).",
+      "Entradas erradas ficam destacadas a vermelho.",
+      "3 dicas por jogo revelam uma célula correta.",
+      "Easy / Medium / Hard têm cada um o seu puzzle diário.",
+      "Quanto mais rápido, melhor — o tempo é a pontuação.",
+    ],
+  },
+  typing: {
+    label: "Typing",
+    href: "/typing",
+    summary: "Escreve o parágrafo o mais rápido e preciso possível em 60 segundos.",
+    rules: [
+      "Toca no campo e começa a escrever — o cronómetro arranca na primeira tecla.",
+      "Letras corretas a branco, erros a vermelho e sublinhados.",
+      "PPM = caracteres corretos ÷ 5 ÷ minutos passados.",
+      "Cada idioma tem o seu conjunto de textos.",
+      "Toca em Reiniciar para um texto novo.",
+    ],
+  },
+  tiledrop: {
+    label: "TileDrop",
+    href: "/tiledrop",
+    summary: "Empilha peças, completa linhas, não enchas o topo.",
+    rules: [
+      "Desktop: ← / → mover, ↑ rodar, ↓ queda suave, Espaço queda rápida.",
+      "Móvel: desliza esquerda/direita para mover, toca para rodar, desliza para baixo para soltar.",
+      "C guarda a peça atual. P pausa.",
+      "Limpar 1/2/3/4 linhas = 100/300/500/800 × nível.",
+      "A velocidade aumenta a cada 10 linhas eliminadas.",
+    ],
+  },
+  wordbuild: {
+    label: "WordBuild",
+    href: "/wordbuild",
+    summary: "Escreve palavras da categoria do dia para construir uma casa peça a peça.",
+    rules: [
+      "Cada palavra tem de pertencer à categoria do dia.",
+      "3 letras = tijolo, 4 = parede, 5 = janela, 6 = telha, 7+ = chaminé.",
+      "Palavras mais longas dão mais pontos.",
+      "10 rondas — a tua casa terminada aparece no ranking.",
+    ],
+  },
+  colormatch: {
+    label: "ColorMatch",
+    href: "/colormatch",
+    summary: "Identifica o código RAL de uma amostra em 5 segundos.",
+    rules: [
+      "Escolhe o código certo entre 4 opções antes do tempo acabar.",
+      "100 pts por resposta certa + bónus de velocidade até +50.",
+      "10 rondas no total.",
+      "10/10 desbloqueia a medalha Color Expert.",
+    ],
+  },
+  letterstack: {
+    label: "LetterStack",
+    href: "/letterstack",
+    summary: "Apanha letras que caem, forma palavras, não transbordes.",
+    rules: [
+      "Prime a tecla correspondente — ou toca nos botões de letras no telemóvel.",
+      "Forma uma palavra com a pilha e prime Enter para pontuar.",
+      "3 letras = 10, 4 = 25, 5 = 50, 6+ = 100 pts.",
+      "As letras caem cada vez mais rápido — pilha de 10 = fim.",
+      "Power-ups a cada 500 pts: 💣 bomba, ⏸️ abrandar, ⭐ joker.",
+    ],
+  },
+  vlakken: {
+    label: "Retalhos",
+    href: "/vlakken",
+    summary: "Preenche a grelha completando a forma à volta de cada âncora numerada.",
+    rules: [
+      "Cada âncora tem um número = o tamanho da forma a que pertence.",
+      "Formas são retângulos: quadrado, alto ou largo. Âncoras tracejadas aceitam qualquer forma desse tamanho.",
+      "Cada célula pertence a exatamente uma forma; formas não podem sobrepor-se.",
+      "Toca numa âncora para ativá-la, depois toca em células para atribuí-las.",
+      "Resolvido quando todas as células estão atribuídas e cada forma corresponde.",
+    ],
+  },
+  verbind: {
+    label: "Liga",
+    href: "/verbind",
+    summary: "Liga os números por ordem com um caminho que passe por cada célula.",
+    rules: [
+      "Começa na célula 1 e avança por células ortogonalmente adjacentes.",
+      "Passa por 2, 3, 4, … por ordem numérica sem saltar.",
+      "O caminho tem de visitar cada célula exatamente uma vez.",
+      "Toca ou arrasta para estender; toca numa célula do caminho para recuar até ela.",
+      "Resolvido quando todas as células estão no caminho na ordem certa.",
+    ],
+  },
+  zonmaan: {
+    label: "Sol e Lua",
+    href: "/zonmaan",
+    summary: "Preenche cada célula com sol ou lua segundo as regras.",
+    rules: [
+      "Toca numa célula para alternar: vazia → sol → lua → vazia.",
+      "Não mais de dois símbolos iguais seguidos (horizontal ou vertical).",
+      "Cada linha e coluna contém igual número de sóis e luas.",
+      "Um '=' entre duas células: mesmo símbolo.",
+      "Um '×' entre duas células: símbolos opostos.",
+    ],
+  },
+  kronen: {
+    label: "Coroas",
+    href: "/kronen",
+    summary: "Coloca exatamente uma coroa em cada linha, coluna e região colorida.",
+    rules: [
+      "Toca numa célula: uma vez para X (proibido), duas para coroa, três para limpar.",
+      "Cada linha e cada coluna contém exatamente uma coroa.",
+      "Cada região colorida contém exatamente uma coroa.",
+      "Coroas não podem tocar-se — nem mesmo na diagonal.",
+      "Resolvido quando todas as coroas estão bem colocadas.",
+    ],
+  },
+};
+
+// High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
+const HI: Record<GameKey, HowToPlayEntry> = {
+  wordle: {
+    label: "Wordle",
+    href: "/wordle",
+    summary: "5 अक्षर का शब्द 6 प्रयासों में पता करें।",
+    rules: [
+      "कोई भी 5 अक्षर का शब्द लिखें और सबमिट करने के लिए Enter दबाएँ।",
+      "हरा = सही अक्षर, सही जगह। पीला = सही अक्षर, गलत जगह। ग्रे = शब्द में नहीं है।",
+      "हर पहेली के लिए 6 प्रयास मिलते हैं।",
+      "हर भाषा में एक दैनिक शब्द — सभी के लिए समान। असीमित खेल के लिए Unlimited चालू करें।",
+      "दैनिक हल करने से आपकी श्रृंखला बनी रहती है।",
+    ],
+  },
+  boggle: {
+    label: "Boggle",
+    href: "/boggle",
+    summary: "3 मिनट में 4×4 ग्रिड पर अधिकतम शब्द खोजें।",
+    rules: [
+      "शब्द बनाने के लिए आसपास के अक्षरों (तिरछे सहित) पर टैप करें।",
+      "वर्तमान सेल हरा हो जाता है; एक कदम पीछे जाने के लिए फिर से टैप करें।",
+      "शब्द कम से कम 3 अक्षर के हों; प्रत्येक टाइल प्रति शब्द एक बार।",
+      "Enter या Submit शब्द जमा करता है। Esc रास्ता साफ़ करता है।",
+      "अंक: 3 अक्षर = 1, 4 = 2, 5 = 4, 6 = 7, 7+ = 11।",
+    ],
+  },
+  sudoku: {
+    label: "Sudoku",
+    href: "/sudoku",
+    summary: "9×9 ग्रिड भरें ताकि हर पंक्ति, स्तंभ और 3×3 खंड में 1–9 ठीक एक बार आए।",
+    rules: [
+      "एक सेल पर टैप करें, फिर 1–9 कोई संख्या (या कीबोर्ड का उपयोग करें)।",
+      "गलत प्रविष्टियाँ लाल रंग में दिखती हैं।",
+      "प्रति खेल 3 संकेत एक सही सेल दिखाते हैं।",
+      "Easy / Medium / Hard में अलग-अलग दैनिक पहेली है।",
+      "जितना तेज़ हल — उतना बेहतर। समय ही आपका स्कोर है।",
+    ],
+  },
+  typing: {
+    label: "Typing",
+    href: "/typing",
+    summary: "60 सेकंड में पैराग्राफ को जितना तेज़ और सटीक हो सके टाइप करें।",
+    rules: [
+      "इनपुट पर टैप करके टाइप करना शुरू करें — पहली कुंजी पर टाइमर शुरू।",
+      "सही अक्षर सफेद, गलतियाँ लाल और रेखांकित।",
+      "WPM = सही अक्षर ÷ 5 ÷ बीते मिनट।",
+      "हर भाषा का अपना पाठ संग्रह है।",
+      "नया पाठ पाने के लिए Restart पर टैप करें।",
+    ],
+  },
+  tiledrop: {
+    label: "TileDrop",
+    href: "/tiledrop",
+    summary: "गिरते टुकड़े जमाएँ, पंक्तियाँ साफ़ करें, ऊपर तक भरने न दें।",
+    rules: [
+      "डेस्कटॉप: ← / → हिलाना, ↑ घुमाना, ↓ नीचे, Space तेज़ नीचे।",
+      "मोबाइल: बाएँ/दाएँ स्वाइप, टैप घुमाने को, नीचे स्वाइप गिराने को।",
+      "C वर्तमान टुकड़ा रोकता है। P रुकाता है।",
+      "1/2/3/4 पंक्तियाँ साफ़ करना = 100/300/500/800 × स्तर।",
+      "हर 10 साफ़ पंक्तियों पर गति बढ़ती है।",
+    ],
+  },
+  wordbuild: {
+    label: "WordBuild",
+    href: "/wordbuild",
+    summary: "आज की श्रेणी से शब्द लिखकर एक घर बनाएँ।",
+    rules: [
+      "हर शब्द आज की श्रेणी का होना चाहिए।",
+      "3 अक्षर = ईंट, 4 = दीवार, 5 = खिड़की, 6 = खपरैल, 7+ = चिमनी।",
+      "लंबे शब्द अधिक अंक देते हैं।",
+      "10 राउंड — आपका तैयार घर लीडरबोर्ड पर दिखता है।",
+    ],
+  },
+  colormatch: {
+    label: "ColorMatch",
+    href: "/colormatch",
+    summary: "5 सेकंड में रंग नमूने से RAL कोड पहचानें।",
+    rules: [
+      "समय खत्म होने से पहले 4 विकल्पों में से सही कोड चुनें।",
+      "हर सही उत्तर पर 100 अंक + +50 तक गति बोनस।",
+      "कुल 10 राउंड।",
+      "10/10 पर Color Expert मेडल खुलता है।",
+    ],
+  },
+  letterstack: {
+    label: "LetterStack",
+    href: "/letterstack",
+    summary: "गिरते अक्षर पकड़ें, शब्द बनाएँ, ढेर भरने न दें।",
+    rules: [
+      "मिलती हुई कुंजी दबाएँ — या मोबाइल पर अक्षर बटन टैप करें।",
+      "जमा अक्षरों से शब्द बनाएँ और स्कोर के लिए Enter दबाएँ।",
+      "3 अक्षर = 10, 4 = 25, 5 = 50, 6+ = 100 अंक।",
+      "अक्षर समय के साथ तेज़ गिरते हैं — 10 का ढेर अंत है।",
+      "हर 500 अंकों पर पावर-अप: 💣 बम, ⏸️ धीमा, ⭐ जोकर।",
+    ],
+  },
+  vlakken: {
+    label: "टुकड़े",
+    href: "/vlakken",
+    summary: "हर संख्या के चारों ओर आकृति पूरी करके ग्रिड भरें।",
+    rules: [
+      "हर एंकर की संख्या = उसके आकार का सेल काउंट।",
+      "आकार आयत हैं: वर्ग, ऊँचा या चौड़ा। डैश एंकर उस आकार की कोई भी आकृति स्वीकारते हैं।",
+      "हर सेल ठीक एक आकृति का हिस्सा हो; आकृतियाँ नहीं ढक सकतीं।",
+      "एंकर पर टैप करके सक्रिय करें, फिर सेल टैप करके जोड़ें।",
+      "जब सब सेल सौंप दिए जाएँ और हर आकृति सही हो — हल हो गया।",
+    ],
+  },
+  verbind: {
+    label: "जोड़ें",
+    href: "/verbind",
+    summary: "हर सेल से होकर एक रास्ते से क्रम में संख्याएँ जोड़ें।",
+    rules: [
+      "सेल 1 से शुरू करें और लंबवत/क्षैतिज सटे सेलों से बढ़ें।",
+      "2, 3, 4, … क्रम में बिना छोड़े गुज़रें।",
+      "रास्ता हर सेल को ठीक एक बार छुए।",
+      "बढ़ाने के लिए टैप या ड्रैग; रास्ते के सेल पर टैप करके वहाँ तक लौटें।",
+      "जब सब सेल सही क्रम में रास्ते पर हों — हल हो गया।",
+    ],
+  },
+  zonmaan: {
+    label: "सूर्य और चंद्र",
+    href: "/zonmaan",
+    summary: "नियमों के अनुसार हर सेल को सूर्य या चंद्र से भरें।",
+    rules: [
+      "सेल पर टैप करें: खाली → सूर्य → चंद्र → खाली।",
+      "एक पंक्ति में दो से अधिक समान चिह्न नहीं (क्षैतिज या लंबवत)।",
+      "हर पंक्ति और स्तंभ में सूर्य और चंद्र की संख्या बराबर हो।",
+      "दो सेलों के बीच '=' का अर्थ: समान चिह्न।",
+      "दो सेलों के बीच '×' का अर्थ: विपरीत चिह्न।",
+    ],
+  },
+  kronen: {
+    label: "मुकुट",
+    href: "/kronen",
+    summary: "हर पंक्ति, स्तंभ और रंगीन क्षेत्र में ठीक एक मुकुट रखें।",
+    rules: [
+      "सेल पर टैप करें: एक बार X (निषेध), दो बार मुकुट, तीन बार साफ़।",
+      "हर पंक्ति और स्तंभ में ठीक एक मुकुट।",
+      "हर रंगीन क्षेत्र में ठीक एक मुकुट।",
+      "मुकुट एक-दूसरे को नहीं छू सकते — तिरछे भी नहीं।",
+      "जब सब मुकुट सही जगह हों — हल हो गया।",
+    ],
+  },
+};
+
+// High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
+const JA: Record<GameKey, HowToPlayEntry> = {
+  wordle: {
+    label: "Wordle",
+    href: "/wordle",
+    summary: "5 文字の単語を 6 回以内で当てよう。",
+    rules: [
+      "5 文字の単語を入力して Enter で送信。",
+      "緑 = 文字も位置も正解。黄 = 文字は合っているが位置が違う。灰 = その文字は使われていない。",
+      "1 つのパズルにつき 6 回まで挑戦。",
+      "言語ごとに 1 日 1 単語 — 全員共通。Unlimited で無制限プレイも可能。",
+      "毎日のパズルを解くと連続記録が続く。",
+    ],
+  },
+  boggle: {
+    label: "Boggle",
+    href: "/boggle",
+    summary: "4×4 のグリッドから 3 分間でできるだけ多くの単語を見つけよう。",
+    rules: [
+      "隣接(斜めも可)するマスをタップして単語を作る。",
+      "現在のマスが緑になる。もう一度タップで 1 つ戻れる。",
+      "単語は 3 文字以上。1 単語につき各マスは 1 回のみ使用可。",
+      "Enter または Submit で確定。Esc でクリア。",
+      "得点: 3 文字 = 1, 4 = 2, 5 = 4, 6 = 7, 7+ = 11。",
+    ],
+  },
+  sudoku: {
+    label: "Sudoku",
+    href: "/sudoku",
+    summary: "9×9 のグリッドの各行・列・3×3 ブロックに 1–9 をちょうど 1 回ずつ。",
+    rules: [
+      "マスをタップしてから 1–9 をタップ(キーボードも可)。",
+      "誤入力は赤くハイライトされる。",
+      "1 ゲーム 3 ヒントまで使用可能(正解マスを表示)。",
+      "Easy / Medium / Hard それぞれ独立した日替わりパズル。",
+      "速いほど上位 — タイムがスコアになる。",
+    ],
+  },
+  typing: {
+    label: "Typing",
+    href: "/typing",
+    summary: "60 秒間でできるだけ速く正確にパラグラフを入力しよう。",
+    rules: [
+      "入力欄をタップして打ち始めるとタイマー開始。",
+      "正しい文字は白、誤りは赤の下線付き。",
+      "WPM = 正しい文字数 ÷ 5 ÷ 経過分。",
+      "言語ごとに専用の文章プールあり。",
+      "Restart でいつでも別の文章へ。",
+    ],
+  },
+  tiledrop: {
+    label: "TileDrop",
+    href: "/tiledrop",
+    summary: "落ちてくるブロックを積み、ラインを消し、上まで詰まらせない。",
+    rules: [
+      "デスクトップ: ←/→ 移動、↑ 回転、↓ ソフトドロップ、Space ハードドロップ。",
+      "モバイル: 左右スワイプで移動、タップで回転、下スワイプで落下。",
+      "C で現在のピースをホールド。P でポーズ。",
+      "1/2/3/4 ライン消去 = 100/300/500/800 × レベル。",
+      "10 ライン消すごとに速度上昇。",
+    ],
+  },
+  wordbuild: {
+    label: "WordBuild",
+    href: "/wordbuild",
+    summary: "今日のお題に沿った単語を入力して家を組み立てよう。",
+    rules: [
+      "すべての単語は今日のカテゴリに属していること。",
+      "3 文字 = レンガ、4 = 壁、5 = 窓、6 = 屋根瓦、7+ = 煙突。",
+      "長い単語ほど高得点。",
+      "10 ラウンド — 完成した家がリーダーボードに表示される。",
+    ],
+  },
+  colormatch: {
+    label: "ColorMatch",
+    href: "/colormatch",
+    summary: "5 秒以内にカラーサンプルから RAL コードを当てよう。",
+    rules: [
+      "時間切れ前に 4 択から正しいコードを選ぶ。",
+      "正解 100 点 + スピードボーナス最大 +50。",
+      "全 10 ラウンド。",
+      "10/10 で Color Expert メダル獲得。",
+    ],
+  },
+  letterstack: {
+    label: "LetterStack",
+    href: "/letterstack",
+    summary: "落ちてくる文字を取り、単語を作り、スタックを溢れさせない。",
+    rules: [
+      "対応するキーを押す — モバイルでは文字ボタンをタップ。",
+      "スタックの文字で単語を作り Enter でスコア。",
+      "3 文字 = 10、4 = 25、5 = 50、6+ = 100 点。",
+      "時間とともに落下が速くなる — スタック 10 でゲームオーバー。",
+      "500 点ごとにパワーアップ: 💣 ボム、⏸️ 減速、⭐ ジョーカー。",
+    ],
+  },
+  vlakken: {
+    label: "パッチ",
+    href: "/vlakken",
+    summary: "番号付きアンカーの周りの形を完成させてグリッドを埋めよう。",
+    rules: [
+      "各アンカーの数字 = その形のマス数。",
+      "形は長方形: 正方形・縦長・横長。点線アンカーはそのサイズの任意の形を許容。",
+      "各マスはちょうど 1 つの形に属する。形は重ならない。",
+      "アンカーをタップして選択、続いて割り当てるマスをタップ。",
+      "全マスが割り当てられ、各形が正しいサイズになればクリア。",
+    ],
+  },
+  verbind: {
+    label: "つなぐ",
+    href: "/verbind",
+    summary: "全マスを通る一本道で数字を順番につなごう。",
+    rules: [
+      "マス 1 から始めて、上下左右に隣接するマスへ進む。",
+      "2, 3, 4, … の順番で、飛ばさずに通過する。",
+      "経路は各マスをちょうど 1 回ずつ訪れる。",
+      "タップまたはドラッグで延長。経路上のマスをタップしてそこまで戻れる。",
+      "全マスが正しい順序で経路上にあればクリア。",
+    ],
+  },
+  zonmaan: {
+    label: "太陽と月",
+    href: "/zonmaan",
+    summary: "ルールに従って各マスに太陽または月を配置しよう。",
+    rules: [
+      "マスをタップして循環: 空 → 太陽 → 月 → 空。",
+      "同じ記号が 3 つ以上連続してはいけない(縦・横とも)。",
+      "各行・列の太陽と月の数は等しい。",
+      "マス間の '=' は同じ記号を意味する。",
+      "マス間の '×' は反対の記号を意味する。",
+    ],
+  },
+  kronen: {
+    label: "クラウン",
+    href: "/kronen",
+    summary: "各行・列・カラー領域にちょうど 1 つのクラウンを置こう。",
+    rules: [
+      "マスをタップ: 1 回で X(置けない)、2 回でクラウン、3 回でクリア。",
+      "各行・列にちょうど 1 つのクラウン。",
+      "各カラー領域にちょうど 1 つのクラウン。",
+      "クラウン同士は接してはいけない — 斜めも不可。",
+      "全クラウンが正しい位置になればクリア。",
+    ],
+  },
+};
+
 const ALL: Record<Locale, Record<GameKey, HowToPlayEntry>> = {
   en: EN,
   nl: NL,
   de: DE,
   fr: FR,
   es: ES,
+  hi: HI,
+  "pt-BR": PT_BR,
+  ja: JA,
 };
 
 export function getHowToPlay(locale: Locale): Record<GameKey, HowToPlayEntry> {
@@ -792,6 +1233,30 @@ export const UI_STRINGS: Record<Locale, {
     seeFullGuide: "Ver guía completa →",
     wantAllGames: "¿Ver todos los juegos?",
     play: "Jugar →",
+  },
+  hi: {
+    howToPlayHeading: "कैसे खेलें",
+    howToPlaySubtitle: "BrainArena के बारह खेलों के त्वरित नियम। एक चुनें और शुरू करें।",
+    howToPlayPrefix: "कैसे खेलें",
+    seeFullGuide: "पूरी गाइड देखें →",
+    wantAllGames: "सभी खेल देखें?",
+    play: "खेलें →",
+  },
+  "pt-BR": {
+    howToPlayHeading: "Como jogar",
+    howToPlaySubtitle: "Regras rápidas para os doze jogos do BrainArena. Escolha um e comece.",
+    howToPlayPrefix: "Como jogar",
+    seeFullGuide: "Ver guia completo →",
+    wantAllGames: "Ver todos os jogos?",
+    play: "Jogar →",
+  },
+  ja: {
+    howToPlayHeading: "遊び方",
+    howToPlaySubtitle: "BrainArena の 12 種類のゲームのクイックルール。1 つ選んで始めよう。",
+    howToPlayPrefix: "遊び方",
+    seeFullGuide: "ガイドを全部見る →",
+    wantAllGames: "全ゲームを見る?",
+    play: "プレイ →",
   },
 };
 

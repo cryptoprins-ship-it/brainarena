@@ -2,25 +2,49 @@
 
 import { useEffect, useState, useCallback } from "react";
 
-export type Locale = "en" | "nl" | "de" | "fr" | "es";
+// 8 locales as of 2026-04-30: NL/EN are native quality, DE/FR/ES/PT-BR are
+// machine-translated and flagged for native review (TBD: Fiverr proofread),
+// HI/JA carry the highest machine-translation risk and are gated behind a
+// "Coming soon" UX in the language switcher until they receive a native
+// review.
+export type Locale =
+  | "en" | "nl" | "de" | "fr" | "es"
+  | "hi" | "pt-BR" | "ja";
 
 const STORAGE_KEY = "brainarena-locale";
-export const SUPPORTED: Locale[] = ["en", "nl", "de", "fr", "es"];
+export const SUPPORTED: Locale[] = ["en", "nl", "de", "fr", "es", "hi", "pt-BR", "ja"];
 
-export const FLAG: Record<Locale, string> = {
-  en: "🇬🇧",
-  nl: "🇳🇱",
-  de: "🇩🇪",
-  fr: "🇫🇷",
-  es: "🇪🇸",
-};
+// Locales gated by the "review pending" UX. Selectable in dev / preview
+// builds; in production the LanguageSwitcher decorates them with a badge
+// and (configurably) blocks selection. Toggle here once a native review is
+// signed off.
+export const REVIEW_PENDING: ReadonlySet<Locale> = new Set<Locale>(["hi", "ja"]);
 
+// Native names — what speakers of that language actually call it. Used in
+// the dropdown switcher.
 export const LABEL: Record<Locale, string> = {
   en: "English",
   nl: "Nederlands",
   de: "Deutsch",
   fr: "Français",
   es: "Español",
+  hi: "हिन्दी",
+  "pt-BR": "Português",
+  ja: "日本語",
+};
+
+// Legacy emoji table — left for any places that still import FLAG by name.
+// Inline SVGs in components/Flag.tsx are preferred (Windows renders most
+// regional-indicator emoji as letter codes).
+export const FLAG: Record<Locale, string> = {
+  en: "🇬🇧",
+  nl: "🇳🇱",
+  de: "🇩🇪",
+  fr: "🇫🇷",
+  es: "🇪🇸",
+  hi: "🇮🇳",
+  "pt-BR": "🇧🇷",
+  ja: "🇯🇵",
 };
 
 // ---------------------------------------------------------------------------
@@ -113,6 +137,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     constraint_equal: "Zelfde symbool",
     constraint_opposite: "Tegengesteld symbool",
   },
+  // TBD: native review (machine-translated starting point).
   de: {
     game_vlakken: "Flächen",
     game_vlakken_desc: "Fülle das Raster, indem du die Formen um die Zahlen vervollständigst",
@@ -148,6 +173,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     constraint_equal: "Gleiches Symbol",
     constraint_opposite: "Gegenteiliges Symbol",
   },
+  // TBD: native review.
   fr: {
     game_vlakken: "Pièces",
     game_vlakken_desc: "Remplissez la grille en complétant les formes autour des nombres",
@@ -183,6 +209,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     constraint_equal: "Même symbole",
     constraint_opposite: "Symbole opposé",
   },
+  // TBD: native review.
   es: {
     game_vlakken: "Parches",
     game_vlakken_desc: "Rellena la cuadrícula completando las formas alrededor de los números",
@@ -218,6 +245,116 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     constraint_equal: "Mismo símbolo",
     constraint_opposite: "Símbolo opuesto",
   },
+  // High-risk machine translation — gated behind REVIEW_PENDING.
+  hi: {
+    game_vlakken: "टुकड़े",
+    game_vlakken_desc: "संख्याओं के चारों ओर आकृतियाँ पूरी करके ग्रिड भरें",
+    game_verbind: "जोड़ें",
+    game_verbind_desc: "हर सेल से होकर एक रास्ते से क्रम में संख्याएँ जोड़ें",
+    game_zonmaan: "सूर्य और चंद्र",
+    game_zonmaan_desc: "नियमों के अनुसार ग्रिड को सूर्यों और चंद्रमाओं से भरें",
+    game_kronen: "मुकुट",
+    game_kronen_desc: "हर पंक्ति, स्तंभ और रंग क्षेत्र में एक मुकुट रखें",
+    how_to_play: "कैसे खेलें",
+    undo: "पूर्ववत्",
+    hint: "संकेत",
+    reset: "रीसेट",
+    new_game: "नया खेल",
+    easy: "आसान",
+    medium: "मध्यम",
+    hard: "कठिन",
+    completed: "पूर्ण",
+    best_time: "सर्वश्रेष्ठ समय",
+    your_time: "आपका समय",
+    solved: "हल हो गया!",
+    solve_to_win: "जीतने के लिए पहेली हल करें।",
+    no_more_undo: "पूर्ववत् करने के लिए कुछ नहीं।",
+    no_more_hints: "कोई और संकेत नहीं।",
+    active: "सक्रिय",
+    active_anchor: "सक्रिय एंकर",
+    tap_to_select: "शुरू करने के लिए एक एंकर पर टैप करें।",
+    clear: "साफ़",
+    submit: "ठीक",
+    current: "वर्तमान",
+    path_length: "लंबाई",
+    next_number: "अगला",
+    constraint_equal: "समान चिह्न",
+    constraint_opposite: "विपरीत चिह्न",
+  },
+  // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
+  // strings carried over from the prior pt-PT seed; ensure Brazilian
+  // spelling/colloquialisms in the proofread pass.
+  "pt-BR": {
+    game_vlakken: "Retalhos",
+    game_vlakken_desc: "Preencha a grade completando as formas ao redor dos números",
+    game_verbind: "Conectar",
+    game_verbind_desc: "Conecte os números em ordem com um caminho que passe por cada célula",
+    game_zonmaan: "Sol e Lua",
+    game_zonmaan_desc: "Preencha a grade com sóis e luas seguindo as regras",
+    game_kronen: "Coroas",
+    game_kronen_desc: "Coloque uma coroa em cada linha, coluna e região colorida",
+    how_to_play: "Como jogar",
+    undo: "Desfazer",
+    hint: "Dica",
+    reset: "Reiniciar",
+    new_game: "Novo jogo",
+    easy: "Fácil",
+    medium: "Médio",
+    hard: "Difícil",
+    completed: "Concluído",
+    best_time: "Melhor tempo",
+    your_time: "Seu tempo",
+    solved: "Resolvido!",
+    solve_to_win: "Resolva o quebra-cabeça para vencer.",
+    no_more_undo: "Nada para desfazer.",
+    no_more_hints: "Sem mais dicas.",
+    active: "Ativo",
+    active_anchor: "Âncora ativa",
+    tap_to_select: "Toque numa âncora para começar.",
+    clear: "Limpar",
+    submit: "OK",
+    current: "Atual",
+    path_length: "Comprimento",
+    next_number: "Próximo",
+    constraint_equal: "Mesmo símbolo",
+    constraint_opposite: "Símbolo oposto",
+  },
+  // High-risk machine translation — gated behind REVIEW_PENDING.
+  ja: {
+    game_vlakken: "パッチ",
+    game_vlakken_desc: "数字の周りの形を完成させてグリッドを埋めよう",
+    game_verbind: "つなぐ",
+    game_verbind_desc: "全マスを通る一本道で数字を順番につなごう",
+    game_zonmaan: "太陽と月",
+    game_zonmaan_desc: "ルールに従って太陽と月をグリッドに配置しよう",
+    game_kronen: "クラウン",
+    game_kronen_desc: "各行・列・カラー領域にクラウンを 1 つずつ置こう",
+    how_to_play: "遊び方",
+    undo: "元に戻す",
+    hint: "ヒント",
+    reset: "リセット",
+    new_game: "新しいゲーム",
+    easy: "やさしい",
+    medium: "ふつう",
+    hard: "むずかしい",
+    completed: "完了",
+    best_time: "ベストタイム",
+    your_time: "あなたのタイム",
+    solved: "クリア!",
+    solve_to_win: "パズルを解いてクリアしよう。",
+    no_more_undo: "戻す操作はありません。",
+    no_more_hints: "ヒントはもうありません。",
+    active: "アクティブ",
+    active_anchor: "アクティブなアンカー",
+    tap_to_select: "アンカーをタップして開始。",
+    clear: "クリア",
+    submit: "OK",
+    current: "現在",
+    path_length: "長さ",
+    next_number: "次",
+    constraint_equal: "同じ記号",
+    constraint_opposite: "反対の記号",
+  },
 };
 
 export function translate(locale: Locale, key: TranslationKey): string {
@@ -227,10 +364,25 @@ export function translate(locale: Locale, key: TranslationKey): string {
 let current: Locale = "en";
 const subs = new Set<(l: Locale) => void>();
 
+// Migrate a stored locale from the legacy "pt" tag to "pt-BR" — production
+// users who picked Portuguese before the rename should not silently fall
+// back to English.
+function normalizeStored(raw: string | null | undefined): Locale | null {
+  if (!raw) return null;
+  if (raw === "pt") return "pt-BR";
+  return (SUPPORTED as string[]).includes(raw) ? (raw as Locale) : null;
+}
+
 function detectFromBrowser(): Locale {
   if (typeof navigator === "undefined") return "en";
-  const lang = (navigator.language || "en").slice(0, 2).toLowerCase();
-  return (SUPPORTED as string[]).includes(lang) ? (lang as Locale) : "en";
+  const raw = (navigator.language || "en").toLowerCase();
+  // Match the most-specific tag we ship first, then fall back to the
+  // primary subtag.
+  if (raw.startsWith("pt")) return "pt-BR";
+  if (raw.startsWith("ja")) return "ja";
+  if (raw.startsWith("hi")) return "hi";
+  const primary = raw.slice(0, 2);
+  return (SUPPORTED as string[]).includes(primary) ? (primary as Locale) : "en";
 }
 
 function setLocale(l: Locale) {
@@ -246,14 +398,17 @@ export function useLocale() {
   const [locale, set] = useState<Locale>(current);
 
   useEffect(() => {
-    const stored = (typeof window !== "undefined" && localStorage.getItem(STORAGE_KEY)) as Locale | null;
-    const initial: Locale =
-      stored && (SUPPORTED as string[]).includes(stored)
-        ? stored
-        : detectFromBrowser();
+    const stored = typeof window !== "undefined"
+      ? normalizeStored(localStorage.getItem(STORAGE_KEY))
+      : null;
+    const initial: Locale = stored ?? detectFromBrowser();
     if (initial !== current) {
       current = initial;
       document.documentElement.setAttribute("lang", initial);
+      // Persist normalised value so the legacy "pt" entry is rewritten.
+      if (typeof window !== "undefined") {
+        try { localStorage.setItem(STORAGE_KEY, initial); } catch {}
+      }
       set(initial);
     } else {
       document.documentElement.setAttribute("lang", current);

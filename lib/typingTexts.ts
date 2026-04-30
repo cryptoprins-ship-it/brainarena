@@ -1,6 +1,7 @@
 import type { Locale } from "./i18n";
 
-const TEXTS: Record<Locale, string[]> = {
+// Locales without bespoke pools fall back to EN via the consumer.
+const TEXTS: Partial<Record<Locale, string[]>> = {
   en: [
     "The quick brown fox jumps over the lazy dog and lands softly in the meadow under a wide sky. Birds circle, the wind picks up, and the afternoon stretches into a calm and steady rhythm of small things finally happening at the right time.",
     "When you start typing, do not look at the keys. Trust your fingers and let your eyes follow the words on the screen. Speed comes from rhythm, accuracy comes from focus, and confidence comes from a hundred small repetitions that you barely notice over time.",
@@ -25,6 +26,6 @@ const TEXTS: Record<Locale, string[]> = {
 };
 
 export function pickText(locale: Locale, seed = Date.now()): string {
-  const list = TEXTS[locale] ?? TEXTS.en;
+  const list = TEXTS[locale] ?? TEXTS.en ?? [""];
   return list[Math.abs(seed) % list.length];
 }

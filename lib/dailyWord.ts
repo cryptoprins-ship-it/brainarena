@@ -11,7 +11,8 @@ function clean(list: string[]): string[] {
     .filter((w) => [...w].length === 5);
 }
 
-const POOLS: Record<Locale, string[]> = {
+// Locales without dedicated word lists fall back to EN inside the consumers.
+const POOLS: Partial<Record<Locale, string[]>> = {
   en: clean(EN_WORDS),
   nl: clean(NL_WORDS),
   de: clean(DE_WORDS),
