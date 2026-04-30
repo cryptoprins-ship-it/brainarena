@@ -60,6 +60,7 @@ function makeGrid(seed: number): string[] {
 export default function BogglePage() {
   const [grid, setGrid] = useState<string[]>([]);
   const [path, setPath] = useState<number[]>([]);
+  const [flash, setFlash] = useState<number[]>([]);
   const [found, setFound] = useState<string[]>([]);
   const [time, setTime] = useState(DURATION);
   const [running, setRunning] = useState(false);
@@ -68,7 +69,8 @@ export default function BogglePage() {
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
   const startedAt = useRef<number | null>(null);
-  const dragging = useRef(false);
+  const pathRef = useRef<number[]>([]);
+  useEffect(() => { pathRef.current = path; }, [path]);
 
   useEffect(() => { setGrid(makeGrid(dayIndex())); setNameState(getName()); }, []);
 
@@ -91,33 +93,93 @@ export default function BogglePage() {
   const word = path.map((i) => grid[i]).join("").toLowerCase();
 
   const tryCommit = useCallback(() => {
+    const p = pathRef.current;
     if (!running) { setPath([]); return; }
-    if (path.length >= 3 && !found.includes(word)) {
-      setFound((f) => [word, ...f]);
-    } else if (path.length >= 1) {
+    const w = p.map((i) => grid[i]).join("").toLowerCase();
+    if (p.length >= 3 && !found.includes(w)) {
+      setFound((f) => [w, ...f]);
+    } else if (p.length >= 1) {
       setShakeKey((k) => k + 1);
     }
     setPath([]);
-  }, [found, path.length, running, word]);
+  }, [found, grid, running]);
+  const tryCommitRef = useRef(tryCommit);
+  useEffect(() => { tryCommitRef.current = tryCommit; }, [tryCommit]);
 
   const score = useMemo(() => found.reduce((s, w) => s + pointsFor(w.length), 0), [found]);
 
-  const onCell = useCallback((idx: number, fromDrag: boolean) => {
-    if (!running || done) return;
+  const flashCandidates = useCallback((indices: number[]) => {
+    setFlash(indices);
+    window.setTimeout(() => setFlash([]), 600);
+  }, []);
+
+  const onTileClick = useCallback((idx: number) => {
+    if (done) return;
+    if (!running) {
+      startedAt.current = Date.now();
+      setRunning(true);
+    }
     setPath((p) => {
-      if (p.includes(idx)) {
-        if (!fromDrag && p[p.length - 1] === idx) {
-          // Click last to confirm: handled by mouseUp instead, but keep behavior safe.
-          return p;
-        }
-        return p;
-      }
       if (p.length === 0) return [idx];
       const last = p[p.length - 1];
+      if (idx === last) return p.slice(0, -1);
+      if (p.includes(idx)) return p;
       if (!neighbors(last).includes(idx)) return p;
       return [...p, idx];
     });
   }, [done, running]);
+
+  useEffect(() => {
+    if (done) return;
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement | null;
+      if (target && target.tagName === "INPUT") return;
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        tryCommitRef.current();
+        return;
+      }
+      if (e.key === "Backspace") {
+        e.preventDefault();
+        setPath((p) => p.slice(0, -1));
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setPath([]);
+        return;
+      }
+      if (!/^[a-zA-Z]$/.test(e.key)) return;
+
+      e.preventDefault();
+      const letter = e.key.toUpperCase();
+      if (!running) {
+        startedAt.current = Date.now();
+        setRunning(true);
+      }
+      const p = pathRef.current;
+      let candidates: number[];
+      if (p.length === 0) {
+        candidates = grid
+          .map((ch, i) => (ch === letter ? i : -1))
+          .filter((i) => i >= 0);
+      } else {
+        const last = p[p.length - 1];
+        candidates = neighbors(last).filter(
+          (i) => grid[i] === letter && !p.includes(i)
+        );
+      }
+      if (candidates.length === 0) return;
+      if (candidates.length === 1) {
+        setPath([...p, candidates[0]]);
+        return;
+      }
+      flashCandidates(candidates);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [done, grid, running, flashCandidates]);
 
   // Submit on game end.
   useEffect(() => {
@@ -164,27 +226,24 @@ export default function BogglePage() {
           <div
             key={shakeKey}
             className="mx-auto grid w-full max-w-sm grid-cols-4 gap-2 select-none"
-            onMouseUp={() => { dragging.current = false; tryCommit(); }}
-            onMouseLeave={() => { dragging.current = false; }}
-            onTouchEnd={() => { dragging.current = false; tryCommit(); }}
           >
             {grid.map((ch, i) => {
               const inPath = path.includes(i);
               const isLast = path[path.length - 1] === i;
+              const isFlashing = flash.includes(i);
+              const cls = isFlashing
+                ? "bg-yellow-400 text-black ring-2 ring-yellow-200"
+                : inPath
+                ? isLast
+                  ? "bg-emerald-500 text-white ring-2 ring-emerald-200"
+                  : "bg-blue-500 text-white"
+                : "bg-white text-black hover:bg-gray-100";
               return (
                 <button
                   key={i}
                   type="button"
-                  onMouseDown={() => { if (running) { dragging.current = true; setPath([i]); } else { start(); dragging.current = true; setPath([i]); } }}
-                  onMouseEnter={() => { if (dragging.current) onCell(i, true); }}
-                  onTouchStart={() => { if (running) { dragging.current = true; setPath([i]); } else { start(); dragging.current = true; setPath([i]); } }}
-                  className={`aspect-square rounded-xl border-2 text-2xl font-black uppercase transition ${
-                    inPath
-                      ? isLast
-                        ? "border-emerald-300 bg-emerald-500/30"
-                        : "border-indigo-300 bg-indigo-500/30"
-                      : "border-[#2a2a2a] bg-[#1a1a1a] hover:border-[#3a3a3c]"
-                  }`}
+                  onClick={() => onTileClick(i)}
+                  className={`aspect-square rounded-xl border-2 border-[#2a2a2a] text-2xl font-black uppercase transition-colors ${cls}`}
                 >
                   {ch}
                 </button>
@@ -192,12 +251,26 @@ export default function BogglePage() {
             })}
           </div>
 
-          <div className="mt-4 flex items-center justify-between">
+          <div className="mt-4 flex items-center justify-between gap-3">
             <span className="text-sm text-gray-400">Word: <span className="font-mono uppercase text-white">{word || "—"}</span></span>
-            {!running && !done ? (
-              <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Start</button>
-            ) : null}
+            <div className="flex gap-2">
+              {!running && !done ? (
+                <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Start</button>
+              ) : null}
+              {running && !done ? (
+                <button
+                  onClick={tryCommit}
+                  disabled={path.length < 3}
+                  className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold disabled:opacity-40"
+                >
+                  Submit
+                </button>
+              ) : null}
+            </div>
           </div>
+          <p className="mt-2 text-[11px] text-gray-500">
+            Keyboard: type letters · Enter submits · Backspace undoes · Esc clears
+          </p>
         </div>
 
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
