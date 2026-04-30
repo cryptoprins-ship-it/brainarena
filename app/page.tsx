@@ -16,6 +16,7 @@ const GAMES: {
   game: GameKey;
   preview: React.ReactNode;
   accent: string;
+  desktopOnly?: boolean;
 }[] = [
   {
     href: "/wordle",
@@ -59,6 +60,10 @@ const GAMES: {
     href: "/typing",
     game: "typing",
     accent: "from-pink-500/20 to-pink-500/0",
+    // Typing requires a physical keyboard — hide the card on mobile so
+    // the home grid doesn't tease something the visitor can't comfortably
+    // play. The route stays reachable by URL.
+    desktopOnly: true,
     preview: (
       <div className="text-2xl font-black tabular-nums">
         72<span className="text-xs font-medium text-gray-400 ml-1">WPM</span>
@@ -268,7 +273,9 @@ export default function HomePage() {
             <Link
               key={g.href}
               href={g.href}
-              className="group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40"
+              className={`group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40 ${
+                g.desktopOnly ? "hidden md:flex" : ""
+              }`}
             >
               <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${g.accent}`} />
               <div className="relative flex h-full flex-col gap-4">
