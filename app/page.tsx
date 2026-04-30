@@ -2,20 +2,24 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { livePlayerCount } from "@/lib/scores";
+import { livePlayerCount, type GameKey } from "@/lib/scores";
 import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib/achievements";
+import { useLocale } from "@/lib/i18n";
+import { getHowToPlay } from "@/lib/howToPlay";
 
+// Game cards — title + blurb come from lib/howToPlay.ts (already translated
+// in 8 locales) at render time. Keep this array purely structural: the
+// route, the visual preview, and the gradient accent. Anything user-facing
+// goes through useLocale().
 const GAMES: {
   href: string;
-  title: string;
-  blurb: string;
+  game: GameKey;
   preview: React.ReactNode;
   accent: string;
 }[] = [
   {
     href: "/wordle",
-    title: "Wordle",
-    blurb: "Guess the 5-letter word in 6 tries. New word daily.",
+    game: "wordle",
     accent: "from-emerald-500/20 to-emerald-500/0",
     preview: (
       <div className="flex gap-1">
@@ -29,8 +33,7 @@ const GAMES: {
   },
   {
     href: "/boggle",
-    title: "Boggle",
-    blurb: "Find as many words as you can in 3 minutes.",
+    game: "boggle",
     accent: "from-amber-500/20 to-amber-500/0",
     preview: (
       <div className="grid grid-cols-4 gap-1">
@@ -42,8 +45,7 @@ const GAMES: {
   },
   {
     href: "/sudoku",
-    title: "Sudoku",
-    blurb: "Daily puzzle. Easy, medium or hard.",
+    game: "sudoku",
     accent: "from-sky-500/20 to-sky-500/0",
     preview: (
       <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px text-[10px] leading-5 font-bold">
@@ -55,8 +57,7 @@ const GAMES: {
   },
   {
     href: "/typing",
-    title: "Typing",
-    blurb: "How many words per minute can you hit?",
+    game: "typing",
     accent: "from-pink-500/20 to-pink-500/0",
     preview: (
       <div className="text-2xl font-black tabular-nums">
@@ -66,8 +67,7 @@ const GAMES: {
   },
   {
     href: "/tiledrop",
-    title: "TileDrop",
-    blurb: "Stack falling tiles. Clear lines. Don't top out.",
+    game: "tiledrop",
     accent: "from-fuchsia-500/20 to-fuchsia-500/0",
     preview: (
       <div className="grid grid-cols-4 gap-px">
@@ -89,8 +89,7 @@ const GAMES: {
   },
   {
     href: "/wordbuild",
-    title: "WordBuild",
-    blurb: "Type words, build a house — short = bricks, long = roof.",
+    game: "wordbuild",
     accent: "from-orange-500/20 to-orange-500/0",
     preview: (
       <div className="text-2xl">🏠</div>
@@ -98,8 +97,7 @@ const GAMES: {
   },
   {
     href: "/colormatch",
-    title: "ColorMatch",
-    blurb: "Identify RAL color codes used by professionals.",
+    game: "colormatch",
     accent: "from-rose-500/20 to-rose-500/0",
     preview: (
       <div className="flex gap-1">
@@ -111,8 +109,7 @@ const GAMES: {
   },
   {
     href: "/letterstack",
-    title: "LetterStack",
-    blurb: "Catch falling letters. Form words. Don't overflow.",
+    game: "letterstack",
     accent: "from-violet-500/20 to-violet-500/0",
     preview: (
       <div className="text-2xl font-black">A B<br />C D</div>
@@ -120,8 +117,7 @@ const GAMES: {
   },
   {
     href: "/vlakken",
-    title: "Vlakken",
-    blurb: "Tile the grid by completing the shape around each number.",
+    game: "vlakken",
     accent: "from-orange-500/20 to-orange-500/0",
     preview: (
       <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
@@ -139,8 +135,7 @@ const GAMES: {
   },
   {
     href: "/verbind",
-    title: "Verbind",
-    blurb: "One path, all cells, in numerical order.",
+    game: "verbind",
     accent: "from-cyan-500/20 to-cyan-500/0",
     preview: (
       <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
@@ -158,8 +153,7 @@ const GAMES: {
   },
   {
     href: "/zonmaan",
-    title: "Zon & Maan",
-    blurb: "Suns and moons — no three in a row, balanced rows and columns.",
+    game: "zonmaan",
     accent: "from-yellow-500/20 to-indigo-500/0",
     preview: (
       <div className="flex gap-1 text-xl">
@@ -169,8 +163,7 @@ const GAMES: {
   },
   {
     href: "/kronen",
-    title: "Kronen",
-    blurb: "One crown per row, column, and color region — none touching.",
+    game: "kronen",
     accent: "from-rose-500/20 to-rose-500/0",
     preview: (
       <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
@@ -189,6 +182,8 @@ const GAMES: {
 ];
 
 export default function HomePage() {
+  const { locale } = useLocale();
+  const howTo = useMemo(() => getHowToPlay(locale), [locale]);
   const [players, setPlayers] = useState<number | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
 
@@ -262,44 +257,42 @@ export default function HomePage() {
           {players ? `${players.toLocaleString()} players today` : "Loading…"}
         </p>
         <p className="mt-3 text-xs text-gray-500">
-          🎮 12 Games <span className="mx-2">|</span> 🌍 5 Languages <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+          🎮 12 Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
         </p>
       </section>
 
       <section className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
-        {GAMES.map((g) => (
-          <Link
-            key={g.href}
-            href={g.href}
-            className="group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40"
-          >
-            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${g.accent}`} />
-            <div className="relative flex h-full flex-col gap-4">
-              <div className="flex items-center justify-center rounded-xl bg-[#0a0a0a] p-3">
-                {g.preview}
+        {GAMES.map((g) => {
+          const entry = howTo[g.game];
+          return (
+            <Link
+              key={g.href}
+              href={g.href}
+              className="group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40"
+            >
+              <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${g.accent}`} />
+              <div className="relative flex h-full flex-col gap-4">
+                <div className="flex items-center justify-center rounded-xl bg-[#0a0a0a] p-3">
+                  {g.preview}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold">{entry.label}</h2>
+                  <p className="mt-1 text-xs text-gray-400">{entry.summary}</p>
+                </div>
+                <span className="mt-auto text-xs font-semibold text-indigo-300 group-hover:text-indigo-200">
+                  →
+                </span>
               </div>
-              <div>
-                <h2 className="text-lg font-bold">{g.title}</h2>
-                <p className="mt-1 text-xs text-gray-400">{g.blurb}</p>
-              </div>
-              <span className="mt-auto text-xs font-semibold text-indigo-300 group-hover:text-indigo-200">
-                Play →
-              </span>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </section>
 
-      <section className="mt-8 grid gap-4 md:grid-cols-3">
+      <section className="mt-8 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <p className="text-xs uppercase tracking-widest text-gray-500">Today</p>
-          <h3 className="mt-1 text-xl font-bold">5 daily puzzles</h3>
+          <h3 className="mt-1 text-xl font-bold">12 daily puzzles</h3>
           <p className="mt-2 text-sm text-gray-400">Synced worldwide. Beat your streak.</p>
-        </div>
-        <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Languages</p>
-          <h3 className="mt-1 text-xl font-bold">EN · NL · DE · FR · ES</h3>
-          <p className="mt-2 text-sm text-gray-400">Auto-detect, switch any time.</p>
         </div>
         <Link href="/leaderboard" className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 hover:border-indigo-400/40">
           <p className="text-xs uppercase tracking-widest text-gray-500">Compete</p>

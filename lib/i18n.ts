@@ -64,7 +64,8 @@ type TranslationKey =
   | "solved" | "solve_to_win" | "no_more_undo" | "no_more_hints"
   | "active" | "active_anchor" | "tap_to_select" | "clear" | "submit"
   | "current" | "path_length" | "next_number"
-  | "constraint_equal" | "constraint_opposite";
+  | "constraint_equal" | "constraint_opposite"
+  | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start";
 
 const T: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -101,6 +102,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Next",
     constraint_equal: "Same symbol",
     constraint_opposite: "Opposite symbol",
+    streak_active: "🔥 {n} day streak — keep it going!",
+    streak_lost: "Play today to keep your {n} day streak alive!",
+    streak_start_best: "Start a new streak today! Your best was {n} days.",
+    streak_start: "Play any game today to start a daily streak!",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -136,6 +141,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Volgend",
     constraint_equal: "Zelfde symbool",
     constraint_opposite: "Tegengesteld symbool",
+    streak_active: "🔥 {n} dagen streak — hou hem vast!",
+    streak_lost: "Speel vandaag om je streak van {n} dagen levend te houden!",
+    streak_start_best: "Start vandaag een nieuwe streak! Je beste was {n} dagen.",
+    streak_start: "Speel vandaag een spel om een dagelijkse streak te starten!",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -172,6 +181,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Nächste",
     constraint_equal: "Gleiches Symbol",
     constraint_opposite: "Gegenteiliges Symbol",
+    streak_active: "🔥 {n} Tage Serie — weitermachen!",
+    streak_lost: "Spiele heute, um deine {n}-Tage-Serie am Leben zu halten!",
+    streak_start_best: "Starte heute eine neue Serie! Deine beste war {n} Tage.",
+    streak_start: "Spiele heute ein Spiel, um eine tägliche Serie zu starten!",
   },
   // TBD: native review.
   fr: {
@@ -208,6 +221,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Suivant",
     constraint_equal: "Même symbole",
     constraint_opposite: "Symbole opposé",
+    streak_active: "🔥 série de {n} jours — continue !",
+    streak_lost: "Joue aujourd'hui pour garder ta série de {n} jours en vie !",
+    streak_start_best: "Commence une nouvelle série aujourd'hui ! Ton record était de {n} jours.",
+    streak_start: "Joue à un jeu aujourd'hui pour commencer une série quotidienne !",
   },
   // TBD: native review.
   es: {
@@ -244,6 +261,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Siguiente",
     constraint_equal: "Mismo símbolo",
     constraint_opposite: "Símbolo opuesto",
+    streak_active: "🔥 racha de {n} días — ¡sigue así!",
+    streak_lost: "¡Juega hoy para mantener tu racha de {n} días!",
+    streak_start_best: "¡Empieza una nueva racha hoy! Tu mejor fue de {n} días.",
+    streak_start: "¡Juega cualquier juego hoy para empezar una racha diaria!",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -280,6 +301,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "अगला",
     constraint_equal: "समान चिह्न",
     constraint_opposite: "विपरीत चिह्न",
+    streak_active: "🔥 {n} दिन की श्रृंखला — जारी रखें!",
+    streak_lost: "अपनी {n} दिन की श्रृंखला जिंदा रखने के लिए आज खेलें!",
+    streak_start_best: "आज नई श्रृंखला शुरू करें! आपकी सर्वश्रेष्ठ {n} दिन की थी।",
+    streak_start: "दैनिक श्रृंखला शुरू करने के लिए आज कोई खेल खेलें!",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -318,6 +343,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "Próximo",
     constraint_equal: "Mesmo símbolo",
     constraint_opposite: "Símbolo oposto",
+    streak_active: "🔥 sequência de {n} dias — continue!",
+    streak_lost: "Jogue hoje para manter sua sequência de {n} dias!",
+    streak_start_best: "Comece uma nova sequência hoje! Seu recorde foi {n} dias.",
+    streak_start: "Jogue qualquer jogo hoje para começar uma sequência diária!",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -354,6 +383,10 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     next_number: "次",
     constraint_equal: "同じ記号",
     constraint_opposite: "反対の記号",
+    streak_active: "🔥 {n} 日連続記録 — 続けよう!",
+    streak_lost: "{n} 日連続記録を維持するため今日もプレイ!",
+    streak_start_best: "今日から新しい連続記録を始めよう!最高記録は {n} 日。",
+    streak_start: "今日ゲームをプレイして連続記録を始めよう!",
   },
 };
 
