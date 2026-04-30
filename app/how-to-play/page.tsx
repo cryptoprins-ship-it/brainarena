@@ -1,13 +1,17 @@
+"use client";
+
 import Link from "next/link";
-import { HOW_TO_PLAY, HOW_TO_PLAY_ORDER } from "@/lib/howToPlay";
+import { getHowToPlay, HOW_TO_PLAY_ORDER, UI_STRINGS } from "@/lib/howToPlay";
+import { useLocale } from "@/lib/i18n";
 
 export default function HowToPlayPage() {
+  const { locale } = useLocale();
+  const entries = getHowToPlay(locale);
+  const ui = UI_STRINGS[locale] ?? UI_STRINGS.en;
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-10">
-      <h1 className="text-3xl font-black md:text-4xl">How to play</h1>
-      <p className="mt-2 text-sm text-gray-400">
-        Quick rules for each of the nine BrainArena games. Pick one and dive in.
-      </p>
+      <h1 className="text-3xl font-black md:text-4xl">{ui.howToPlayHeading}</h1>
+      <p className="mt-2 text-sm text-gray-400">{ui.howToPlaySubtitle}</p>
 
       <nav aria-label="Game jump links" className="mt-4 flex flex-wrap gap-2">
         {HOW_TO_PLAY_ORDER.map((g) => (
@@ -16,14 +20,14 @@ export default function HowToPlayPage() {
             href={`#${g}`}
             className="rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1 text-xs hover:border-indigo-400/40 hover:text-indigo-300"
           >
-            {HOW_TO_PLAY[g].label}
+            {entries[g].label}
           </a>
         ))}
       </nav>
 
       <div className="mt-6 space-y-4">
         {HOW_TO_PLAY_ORDER.map((g) => {
-          const e = HOW_TO_PLAY[g];
+          const e = entries[g];
           return (
             <section
               key={g}
@@ -36,7 +40,7 @@ export default function HowToPlayPage() {
                   href={e.href}
                   className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-bold hover:bg-indigo-500"
                 >
-                  Play →
+                  {ui.play}
                 </Link>
               </div>
               <p className="mt-2 text-sm text-gray-300">{e.summary}</p>

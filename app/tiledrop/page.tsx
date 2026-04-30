@@ -330,7 +330,7 @@ export default function TileDropPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">TileDrop</h1>
-          <p className="text-xs text-gray-400">←→ move · ↑ rotate · ↓ soft · Space hard · C hold · P pause</p>
+          <p className="text-xs text-gray-400">←→ / swipe · ↑ / tap rotate · Space / swipe ↓ to drop · C hold · P pause</p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
@@ -357,10 +357,14 @@ export default function TileDropPage() {
             <p className="text-xs uppercase tracking-wider text-gray-500">Next</p>
             <Mini shape={next?.shape ?? []} color={next?.color ?? "#fff"} />
           </div>
-          <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
-            <p className="text-xs uppercase tracking-wider text-gray-500">Hold (C)</p>
+          <button
+            type="button"
+            onClick={swapHold}
+            className="w-full rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-left transition hover:border-indigo-400/40 active:scale-[0.99]"
+          >
+            <p className="text-xs uppercase tracking-wider text-gray-500">Hold (tap / C)</p>
             {hold ? <Mini shape={hold.shape} color={hold.color} /> : <p className="mt-2 text-xs text-gray-600">empty</p>}
-          </div>
+          </button>
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-xs text-gray-400">
             High score<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
           </div>
