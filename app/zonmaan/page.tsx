@@ -63,6 +63,7 @@ export default function ZonMaanPage() {
     setHintsLeft(HINTS_FOR[difficulty]);
     setElapsed(0);
     setDone(false);
+    setNewBest(false);
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -80,49 +81,48 @@ export default function ZonMaanPage() {
     return () => window.clearInterval(id);
   }, [done]);
 
-  const isWin = useCallback(
-    (current: CellState[]) => {
-      if (!puzzle) return false;
-      for (let i = 0; i < puzzle.solution.length; i++) {
-        if (current[i] !== puzzle.solution[i]) return false;
-      }
-      return true;
-    },
-    [puzzle]
-  );
-
-  const recordWin = useCallback(
-    (next: CellState[]) => {
-      if (!isWin(next)) return;
-      setDone(true);
-      const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
-      setElapsed(tt);
+  // Win detection lives in a useEffect that watches `cells` so it runs on
+  // every state change — including hint reveals and undos. The previous
+  // version called the win-check inside the setCells updater, which is
+  // unsafe under React 18 strict mode (updaters re-run) and missed any
+  // path that mutated cells outside that callback.
+  const [newBest, setNewBest] = useState(false);
+  useEffect(() => {
+    if (!puzzle || done) return;
+    if (cells.length !== puzzle.solution.length) return;
+    for (let i = 0; i < puzzle.solution.length; i++) {
+      if (cells[i] !== puzzle.solution[i]) return;
+    }
+    const tt = startedAt.current
+      ? Math.floor((Date.now() - startedAt.current) / 1000)
+      : elapsed;
+    setElapsed(tt);
+    setDone(true);
+    if (typeof window !== "undefined") {
       const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
       if (!prevBest || tt < prevBest) {
         localStorage.setItem(BEST_KEY(difficulty), String(tt));
         setBestSeconds(tt);
+        setNewBest(true);
       }
-    },
-    [difficulty, elapsed, isWin]
-  );
+    }
+  }, [cells, puzzle, done, difficulty, elapsed]);
 
   const onCellClick = useCallback(
     (idx: number) => {
       if (done || !puzzle) return;
-      // Clue cells are immutable.
       if (idx in puzzle.clues) return;
       if (!startedAt.current) startedAt.current = Date.now();
+      const cur = cells[idx];
+      const nxt = nextState(cur);
       setCells((prev) => {
         const next = [...prev];
-        const cur = next[idx];
-        const nxt = nextState(cur);
         next[idx] = nxt;
-        setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
-        recordWin(next);
         return next;
       });
+      setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
     },
-    [done, puzzle, recordWin]
+    [cells, done, puzzle]
   );
 
   const onUndo = useCallback(() => {
@@ -150,17 +150,16 @@ export default function ZonMaanPage() {
     if (!candidates.length) return;
     const idx = candidates[Math.floor(Math.random() * candidates.length)];
     if (!startedAt.current) startedAt.current = Date.now();
+    const cur = cells[idx];
+    const nxt = puzzle.solution[idx];
     setCells((prev) => {
       const next = [...prev];
-      const cur = next[idx];
-      const nxt = puzzle.solution[idx];
       next[idx] = nxt;
-      setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
-      recordWin(next);
       return next;
     });
+    setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
     setHintsLeft((h) => h - 1);
-  }, [cells, done, hintsLeft, puzzle, recordWin]);
+  }, [cells, done, hintsLeft, puzzle]);
 
   const onReset = useCallback(() => {
     if (!puzzle) return;
@@ -241,15 +240,16 @@ export default function ZonMaanPage() {
         </p>
       </div>
 
-      {done ? (
+      {done && puzzle ? (
         <>
-          <div className="mt-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
-            <p className="font-bold text-emerald-200">{t("solved")}</p>
-            <p className="mt-1 text-emerald-100">
-              {t("your_time")}: <span className="font-mono">{elapsed}s</span>
-              {bestSeconds === elapsed ? <span className="ml-2 text-amber-300">★ {t("best_time").toLowerCase()}</span> : null}
-            </p>
-          </div>
+          <WinModal
+            elapsed={elapsed}
+            hintsUsed={HINTS_FOR[difficulty] - hintsLeft}
+            bestSeconds={bestSeconds}
+            isNewBest={newBest}
+            onPlayAgain={onReset}
+            onNewPuzzle={onNewGame}
+          />
           <EndScreenAddon
             game="zonmaan"
             score={Math.max(1, 100000 - elapsed)}
@@ -258,6 +258,76 @@ export default function ZonMaanPage() {
           />
         </>
       ) : null}
+    </div>
+  );
+}
+
+function WinModal({
+  elapsed,
+  hintsUsed,
+  bestSeconds,
+  isNewBest,
+  onPlayAgain,
+  onNewPuzzle,
+}: {
+  elapsed: number;
+  hintsUsed: number;
+  bestSeconds: number | null;
+  isNewBest: boolean;
+  onPlayAgain: () => void;
+  onNewPuzzle: () => void;
+}) {
+  const { t } = useLocale();
+  const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const onShare = useCallback(() => {
+    const txt = `Zon & Maan 6×6 — ${fmt(elapsed)} — BrainArena`;
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(txt).catch(() => {});
+    }
+  }, [elapsed]);
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
+      <div
+        role="dialog"
+        aria-modal="true"
+        className="w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
+      >
+        <h2 className="text-2xl font-black text-emerald-300">{t("win_title")}</h2>
+        <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
+          <dt className="text-gray-400">{t("win_your_time")}</dt>
+          <dd className="text-right font-mono text-white">{fmt(elapsed)}</dd>
+          <dt className="text-gray-400">{t("win_hints_used")}</dt>
+          <dd className="text-right font-mono text-white">{hintsUsed}</dd>
+          <dt className="text-gray-400">{t("win_best_time")}</dt>
+          <dd className="text-right font-mono text-white">{bestSeconds != null ? fmt(bestSeconds) : "—"}</dd>
+        </dl>
+        {isNewBest ? (
+          <p className="mt-3 rounded-lg bg-amber-500/15 px-3 py-2 text-center text-sm font-bold text-amber-300">
+            ★ {t("win_new_record")}
+          </p>
+        ) : null}
+        <div className="mt-5 flex flex-wrap gap-2">
+          <button
+            onClick={onPlayAgain}
+            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold"
+          >
+            {t("win_play_again")}
+          </button>
+          <button
+            onClick={onNewPuzzle}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
+            {t("win_new_puzzle")}
+          </button>
+          <button
+            onClick={onShare}
+            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm"
+          >
+            {t("win_share")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

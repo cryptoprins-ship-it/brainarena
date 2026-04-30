@@ -77,9 +77,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
+      className={`antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
+      <body className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white">
         {/* Plausible analytics — cookieless, GDPR-exempt by design (no
             cookies, no fingerprinting, IP anonymised before storage).
             Loads unconditionally; the "Analytics" toggle in CookieBanner

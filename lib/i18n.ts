@@ -65,7 +65,9 @@ type TranslationKey =
   | "active" | "active_anchor" | "tap_to_select" | "clear" | "submit"
   | "current" | "path_length" | "next_number"
   | "constraint_equal" | "constraint_opposite"
-  | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start";
+  | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start"
+  | "win_title" | "win_your_time" | "win_hints_used" | "win_best_time"
+  | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share";
 
 const T: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -106,6 +108,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "Play today to keep your {n} day streak alive!",
     streak_start_best: "Start a new streak today! Your best was {n} days.",
     streak_start: "Play any game today to start a daily streak!",
+    win_title: "Congratulations!",
+    win_your_time: "Your time",
+    win_hints_used: "Hints used",
+    win_best_time: "Best time",
+    win_new_record: "New best!",
+    win_play_again: "Play again",
+    win_new_puzzle: "New puzzle",
+    win_share: "Share",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -145,6 +155,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "Speel vandaag om je streak van {n} dagen levend te houden!",
     streak_start_best: "Start vandaag een nieuwe streak! Je beste was {n} dagen.",
     streak_start: "Speel vandaag een spel om een dagelijkse streak te starten!",
+    win_title: "Gefeliciteerd!",
+    win_your_time: "Jouw tijd",
+    win_hints_used: "Hints gebruikt",
+    win_best_time: "Beste tijd",
+    win_new_record: "Nieuw record!",
+    win_play_again: "Speel opnieuw",
+    win_new_puzzle: "Nieuwe puzzel",
+    win_share: "Deel",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -185,6 +203,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "Spiele heute, um deine {n}-Tage-Serie am Leben zu halten!",
     streak_start_best: "Starte heute eine neue Serie! Deine beste war {n} Tage.",
     streak_start: "Spiele heute ein Spiel, um eine tägliche Serie zu starten!",
+    win_title: "Glückwunsch!",
+    win_your_time: "Deine Zeit",
+    win_hints_used: "Hinweise",
+    win_best_time: "Bestzeit",
+    win_new_record: "Neue Bestzeit!",
+    win_play_again: "Nochmal",
+    win_new_puzzle: "Neues Rätsel",
+    win_share: "Teilen",
   },
   // TBD: native review.
   fr: {
@@ -225,6 +251,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "Joue aujourd'hui pour garder ta série de {n} jours en vie !",
     streak_start_best: "Commence une nouvelle série aujourd'hui ! Ton record était de {n} jours.",
     streak_start: "Joue à un jeu aujourd'hui pour commencer une série quotidienne !",
+    win_title: "Bravo !",
+    win_your_time: "Votre temps",
+    win_hints_used: "Indices",
+    win_best_time: "Meilleur temps",
+    win_new_record: "Nouveau record !",
+    win_play_again: "Rejouer",
+    win_new_puzzle: "Nouveau puzzle",
+    win_share: "Partager",
   },
   // TBD: native review.
   es: {
@@ -265,6 +299,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "¡Juega hoy para mantener tu racha de {n} días!",
     streak_start_best: "¡Empieza una nueva racha hoy! Tu mejor fue de {n} días.",
     streak_start: "¡Juega cualquier juego hoy para empezar una racha diaria!",
+    win_title: "¡Felicidades!",
+    win_your_time: "Tu tiempo",
+    win_hints_used: "Pistas",
+    win_best_time: "Mejor tiempo",
+    win_new_record: "¡Nuevo récord!",
+    win_play_again: "Jugar otra vez",
+    win_new_puzzle: "Nuevo puzzle",
+    win_share: "Compartir",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -305,6 +347,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "अपनी {n} दिन की श्रृंखला जिंदा रखने के लिए आज खेलें!",
     streak_start_best: "आज नई श्रृंखला शुरू करें! आपकी सर्वश्रेष्ठ {n} दिन की थी।",
     streak_start: "दैनिक श्रृंखला शुरू करने के लिए आज कोई खेल खेलें!",
+    win_title: "बधाई हो!",
+    win_your_time: "आपका समय",
+    win_hints_used: "संकेत उपयोग",
+    win_best_time: "बेस्ट टाइम",
+    win_new_record: "नया रिकॉर्ड!",
+    win_play_again: "फिर खेलें",
+    win_new_puzzle: "नई पहेली",
+    win_share: "शेयर",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -347,6 +397,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "Jogue hoje para manter sua sequência de {n} dias!",
     streak_start_best: "Comece uma nova sequência hoje! Seu recorde foi {n} dias.",
     streak_start: "Jogue qualquer jogo hoje para começar uma sequência diária!",
+    win_title: "Parabéns!",
+    win_your_time: "Seu tempo",
+    win_hints_used: "Dicas usadas",
+    win_best_time: "Melhor tempo",
+    win_new_record: "Novo recorde!",
+    win_play_again: "Jogar de novo",
+    win_new_puzzle: "Novo puzzle",
+    win_share: "Compartilhar",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -387,6 +445,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     streak_lost: "{n} 日連続記録を維持するため今日もプレイ!",
     streak_start_best: "今日から新しい連続記録を始めよう!最高記録は {n} 日。",
     streak_start: "今日ゲームをプレイして連続記録を始めよう!",
+    win_title: "おめでとう!",
+    win_your_time: "あなたのタイム",
+    win_hints_used: "ヒント",
+    win_best_time: "ベストタイム",
+    win_new_record: "新記録!",
+    win_play_again: "もう一度",
+    win_new_puzzle: "新しいパズル",
+    win_share: "シェア",
   },
 };
 
