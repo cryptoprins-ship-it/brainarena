@@ -6,6 +6,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const ROUNDS = 10;
 const ROUND_MS = 5000;
@@ -187,6 +188,7 @@ export default function ColorMatchPage() {
   return (
     <div className="mx-auto w-full max-w-md px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="colormatch" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">ColorMatch</h1>

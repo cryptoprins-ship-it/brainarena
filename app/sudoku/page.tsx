@@ -6,6 +6,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const DIFFS: Difficulty[] = ["easy", "medium", "hard"];
 const N = 9;
@@ -149,6 +150,7 @@ export default function SudokuPage() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="sudoku" />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Sudoku</h1>

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import AchievementToast from "@/components/AchievementToast";
 import "./globals.css";
@@ -51,8 +52,17 @@ export default function RootLayout({
         <NavBar />
         <main className="flex-1">{children}</main>
         <AchievementToast />
-        <footer className="border-t border-[#2a2a2a] bg-[#0a0a0a] px-4 py-6 text-center text-xs text-gray-500">
-          © {new Date().getFullYear()} BrainArena · Free daily puzzles & word games
+        <footer className="border-t border-[#2a2a2a] bg-[#0a0a0a] px-4 py-6 text-xs text-gray-500">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3">
+            <p>© {new Date().getFullYear()} BrainArena · Free daily puzzles & word games</p>
+            <nav className="flex flex-wrap items-center gap-4">
+              <Link href="/how-to-play" className="hover:text-indigo-300">How to play</Link>
+              <Link href="/privacy" className="hover:text-indigo-300">Privacy</Link>
+              <Link href="/contact" className="hover:text-indigo-300">Contact</Link>
+              <Link href="/leaderboard" className="hover:text-indigo-300">Leaderboard</Link>
+              <Link href="/achievements" className="hover:text-indigo-300">Achievements</Link>
+            </nav>
+          </div>
         </footer>
       </body>
     </html>

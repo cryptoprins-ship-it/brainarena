@@ -6,6 +6,7 @@ import { pickText } from "@/lib/typingTexts";
 import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const DURATION = 60;
 
@@ -97,6 +98,7 @@ export default function TypingPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="typing" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Typing Speed</h1>

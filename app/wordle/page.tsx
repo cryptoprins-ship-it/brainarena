@@ -6,6 +6,7 @@ import { dailyWord, randomWord } from "@/lib/dailyWord";
 import { bumpStreak, breakStreak, getStreak, getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const ROWS = 6;
 const COLS = 5;
@@ -208,6 +209,7 @@ export default function WordlePage() {
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="wordle" />
       <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Wordle</h1>

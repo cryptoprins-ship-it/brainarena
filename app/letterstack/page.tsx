@@ -6,6 +6,7 @@ import { useLocale } from "@/lib/i18n";
 import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTTTTUUUVVWWXYYZ";
 const STACK_LIMIT = 10;
@@ -177,6 +178,7 @@ export default function LetterStackPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="letterstack" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">LetterStack</h1>

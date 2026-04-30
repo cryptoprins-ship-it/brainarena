@@ -17,6 +17,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "letterstack",
     "achievements",
     "leaderboard",
+    "how-to-play",
+    "privacy",
+    "contact",
   ].map((p) => ({
     url: p ? `${BASE}/${p}` : BASE,
     lastModified: now,

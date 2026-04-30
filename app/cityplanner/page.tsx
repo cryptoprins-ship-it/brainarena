@@ -5,6 +5,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import HowToPlay from "@/components/HowToPlay";
 
 const SIZE = 8;
 const ROUNDS = 20;
@@ -167,6 +168,7 @@ export default function CityPlannerPage() {
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <StreakBanner />
+      <HowToPlay game="cityplanner" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">CityPlanner</h1>
