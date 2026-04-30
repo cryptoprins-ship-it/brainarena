@@ -10,8 +10,11 @@ type Game =
   | "tiledrop"
   | "wordbuild"
   | "colormatch"
-  | "cityplanner"
-  | "letterstack";
+  | "letterstack"
+  | "vlakken"
+  | "verbind"
+  | "zonmaan"
+  | "kronen";
 type Period = "today" | "week" | "alltime";
 
 type Entry = {
@@ -31,8 +34,11 @@ const GAMES: { key: Game; label: string }[] = [
   { key: "tiledrop", label: "TileDrop" },
   { key: "wordbuild", label: "WordBuild" },
   { key: "colormatch", label: "ColorMatch" },
-  { key: "cityplanner", label: "CityPlanner" },
   { key: "letterstack", label: "LetterStack" },
+  { key: "vlakken", label: "Vlakken" },
+  { key: "verbind", label: "Verbind" },
+  { key: "zonmaan", label: "Zon & Maan" },
+  { key: "kronen", label: "Kronen" },
 ];
 
 const PERIODS: { key: Period; label: string }[] = [

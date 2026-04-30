@@ -22,9 +22,12 @@ const NEXT_GAME: Record<GameKey, GameKey> = {
   typing: "tiledrop",
   tiledrop: "wordbuild",
   wordbuild: "colormatch",
-  colormatch: "cityplanner",
-  cityplanner: "letterstack",
-  letterstack: "wordle",
+  colormatch: "letterstack",
+  letterstack: "vlakken",
+  vlakken: "verbind",
+  verbind: "zonmaan",
+  zonmaan: "kronen",
+  kronen: "wordle",
 };
 
 export default function EndScreenAddon({ game, score, time, meta, rank }: Props) {

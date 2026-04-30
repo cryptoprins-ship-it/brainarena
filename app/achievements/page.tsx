@@ -12,8 +12,11 @@ const GAME_LABEL: Record<GameKey, string> = {
   tiledrop: "TileDrop",
   wordbuild: "WordBuild",
   colormatch: "ColorMatch",
-  cityplanner: "CityPlanner",
   letterstack: "LetterStack",
+  vlakken: "Vlakken",
+  verbind: "Verbind",
+  zonmaan: "Zon & Maan",
+  kronen: "Kronen",
 };
 
 function formatTime(seconds: number): string {

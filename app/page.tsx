@@ -110,21 +110,80 @@ const GAMES: {
     ),
   },
   {
-    href: "/cityplanner",
-    title: "CityPlanner",
-    blurb: "Place houses, parks, factories. Build a metropolis.",
-    accent: "from-lime-500/20 to-lime-500/0",
-    preview: (
-      <div className="text-2xl">🏙️</div>
-    ),
-  },
-  {
     href: "/letterstack",
     title: "LetterStack",
     blurb: "Catch falling letters. Form words. Don't overflow.",
     accent: "from-violet-500/20 to-violet-500/0",
     preview: (
       <div className="text-2xl font-black">A B<br />C D</div>
+    ),
+  },
+  {
+    href: "/vlakken",
+    title: "Vlakken",
+    blurb: "Tile the grid by completing the shape around each number.",
+    accent: "from-orange-500/20 to-orange-500/0",
+    preview: (
+      <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
+        <div className="h-5 w-5 bg-[#c97b63]" />
+        <div className="h-5 w-5 bg-[#c97b63]" />
+        <div className="h-5 w-5 bg-[#7a8d6c]" />
+        <div className="h-5 w-5 bg-[#c97b63]" />
+        <div className="h-5 w-5 bg-[#c97b63] grid place-items-center text-[10px] font-bold text-white">4</div>
+        <div className="h-5 w-5 bg-[#7a8d6c]" />
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#7a8d6c] grid place-items-center text-[10px] font-bold text-white">3</div>
+      </div>
+    ),
+  },
+  {
+    href: "/verbind",
+    title: "Verbind",
+    blurb: "One path, all cells, in numerical order.",
+    accent: "from-cyan-500/20 to-cyan-500/0",
+    preview: (
+      <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
+        <div className="h-5 w-5 bg-[#1a1a1a] grid place-items-center text-[10px] font-bold text-cyan-300">1</div>
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a] grid place-items-center text-[10px] font-bold text-cyan-300">3</div>
+      </div>
+    ),
+  },
+  {
+    href: "/zonmaan",
+    title: "Zon & Maan",
+    blurb: "Suns and moons — no three in a row, balanced rows and columns.",
+    accent: "from-yellow-500/20 to-indigo-500/0",
+    preview: (
+      <div className="flex gap-1 text-xl">
+        <span>☀</span><span>🌙</span><span>☀</span><span>🌙</span>
+      </div>
+    ),
+  },
+  {
+    href: "/kronen",
+    title: "Kronen",
+    blurb: "One crown per row, column, and color region — none touching.",
+    accent: "from-rose-500/20 to-rose-500/0",
+    preview: (
+      <div className="grid grid-cols-3 gap-px bg-[#3a3a3c] p-px">
+        <div className="h-5 w-5 bg-[#c97b63] grid place-items-center text-[11px]">♛</div>
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#7a8d6c]" />
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#7a8d6c] grid place-items-center text-[11px]">♛</div>
+        <div className="h-5 w-5 bg-[#7a8d6c]" />
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#bca06a]" />
+        <div className="h-5 w-5 bg-[#c97b63]" />
+      </div>
     ),
   },
 ];
@@ -196,14 +255,14 @@ export default function HomePage() {
           New puzzles every day. <span className="text-indigo-400">Beat them all.</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-gray-300 md:text-base">
-          Nine free puzzle and word games. Same daily challenge for everyone — race the world.
+          Twelve free puzzle and word games. Same daily challenge for everyone — race the world.
         </p>
         <p className="mt-4 text-sm text-gray-400">
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500 mr-2 align-middle" />
           {players ? `${players.toLocaleString()} players today` : "Loading…"}
         </p>
         <p className="mt-3 text-xs text-gray-500">
-          🎮 9 Games <span className="mx-2">|</span> 🌍 5 Languages <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+          🎮 12 Games <span className="mx-2">|</span> 🌍 5 Languages <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
         </p>
       </section>
 

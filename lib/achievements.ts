@@ -5,7 +5,7 @@ import type { GameKey } from "./scores";
 export type AchievementId =
   | "bronze" | "silver" | "gold" | "diamond"
   | "facadefall_master" | "word_wizard" | "speed_demon"
-  | "color_expert" | "city_mayor";
+  | "color_expert" | "logic_master";
 
 export type Achievement = {
   id: AchievementId;
@@ -33,7 +33,7 @@ export type Stats = {
     bestTypingWpm: number;
     bestWordleGuesses: number;          // lowest # of guesses to win
     bestColorMatchCorrect: number;
-    bestCityPlannerScore: number;
+    logicGamesSolved: number;           // total Vlakken/Verbind/Zon&Maan/Kronen wins
   };
 };
 
@@ -54,7 +54,7 @@ function defaults(): Stats {
       bestTypingWpm: 0,
       bestWordleGuesses: 99,
       bestColorMatchCorrect: 0,
-      bestCityPlannerScore: 0,
+      logicGamesSolved: 0,
     },
   };
 }
@@ -145,11 +145,11 @@ export function listAchievements(stats: Stats = loadStats()): Achievement[] {
       progress: stats.records.bestColorMatchCorrect / 10,
     },
     {
-      id: "city_mayor",
-      name: "City Mayor",
-      icon: "🏙️",
-      desc: "Reach Metropolis (60+) in CityPlanner",
-      progress: stats.records.bestCityPlannerScore / 60,
+      id: "logic_master",
+      name: "Logic Master",
+      icon: "🧩",
+      desc: "Solve 10 logic puzzles (Vlakken / Verbind / Zon & Maan / Kronen)",
+      progress: stats.records.logicGamesSolved / 10,
     },
   ];
 
@@ -214,8 +214,14 @@ export function recordGame(payload: GameResultPayload): RecordResult {
     const c = (payload.meta as { correct?: number } | undefined)?.correct ?? 0;
     r.bestColorMatchCorrect = Math.max(r.bestColorMatchCorrect, c);
   }
-  if (payload.game === "cityplanner") {
-    r.bestCityPlannerScore = Math.max(r.bestCityPlannerScore, payload.score);
+  if (
+    payload.game === "vlakken" ||
+    payload.game === "verbind" ||
+    payload.game === "zonmaan" ||
+    payload.game === "kronen"
+  ) {
+    const won = (payload.meta as { won?: boolean } | undefined)?.won;
+    if (won) r.logicGamesSolved += 1;
   }
 
   // Unlock checks.
@@ -228,7 +234,7 @@ export function recordGame(payload: GameResultPayload): RecordResult {
     ["word_wizard",       r.bestWordleGuesses <= 2],
     ["speed_demon",       r.bestTypingWpm >= 100],
     ["color_expert",      r.bestColorMatchCorrect >= 10],
-    ["city_mayor",        r.bestCityPlannerScore >= 60],
+    ["logic_master",      r.logicGamesSolved >= 10],
   ];
 
   const before = { ...stats.unlocked };

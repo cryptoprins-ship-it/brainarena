@@ -13,8 +13,11 @@ const GAMES = [
   "tiledrop",
   "wordbuild",
   "colormatch",
-  "cityplanner",
   "letterstack",
+  "vlakken",
+  "verbind",
+  "zonmaan",
+  "kronen",
 ] as const;
 type Game = (typeof GAMES)[number];
 

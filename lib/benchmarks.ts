@@ -27,10 +27,25 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
     "Painters": 85,
     "CEOs": 52,
   },
-  cityplanner: {
-    "Urban planners": 77,
-    "Architects": 82,
-    "CEOs": 63,
+  vlakken: {
+    "Architects": 78,
+    "Tilers": 82,
+    "CEOs": 60,
+  },
+  verbind: {
+    "Logisticians": 80,
+    "Programmers": 84,
+    "Students": 62,
+  },
+  zonmaan: {
+    "Mathematicians": 85,
+    "Logicians": 81,
+    "Engineers": 76,
+  },
+  kronen: {
+    "Chess players": 88,
+    "Mathematicians": 82,
+    "Software developers": 76,
   },
   boggle: {
     "Linguists": 78,
@@ -127,12 +142,19 @@ export function percentileFor(s: Score): number {
       if (correct >= 4) return 55;
       return 25;
     }
-    case "cityplanner": {
-      const v = s.score;
-      if (v >= 60) return 95;
-      if (v >= 40) return 82;
-      if (v >= 20) return 60;
-      if (v >= 5) return 40;
+    case "vlakken":
+    case "verbind":
+    case "zonmaan":
+    case "kronen": {
+      // Logic puzzles: score = time-based (lower = better; encoded as 100000 - seconds).
+      const t = s.time ?? Infinity;
+      const diff = (s.meta as { difficulty?: string } | undefined)?.difficulty ?? "easy";
+      const target = diff === "hard" ? 600 : diff === "medium" ? 360 : 240;
+      const ratio = target / t;
+      if (ratio >= 1.4) return 96;
+      if (ratio >= 1.0) return 85;
+      if (ratio >= 0.7) return 65;
+      if (ratio >= 0.5) return 45;
       return 20;
     }
     case "letterstack": {

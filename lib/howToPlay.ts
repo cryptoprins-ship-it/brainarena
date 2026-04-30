@@ -91,18 +91,6 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "10/10 unlocks the Color Expert medal.",
     ],
   },
-  cityplanner: {
-    label: "CityPlanner",
-    href: "/cityplanner",
-    summary: "Place 20 buildings on an 8×8 grid to score the highest city.",
-    rules: [
-      "Tap a square to place the next piece in the queue.",
-      "🏠 next to 🌳 = +3 per neighbour.",
-      "🏪 next to 🛣️ = +2 per neighbour.",
-      "🏭 with no 🏠 neighbour = +2; 🏠 next to 🏭 = −2.",
-      "Connected 🛣️ network = bonus equal to the longest road chain.",
-    ],
-  },
   letterstack: {
     label: "LetterStack",
     href: "/letterstack",
@@ -113,6 +101,54 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "3 letters = 10, 4 = 25, 5 = 50, 6+ = 100 pts.",
       "Letters fall faster over time — stack of 10 ends the run.",
       "Power-ups every 500 pts: 💣 bomb, ⏸️ slow, ⭐ wildcard.",
+    ],
+  },
+  vlakken: {
+    label: "Vlakken",
+    href: "/vlakken",
+    summary: "Fill the grid by completing the shape around each numbered anchor.",
+    rules: [
+      "Each anchor has a number = the size of the shape it belongs to.",
+      "Shapes are rectangles: square, tall, or wide. Dashed anchors accept any shape of that size.",
+      "Every cell must belong to exactly one shape; shapes cannot overlap.",
+      "Tap an anchor to make it active, then tap cells to assign them.",
+      "Solved when every cell is assigned and every shape matches its anchor.",
+    ],
+  },
+  verbind: {
+    label: "Verbind",
+    href: "/verbind",
+    summary: "Connect the numbers in order with one path that passes through every cell.",
+    rules: [
+      "Start at the cell marked 1 and trace through orthogonally adjacent cells.",
+      "Pass through 2, 3, 4, … in numerical order without skipping.",
+      "The path must visit every cell exactly once.",
+      "Tap or drag to extend; tap a cell already on the path to truncate back to it.",
+      "Solved when every cell is on the path in the correct order.",
+    ],
+  },
+  zonmaan: {
+    label: "Zon & Maan",
+    href: "/zonmaan",
+    summary: "Fill every cell with a sun or moon, following the row/column and edge rules.",
+    rules: [
+      "Tap a cell to cycle: empty → sun → moon → empty.",
+      "No more than two of the same symbol in a row horizontally or vertically.",
+      "Each row and each column must contain equal suns and moons.",
+      "An '=' between two cells means they share the same symbol.",
+      "An '×' between two cells means they hold opposite symbols.",
+    ],
+  },
+  kronen: {
+    label: "Kronen",
+    href: "/kronen",
+    summary: "Place exactly one crown in each row, column, and color region.",
+    rules: [
+      "Tap a cell once for an X (cannot place), again for a crown, again to clear.",
+      "Each row and each column must have exactly one crown.",
+      "Each colored region must have exactly one crown.",
+      "Crowns may not touch — not even diagonally.",
+      "Solved when all crowns are placed correctly.",
     ],
   },
 };
@@ -200,18 +236,6 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "10/10 ontgrendelt de Color Expert medaille.",
     ],
   },
-  cityplanner: {
-    label: "CityPlanner",
-    href: "/cityplanner",
-    summary: "Plaats 20 gebouwen op een 8×8 raster en bouw de stad met de hoogste score.",
-    rules: [
-      "Tik op een vakje om het volgende stuk uit de wachtrij neer te zetten.",
-      "🏠 naast 🌳 = +3 per buur.",
-      "🏪 naast 🛣️ = +2 per buur.",
-      "🏭 zonder 🏠 buur = +2; 🏠 naast 🏭 = −2.",
-      "Verbonden 🛣️ netwerk = bonus gelijk aan de langste wegketen.",
-    ],
-  },
   letterstack: {
     label: "LetterStack",
     href: "/letterstack",
@@ -222,6 +246,54 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "3 letters = 10, 4 = 25, 5 = 50, 6+ = 100 punten.",
       "Letters vallen sneller na verloop van tijd — een stapel van 10 betekent game over.",
       "Power-ups elke 500 punten: 💣 bom, ⏸️ vertraging, ⭐ joker.",
+    ],
+  },
+  vlakken: {
+    label: "Vlakken",
+    href: "/vlakken",
+    summary: "Vul het rooster door de vorm rond elke genummerde anker te voltooien.",
+    rules: [
+      "Elk anker bevat een getal = het aantal cellen van de vorm waar het bij hoort.",
+      "Vormen zijn rechthoeken: vierkant, hoog of breed. Stippellijn-ankers accepteren elke vorm van die grootte.",
+      "Elke cel hoort bij precies één vorm; vormen mogen elkaar niet overlappen.",
+      "Tik op een anker om het actief te maken, tik daarna op cellen om ze toe te wijzen.",
+      "Opgelost wanneer alle cellen zijn toegewezen en elke vorm de juiste grootte heeft.",
+    ],
+  },
+  verbind: {
+    label: "Verbind",
+    href: "/verbind",
+    summary: "Verbind de getallen op volgorde via één pad dat door elke cel loopt.",
+    rules: [
+      "Begin bij cel 1 en loop door horizontaal of verticaal aangrenzende cellen.",
+      "Loop in volgorde door 2, 3, 4, … zonder over te slaan.",
+      "Het pad moet elke cel precies één keer bezoeken.",
+      "Tik of sleep om te verlengen; tik een cel op het pad aan om tot daar terug te keren.",
+      "Opgelost wanneer alle cellen in de juiste volgorde op het pad liggen.",
+    ],
+  },
+  zonmaan: {
+    label: "Zon & Maan",
+    href: "/zonmaan",
+    summary: "Vul elke cel met een zon of maan volgens de rij-, kolom- en randregels.",
+    rules: [
+      "Tik op een cel om te wisselen: leeg → zon → maan → leeg.",
+      "Niet meer dan twee dezelfde symbolen naast elkaar (horizontaal of verticaal).",
+      "Elke rij en elke kolom bevat evenveel zonnen als manen.",
+      "Een '=' tussen cellen betekent: zelfde symbool.",
+      "Een '×' tussen cellen betekent: tegengestelde symbolen.",
+    ],
+  },
+  kronen: {
+    label: "Kronen",
+    href: "/kronen",
+    summary: "Plaats precies één kroon in elke rij, kolom én kleurgebied.",
+    rules: [
+      "Tik op een cel: één keer voor een X (mag niet), twee keer voor een kroon, drie keer om te wissen.",
+      "Elke rij en elke kolom heeft precies één kroon.",
+      "Elk gekleurd gebied bevat precies één kroon.",
+      "Kronen mogen elkaar niet raken — ook niet diagonaal.",
+      "Opgelost wanneer alle kronen correct staan.",
     ],
   },
 };
@@ -309,18 +381,6 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "10/10 schaltet die Color-Expert-Medaille frei.",
     ],
   },
-  cityplanner: {
-    label: "CityPlanner",
-    href: "/cityplanner",
-    summary: "Platziere 20 Gebäude auf einem 8×8-Raster und baue die Stadt mit der höchsten Punktzahl.",
-    rules: [
-      "Tippe ein Feld an, um das nächste Stück aus der Warteschlange zu setzen.",
-      "🏠 neben 🌳 = +3 pro Nachbar.",
-      "🏪 neben 🛣️ = +2 pro Nachbar.",
-      "🏭 ohne 🏠-Nachbar = +2; 🏠 neben 🏭 = −2.",
-      "Verbundenes 🛣️-Netz = Bonus gleich der längsten Straßenkette.",
-    ],
-  },
   letterstack: {
     label: "LetterStack",
     href: "/letterstack",
@@ -331,6 +391,54 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "3 Buchstaben = 10, 4 = 25, 5 = 50, 6+ = 100 Punkte.",
       "Buchstaben fallen mit der Zeit schneller — bei 10 ist Schluss.",
       "Power-ups alle 500 Punkte: 💣 Bombe, ⏸️ Verlangsamen, ⭐ Joker.",
+    ],
+  },
+  vlakken: {
+    label: "Flächen",
+    href: "/vlakken",
+    summary: "Fülle das Raster, indem du die Form um jeden nummerierten Anker vervollständigst.",
+    rules: [
+      "Jeder Anker enthält eine Zahl = die Zellanzahl der Form, zu der er gehört.",
+      "Formen sind Rechtecke: quadratisch, hoch oder breit. Gestrichelte Anker akzeptieren jede Form dieser Größe.",
+      "Jede Zelle gehört zu genau einer Form; Formen dürfen sich nicht überlappen.",
+      "Tippe einen Anker an, um ihn zu aktivieren, dann Zellen, um sie zuzuweisen.",
+      "Gelöst, wenn alle Zellen zugeordnet sind und jede Form passt.",
+    ],
+  },
+  verbind: {
+    label: "Verbinden",
+    href: "/verbind",
+    summary: "Verbinde die Zahlen der Reihe nach mit einem Pfad durch jede Zelle.",
+    rules: [
+      "Starte bei Zelle 1 und führe den Pfad durch orthogonal angrenzende Zellen.",
+      "Durchlaufe 2, 3, 4, … in numerischer Reihenfolge ohne Auslassung.",
+      "Der Pfad muss jede Zelle genau einmal besuchen.",
+      "Tippe oder ziehe zum Verlängern; tippe eine Zelle auf dem Pfad an, um bis dorthin zurückzugehen.",
+      "Gelöst, wenn alle Zellen in der richtigen Reihenfolge auf dem Pfad liegen.",
+    ],
+  },
+  zonmaan: {
+    label: "Sonne & Mond",
+    href: "/zonmaan",
+    summary: "Fülle jede Zelle mit Sonne oder Mond gemäß den Regeln.",
+    rules: [
+      "Tippe eine Zelle: leer → Sonne → Mond → leer.",
+      "Nicht mehr als zwei gleiche Symbole nebeneinander (horizontal oder vertikal).",
+      "Jede Zeile und Spalte enthält gleich viele Sonnen und Monde.",
+      "Ein '=' zwischen Zellen bedeutet: gleiches Symbol.",
+      "Ein '×' zwischen Zellen bedeutet: gegenteilige Symbole.",
+    ],
+  },
+  kronen: {
+    label: "Kronen",
+    href: "/kronen",
+    summary: "Platziere genau eine Krone in jeder Reihe, Spalte und Farbregion.",
+    rules: [
+      "Tippe eine Zelle: einmal für X (gesperrt), zweimal für Krone, dreimal zum Leeren.",
+      "Jede Zeile und Spalte enthält genau eine Krone.",
+      "Jede Farbregion enthält genau eine Krone.",
+      "Kronen dürfen sich nicht berühren — auch nicht diagonal.",
+      "Gelöst, wenn alle Kronen korrekt platziert sind.",
     ],
   },
 };
@@ -418,18 +526,6 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "10/10 débloque la médaille Color Expert.",
     ],
   },
-  cityplanner: {
-    label: "CityPlanner",
-    href: "/cityplanner",
-    summary: "Place 20 bâtiments sur une grille 8×8 pour obtenir le score le plus élevé.",
-    rules: [
-      "Touche une case pour poser la prochaine pièce de la file.",
-      "🏠 à côté de 🌳 = +3 par voisin.",
-      "🏪 à côté de 🛣️ = +2 par voisin.",
-      "🏭 sans voisin 🏠 = +2 ; 🏠 à côté de 🏭 = −2.",
-      "Réseau 🛣️ connecté = bonus égal à la plus longue chaîne de routes.",
-    ],
-  },
   letterstack: {
     label: "LetterStack",
     href: "/letterstack",
@@ -440,6 +536,54 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "3 lettres = 10, 4 = 25, 5 = 50, 6+ = 100 pts.",
       "Les lettres tombent de plus en plus vite — pile de 10 = fin.",
       "Power-ups tous les 500 pts : 💣 bombe, ⏸️ ralenti, ⭐ joker.",
+    ],
+  },
+  vlakken: {
+    label: "Pièces",
+    href: "/vlakken",
+    summary: "Remplissez la grille en complétant la forme autour de chaque ancre numérotée.",
+    rules: [
+      "Chaque ancre porte un nombre = la taille de la forme à laquelle elle appartient.",
+      "Les formes sont des rectangles : carré, haut ou large. Les ancres en pointillés acceptent toute forme de cette taille.",
+      "Chaque cellule appartient à exactement une forme ; les formes ne peuvent pas se chevaucher.",
+      "Touche une ancre pour la rendre active, puis les cellules à lui attribuer.",
+      "Résolu lorsque toutes les cellules sont attribuées et chaque forme correcte.",
+    ],
+  },
+  verbind: {
+    label: "Relier",
+    href: "/verbind",
+    summary: "Reliez les nombres dans l'ordre par un chemin passant par chaque cellule.",
+    rules: [
+      "Pars de la cellule 1 et avance par cellules orthogonalement adjacentes.",
+      "Passe par 2, 3, 4, … dans l'ordre numérique sans en sauter.",
+      "Le chemin doit visiter chaque cellule exactement une fois.",
+      "Touche ou glisse pour prolonger ; touche une cellule du chemin pour revenir jusqu'à elle.",
+      "Résolu quand toutes les cellules sont sur le chemin dans le bon ordre.",
+    ],
+  },
+  zonmaan: {
+    label: "Soleil & Lune",
+    href: "/zonmaan",
+    summary: "Remplis chaque case d'un soleil ou d'une lune selon les règles.",
+    rules: [
+      "Touche une case pour cycler : vide → soleil → lune → vide.",
+      "Pas plus de deux mêmes symboles côte à côte (horizontal ou vertical).",
+      "Chaque ligne et colonne contient autant de soleils que de lunes.",
+      "Un '=' entre deux cases signifie : même symbole.",
+      "Un '×' entre deux cases signifie : symboles opposés.",
+    ],
+  },
+  kronen: {
+    label: "Couronnes",
+    href: "/kronen",
+    summary: "Place exactement une couronne dans chaque ligne, colonne et région colorée.",
+    rules: [
+      "Touche une case : une fois pour X (interdit), deux fois pour couronne, trois fois pour effacer.",
+      "Chaque ligne et chaque colonne contient exactement une couronne.",
+      "Chaque région colorée contient exactement une couronne.",
+      "Les couronnes ne peuvent pas se toucher — même en diagonale.",
+      "Résolu quand toutes les couronnes sont bien placées.",
     ],
   },
 };
@@ -527,18 +671,6 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "10/10 desbloquea la medalla Color Expert.",
     ],
   },
-  cityplanner: {
-    label: "CityPlanner",
-    href: "/cityplanner",
-    summary: "Coloca 20 edificios en una cuadrícula 8×8 para obtener la mayor puntuación.",
-    rules: [
-      "Toca una casilla para colocar la siguiente pieza de la cola.",
-      "🏠 junto a 🌳 = +3 por vecino.",
-      "🏪 junto a 🛣️ = +2 por vecino.",
-      "🏭 sin vecino 🏠 = +2; 🏠 junto a 🏭 = −2.",
-      "Red 🛣️ conectada = bonus igual a la cadena de carretera más larga.",
-    ],
-  },
   letterstack: {
     label: "LetterStack",
     href: "/letterstack",
@@ -549,6 +681,54 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "3 letras = 10, 4 = 25, 5 = 50, 6+ = 100 pts.",
       "Las letras caen más rápido con el tiempo — pila de 10 termina la partida.",
       "Power-ups cada 500 pts: 💣 bomba, ⏸️ ralentizar, ⭐ comodín.",
+    ],
+  },
+  vlakken: {
+    label: "Parches",
+    href: "/vlakken",
+    summary: "Rellena la cuadrícula completando la forma alrededor de cada ancla numerada.",
+    rules: [
+      "Cada ancla tiene un número = el tamaño de la forma a la que pertenece.",
+      "Las formas son rectángulos: cuadrado, alto o ancho. Las anclas con borde discontinuo aceptan cualquier forma de ese tamaño.",
+      "Cada celda pertenece a exactamente una forma; las formas no pueden solaparse.",
+      "Toca un ancla para activarla, luego toca celdas para asignárselas.",
+      "Resuelto cuando todas las celdas están asignadas y cada forma es correcta.",
+    ],
+  },
+  verbind: {
+    label: "Conecta",
+    href: "/verbind",
+    summary: "Conecta los números en orden con un camino que pase por cada celda.",
+    rules: [
+      "Empieza en la celda 1 y avanza por celdas adyacentes ortogonalmente.",
+      "Pasa por 2, 3, 4, … en orden numérico sin saltarte ninguno.",
+      "El camino debe visitar cada celda exactamente una vez.",
+      "Toca o arrastra para extender; toca una celda del camino para retroceder hasta ella.",
+      "Resuelto cuando todas las celdas están en el camino en el orden correcto.",
+    ],
+  },
+  zonmaan: {
+    label: "Sol y Luna",
+    href: "/zonmaan",
+    summary: "Llena cada celda con un sol o una luna siguiendo las reglas.",
+    rules: [
+      "Toca una celda para alternar: vacía → sol → luna → vacía.",
+      "No más de dos símbolos iguales seguidos (horizontal o vertical).",
+      "Cada fila y columna contiene igual número de soles y lunas.",
+      "Un '=' entre celdas significa: mismo símbolo.",
+      "Un '×' entre celdas significa: símbolos opuestos.",
+    ],
+  },
+  kronen: {
+    label: "Coronas",
+    href: "/kronen",
+    summary: "Coloca exactamente una corona en cada fila, columna y región de color.",
+    rules: [
+      "Toca una celda: una vez para X (prohibido), dos para corona, tres para borrar.",
+      "Cada fila y columna contiene exactamente una corona.",
+      "Cada región de color contiene exactamente una corona.",
+      "Las coronas no pueden tocarse — ni siquiera en diagonal.",
+      "Resuelto cuando todas las coronas están bien colocadas.",
     ],
   },
 };
@@ -575,7 +755,7 @@ export const UI_STRINGS: Record<Locale, {
 }> = {
   en: {
     howToPlayHeading: "How to play",
-    howToPlaySubtitle: "Quick rules for each of the nine BrainArena games. Pick one and dive in.",
+    howToPlaySubtitle: "Quick rules for each of the twelve BrainArena games. Pick one and dive in.",
     howToPlayPrefix: "How to play",
     seeFullGuide: "See full guide →",
     wantAllGames: "Want all the games?",
@@ -583,7 +763,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   nl: {
     howToPlayHeading: "Hoe te spelen",
-    howToPlaySubtitle: "Snelle regels voor elk van de negen BrainArena-games. Kies er een en duik erin.",
+    howToPlaySubtitle: "Snelle regels voor elk van de twaalf BrainArena-games. Kies er een en duik erin.",
     howToPlayPrefix: "Hoe speel je",
     seeFullGuide: "Volledige gids →",
     wantAllGames: "Alle games zien?",
@@ -591,7 +771,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   de: {
     howToPlayHeading: "Spielanleitung",
-    howToPlaySubtitle: "Schnelle Regeln für alle neun BrainArena-Spiele. Such dir eines aus und leg los.",
+    howToPlaySubtitle: "Schnelle Regeln für alle zwölf BrainArena-Spiele. Such dir eines aus und leg los.",
     howToPlayPrefix: "So spielst du",
     seeFullGuide: "Vollständige Anleitung →",
     wantAllGames: "Alle Spiele sehen?",
@@ -599,7 +779,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   fr: {
     howToPlayHeading: "Comment jouer",
-    howToPlaySubtitle: "Les règles rapides des neuf jeux BrainArena. Choisis-en un et lance-toi.",
+    howToPlaySubtitle: "Les règles rapides des douze jeux BrainArena. Choisis-en un et lance-toi.",
     howToPlayPrefix: "Comment jouer à",
     seeFullGuide: "Voir le guide complet →",
     wantAllGames: "Voir tous les jeux ?",
@@ -607,7 +787,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   es: {
     howToPlayHeading: "Cómo jugar",
-    howToPlaySubtitle: "Reglas rápidas para los nueve juegos de BrainArena. Elige uno y empieza.",
+    howToPlaySubtitle: "Reglas rápidas para los doce juegos de BrainArena. Elige uno y empieza.",
     howToPlayPrefix: "Cómo jugar a",
     seeFullGuide: "Ver guía completa →",
     wantAllGames: "¿Ver todos los juegos?",
@@ -623,8 +803,11 @@ export const HOW_TO_PLAY_ORDER: GameKey[] = [
   "tiledrop",
   "wordbuild",
   "colormatch",
-  "cityplanner",
   "letterstack",
+  "vlakken",
+  "verbind",
+  "zonmaan",
+  "kronen",
 ];
 
 // Backwards-compat: existing imports of HOW_TO_PLAY default to English.

@@ -24,8 +24,11 @@ export default function NavBar() {
           <Link href="/tiledrop" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">TileDrop</Link>
           <Link href="/wordbuild" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">WordBuild</Link>
           <Link href="/colormatch" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">ColorMatch</Link>
-          <Link href="/cityplanner" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">CityPlanner</Link>
           <Link href="/letterstack" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">LetterStack</Link>
+          <Link href="/vlakken" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Vlakken</Link>
+          <Link href="/verbind" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Verbind</Link>
+          <Link href="/zonmaan" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Zon &amp; Maan</Link>
+          <Link href="/kronen" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Kronen</Link>
           <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Leaderboard</Link>
           <Link
             href="/achievements"

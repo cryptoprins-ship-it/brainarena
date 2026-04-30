@@ -8,8 +8,11 @@ export type GameKey =
   | "tiledrop"
   | "wordbuild"
   | "colormatch"
-  | "cityplanner"
-  | "letterstack";
+  | "letterstack"
+  | "vlakken"
+  | "verbind"
+  | "zonmaan"
+  | "kronen";
 
 const NAME_KEY = "brainarena-player-name";
 const STREAK_KEY = (g: GameKey) => `brainarena-streak-${g}`;
