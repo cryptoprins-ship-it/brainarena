@@ -11,7 +11,10 @@ import { dayIndex } from "@/lib/games/kronen";
 type Difficulty = "easy" | "medium" | "hard";
 type CellState = -1 | 0 | 1; // -1 empty, 0 moon, 1 sun
 
-const SIZE_FOR: Record<Difficulty, number> = { easy: 4, medium: 6, hard: 8 };
+// Standard Tango/Sun-and-Moon is always a 6×6 (36-cell) board; difficulty
+// varies clue density, not grid size.
+const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 6, hard: 6 };
+const CLUE_RATIO_FOR: Record<Difficulty, number> = { easy: 0.45, medium: 0.30, hard: 0.18 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 2, medium: 3, hard: 4 };
 const BEST_KEY = (d: Difficulty) => `brainarena-zonmaan-best-${d}`;
@@ -48,7 +51,7 @@ export default function ZonMaanPage() {
 
   useEffect(() => {
     const size = SIZE_FOR[difficulty];
-    const p = generateZonMaan(size, seed);
+    const p = generateZonMaan(size, seed, CLUE_RATIO_FOR[difficulty]);
     setPuzzle(p);
     // Pre-fill clue cells so the player can never overwrite them.
     const init: CellState[] = new Array(size * size).fill(-1);
@@ -286,20 +289,21 @@ function ZonMaanGrid({
         const idx = r * size + c;
         const state = cells[idx];
         const isClue = idx in puzzle.clues;
+        const stateLabel = state === 1 ? "sun" : state === 0 ? "moon" : "empty";
         slots.push(
           <button
             key={`c-${idx}`}
             type="button"
             disabled={done || isClue}
             onClick={() => onClick(idx)}
-            aria-label={`row ${r + 1} col ${c + 1}`}
-            className={`aspect-square grid place-items-center text-2xl select-none transition active:scale-[0.97] ${
+            aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}`}
+            className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
               isClue
-                ? "bg-[#13141c] text-amber-200 border border-[#2a2a2a]"
+                ? "bg-[#13141c] border border-[#2a2a2a]"
                 : "bg-[#15151c] hover:bg-[#1c1c25] border border-[#2a2a2a]"
             }`}
           >
-            {state === 1 ? <span title="sun">☀</span> : state === 0 ? <span title="moon" className="text-indigo-300">☾</span> : null}
+            {state === 1 ? <SunIcon /> : state === 0 ? <MoonIcon /> : null}
           </button>
         );
       } else if (isCellRow && !isCellCol) {
@@ -347,15 +351,49 @@ function ZonMaanGrid({
 }
 
 function EdgeBadge({ sym }: { sym: "=" | "x" }) {
+  // Terracotta-on-cream for both = and × — color is for legibility, the
+  // glyph itself carries the meaning.
   return (
     <span
       aria-label={sym === "=" ? "same symbol" : "opposite symbols"}
-      className={`inline-grid place-items-center text-[10px] font-black h-4 w-4 rounded-full ${
-        sym === "=" ? "bg-emerald-500 text-[#0a0a0a]" : "bg-rose-500 text-[#0a0a0a]"
-      }`}
+      className="inline-grid place-items-center text-[11px] font-black h-4 w-4 rounded-full bg-[#fef3e2] text-[#c2410c] ring-1 ring-[#fb923c]/40"
     >
       {sym === "=" ? "=" : "×"}
     </span>
+  );
+}
+
+function SunIcon() {
+  // Solid orange disc; rays kept subtle so it reads at small sizes too.
+  return (
+    <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
+      <g stroke="#f59e0b" strokeWidth="2" strokeLinecap="round">
+        <line x1="16" y1="3"  x2="16" y2="7" />
+        <line x1="16" y1="25" x2="16" y2="29" />
+        <line x1="3"  y1="16" x2="7"  y2="16" />
+        <line x1="25" y1="16" x2="29" y2="16" />
+        <line x1="6.6"  y1="6.6"  x2="9.4"  y2="9.4" />
+        <line x1="22.6" y1="22.6" x2="25.4" y2="25.4" />
+        <line x1="6.6"  y1="25.4" x2="9.4"  y2="22.6" />
+        <line x1="22.6" y1="9.4"  x2="25.4" y2="6.6" />
+      </g>
+      <circle cx="16" cy="16" r="6.5" fill="#f39c12" stroke="#d97706" strokeWidth="1" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  // Blue crescent built from two overlapping circles via mask.
+  return (
+    <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
+      <defs>
+        <mask id="zm-moon-mask">
+          <rect width="32" height="32" fill="white" />
+          <circle cx="20" cy="13" r="8" fill="black" />
+        </mask>
+      </defs>
+      <circle cx="16" cy="16" r="9" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1" mask="url(#zm-moon-mask)" />
+    </svg>
   );
 }
 
