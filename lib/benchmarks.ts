@@ -52,11 +52,6 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
     "Crossword fans": 81,
     "Editors": 74,
   },
-  wordbuild: {
-    "Builders": 72,
-    "Architects": 70,
-    "Children's authors": 68,
-  },
   letterstack: {
     "Gamers": 75,
     "Stenographers": 80,
@@ -125,14 +120,6 @@ export function percentileFor(s: Score): number {
       if (v >= 5000) return 88;
       if (v >= 2000) return 72;
       if (v >= 500) return 50;
-      return 25;
-    }
-    case "wordbuild": {
-      const v = s.score;
-      if (v >= 500) return 95;
-      if (v >= 300) return 82;
-      if (v >= 150) return 65;
-      if (v >= 50) return 45;
       return 25;
     }
     case "colormatch": {

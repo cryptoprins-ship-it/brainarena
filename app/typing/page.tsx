@@ -97,6 +97,18 @@ export default function TypingPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
+      {/* Typing requires a physical keyboard. Mobile gets a short notice
+          instead of the playable UI; the route stays accessible (SEO,
+          deep links, locale switcher) but is unplayable. */}
+      <div className="md:hidden rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm">
+        <h1 className="text-xl font-black">Typing Speed</h1>
+        <p className="mt-2 text-amber-100">
+          This game needs a physical keyboard. Open BrainArena on a laptop
+          or desktop to play.
+        </p>
+      </div>
+
+      <div className="hidden md:block">
       <StreakBanner />
       <HowToPlay game="typing" />
       <div className="flex items-center justify-between">
@@ -175,6 +187,7 @@ export default function TypingPage() {
           )}
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

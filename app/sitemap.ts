@@ -11,7 +11,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "sudoku",
     "typing",
     "tiledrop",
-    "wordbuild",
     "colormatch",
     "letterstack",
     "vlakken",

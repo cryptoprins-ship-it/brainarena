@@ -93,14 +93,6 @@ const GAMES: {
     ),
   },
   {
-    href: "/wordbuild",
-    game: "wordbuild",
-    accent: "from-orange-500/20 to-orange-500/0",
-    preview: (
-      <div className="text-2xl">🏠</div>
-    ),
-  },
-  {
     href: "/colormatch",
     game: "colormatch",
     accent: "from-rose-500/20 to-rose-500/0",

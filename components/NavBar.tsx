@@ -22,7 +22,6 @@ export default function NavBar() {
           <Link href="/sudoku" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Sudoku</Link>
           <Link href="/typing" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Typing</Link>
           <Link href="/tiledrop" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">TileDrop</Link>
-          <Link href="/wordbuild" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">WordBuild</Link>
           <Link href="/colormatch" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">ColorMatch</Link>
           <Link href="/letterstack" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">LetterStack</Link>
           <Link href="/vlakken" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Vlakken</Link>

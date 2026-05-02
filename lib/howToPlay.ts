@@ -69,17 +69,6 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "Speed increases every 10 cleared lines.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Type words from today's category to build a house piece by piece.",
-    rules: [
-      "Every word must belong to the day's category.",
-      "3 letters = brick, 4 = wall, 5 = window, 6 = roof tile, 7+ = chimney.",
-      "Longer words score more points.",
-      "10 rounds — your finished house is shown on the leaderboard.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -213,17 +202,6 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "C bewaart het huidige stuk voor later. P pauzeert.",
       "1/2/3/4 regels wissen levert 100/300/500/800 × level op.",
       "De snelheid stijgt elke 10 gewiste regels.",
-    ],
-  },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Typ woorden uit de categorie van vandaag om stuk voor stuk een huis te bouwen.",
-    rules: [
-      "Elk woord moet binnen de categorie van vandaag passen.",
-      "3 letters = baksteen, 4 = muur, 5 = raam, 6 = dakpan, 7+ = schoorsteen.",
-      "Langere woorden leveren meer punten op.",
-      "10 rondes — je voltooide huis verschijnt op het scorebord.",
     ],
   },
   colormatch: {
@@ -361,17 +339,6 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Geschwindigkeit steigt alle 10 gelöschten Reihen.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Tippe Wörter aus der heutigen Kategorie, um Stück für Stück ein Haus zu bauen.",
-    rules: [
-      "Jedes Wort muss zur heutigen Kategorie gehören.",
-      "3 Buchstaben = Ziegel, 4 = Wand, 5 = Fenster, 6 = Dachziegel, 7+ = Schornstein.",
-      "Längere Wörter geben mehr Punkte.",
-      "10 Runden — dein fertiges Haus erscheint in der Bestenliste.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -507,17 +474,6 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "La vitesse augmente toutes les 10 lignes.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Tape des mots de la catégorie du jour pour construire une maison pièce par pièce.",
-    rules: [
-      "Chaque mot doit appartenir à la catégorie du jour.",
-      "3 lettres = brique, 4 = mur, 5 = fenêtre, 6 = tuile, 7+ = cheminée.",
-      "Plus le mot est long, plus tu marques.",
-      "10 manches — ta maison terminée apparaît au classement.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -651,17 +607,6 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "C guarda la pieza actual. P pausa.",
       "Limpiar 1/2/3/4 líneas = 100/300/500/800 × nivel.",
       "La velocidad sube cada 10 líneas eliminadas.",
-    ],
-  },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Escribe palabras de la categoría del día para construir una casa pieza a pieza.",
-    rules: [
-      "Cada palabra debe pertenecer a la categoría del día.",
-      "3 letras = ladrillo, 4 = pared, 5 = ventana, 6 = teja, 7+ = chimenea.",
-      "Las palabras más largas dan más puntos.",
-      "10 rondas — tu casa terminada aparece en el ranking.",
     ],
   },
   colormatch: {
@@ -800,17 +745,6 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "A velocidade aumenta a cada 10 linhas eliminadas.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Escreve palavras da categoria do dia para construir uma casa peça a peça.",
-    rules: [
-      "Cada palavra tem de pertencer à categoria do dia.",
-      "3 letras = tijolo, 4 = parede, 5 = janela, 6 = telha, 7+ = chaminé.",
-      "Palavras mais longas dão mais pontos.",
-      "10 rondas — a tua casa terminada aparece no ranking.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -947,17 +881,6 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "हर 10 साफ़ पंक्तियों पर गति बढ़ती है।",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "आज की श्रेणी से शब्द लिखकर एक घर बनाएँ।",
-    rules: [
-      "हर शब्द आज की श्रेणी का होना चाहिए।",
-      "3 अक्षर = ईंट, 4 = दीवार, 5 = खिड़की, 6 = खपरैल, 7+ = चिमनी।",
-      "लंबे शब्द अधिक अंक देते हैं।",
-      "10 राउंड — आपका तैयार घर लीडरबोर्ड पर दिखता है।",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -1092,17 +1015,6 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "C で現在のピースをホールド。P でポーズ。",
       "1/2/3/4 ライン消去 = 100/300/500/800 × レベル。",
       "10 ライン消すごとに速度上昇。",
-    ],
-  },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "今日のお題に沿った単語を入力して家を組み立てよう。",
-    rules: [
-      "すべての単語は今日のカテゴリに属していること。",
-      "3 文字 = レンガ、4 = 壁、5 = 窓、6 = 屋根瓦、7+ = 煙突。",
-      "長い単語ほど高得点。",
-      "10 ラウンド — 完成した家がリーダーボードに表示される。",
     ],
   },
   colormatch: {
@@ -1274,7 +1186,6 @@ export const HOW_TO_PLAY_ORDER: GameKey[] = [
   "sudoku",
   "typing",
   "tiledrop",
-  "wordbuild",
   "colormatch",
   "letterstack",
   "vlakken",

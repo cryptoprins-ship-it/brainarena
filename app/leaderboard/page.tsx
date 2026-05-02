@@ -8,7 +8,6 @@ type Game =
   | "sudoku"
   | "typing"
   | "tiledrop"
-  | "wordbuild"
   | "colormatch"
   | "letterstack"
   | "vlakken"
@@ -32,7 +31,6 @@ const GAMES: { key: Game; label: string }[] = [
   { key: "sudoku", label: "Sudoku" },
   { key: "typing", label: "Typing" },
   { key: "tiledrop", label: "TileDrop" },
-  { key: "wordbuild", label: "WordBuild" },
   { key: "colormatch", label: "ColorMatch" },
   { key: "letterstack", label: "LetterStack" },
   { key: "vlakken", label: "Vlakken" },

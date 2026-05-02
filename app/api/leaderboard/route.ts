@@ -15,7 +15,6 @@ const GAMES = [
   "sudoku",
   "typing",
   "tiledrop",
-  "wordbuild",
   "colormatch",
   "letterstack",
   "vlakken",

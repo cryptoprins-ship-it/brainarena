@@ -6,7 +6,6 @@ export type GameKey =
   | "sudoku"
   | "typing"
   | "tiledrop"
-  | "wordbuild"
   | "colormatch"
   | "letterstack"
   | "vlakken"

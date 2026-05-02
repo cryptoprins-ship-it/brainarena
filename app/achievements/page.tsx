@@ -10,7 +10,6 @@ const GAME_LABEL: Record<GameKey, string> = {
   sudoku: "Sudoku",
   typing: "Typing",
   tiledrop: "TileDrop",
-  wordbuild: "WordBuild",
   colormatch: "ColorMatch",
   letterstack: "LetterStack",
   vlakken: "Vlakken",

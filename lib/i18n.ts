@@ -67,7 +67,8 @@ type TranslationKey =
   | "constraint_equal" | "constraint_opposite"
   | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start"
   | "win_title" | "win_your_time" | "win_hints_used" | "win_best_time"
-  | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share";
+  | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share"
+  | "zonmaan_three_in_row";
 
 const T: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -116,6 +117,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Play again",
     win_new_puzzle: "New puzzle",
     win_share: "Share",
+    zonmaan_three_in_row: "⚠ Three of the same symbol in a row or column.",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -163,6 +165,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Speel opnieuw",
     win_new_puzzle: "Nieuwe puzzel",
     win_share: "Deel",
+    zonmaan_three_in_row: "⚠ Drie dezelfde symbolen op een rij of kolom.",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -211,6 +214,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Nochmal",
     win_new_puzzle: "Neues Rätsel",
     win_share: "Teilen",
+    zonmaan_three_in_row: "⚠ Drei gleiche Symbole in einer Zeile oder Spalte.",
   },
   // TBD: native review.
   fr: {
@@ -259,6 +263,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Rejouer",
     win_new_puzzle: "Nouveau puzzle",
     win_share: "Partager",
+    zonmaan_three_in_row: "⚠ Trois mêmes symboles sur une ligne ou colonne.",
   },
   // TBD: native review.
   es: {
@@ -307,6 +312,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Jugar otra vez",
     win_new_puzzle: "Nuevo puzzle",
     win_share: "Compartir",
+    zonmaan_three_in_row: "⚠ Tres símbolos iguales en una fila o columna.",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -355,6 +361,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "फिर खेलें",
     win_new_puzzle: "नई पहेली",
     win_share: "शेयर",
+    zonmaan_three_in_row: "⚠ एक पंक्ति या स्तंभ में तीन समान चिह्न।",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -405,6 +412,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "Jogar de novo",
     win_new_puzzle: "Novo puzzle",
     win_share: "Compartilhar",
+    zonmaan_three_in_row: "⚠ Três símbolos iguais em uma linha ou coluna.",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -453,6 +461,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_play_again: "もう一度",
     win_new_puzzle: "新しいパズル",
     win_share: "シェア",
+    zonmaan_three_in_row: "⚠ 同じ記号が縦・横に3つ並んでいます。",
   },
 };
 

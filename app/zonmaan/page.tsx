@@ -21,12 +21,16 @@ const BEST_KEY = (d: Difficulty) => `brainarena-zonmaan-best-${d}`;
 
 type Move = { idx: number; prev: CellState; next: CellState };
 
-// Cycle empty → sun → moon → empty so a single tap stream covers all
-// three states.
-function nextState(s: CellState): CellState {
-  if (s === -1) return 1;
-  if (s === 1) return 0;
-  return -1;
+// Single click semantics: empty → sun, sun → empty, moon → sun.
+// Double click semantics: any → moon, moon → empty.
+// (Per user: "klik = zon, dubbelklik = maan, klik je weer dan zon".)
+function clickResult(s: CellState): CellState {
+  if (s === 1) return -1;
+  return 1; // -1 → sun, 0 → sun
+}
+function dblClickResult(s: CellState): CellState {
+  if (s === 0) return -1;
+  return 0; // -1 → moon, 1 → moon
 }
 
 export default function ZonMaanPage() {
@@ -108,13 +112,21 @@ export default function ZonMaanPage() {
     }
   }, [cells, puzzle, done, difficulty, elapsed]);
 
-  const onCellClick = useCallback(
-    (idx: number) => {
+  // A click delays its effect by ~240ms so we can tell it apart from a
+  // double-click. If a second click on the same cell lands inside that
+  // window, the pending single-click is cancelled and the double-click
+  // path runs instead. Without this gate, a double-click would fire the
+  // single-click logic twice before the dblclick logic.
+  const clickTimer = useRef<number | null>(null);
+  const pendingIdx = useRef<number | null>(null);
+
+  const applyMove = useCallback(
+    (idx: number, nxt: CellState) => {
       if (done || !puzzle) return;
       if (idx in puzzle.clues) return;
       if (!startedAt.current) startedAt.current = Date.now();
       const cur = cells[idx];
-      const nxt = nextState(cur);
+      if (cur === nxt) return;
       setCells((prev) => {
         const next = [...prev];
         next[idx] = nxt;
@@ -124,6 +136,71 @@ export default function ZonMaanPage() {
     },
     [cells, done, puzzle]
   );
+
+  const onCellClick = useCallback(
+    (idx: number) => {
+      if (done || !puzzle) return;
+      if (idx in puzzle.clues) return;
+      // If there's a pending single-click on this same cell, that means a
+      // second click just landed — treat the pair as a double-click.
+      if (clickTimer.current && pendingIdx.current === idx) {
+        window.clearTimeout(clickTimer.current);
+        clickTimer.current = null;
+        pendingIdx.current = null;
+        applyMove(idx, dblClickResult(cells[idx]));
+        return;
+      }
+      if (clickTimer.current) {
+        window.clearTimeout(clickTimer.current);
+      }
+      pendingIdx.current = idx;
+      clickTimer.current = window.setTimeout(() => {
+        clickTimer.current = null;
+        pendingIdx.current = null;
+        applyMove(idx, clickResult(cells[idx]));
+      }, 240);
+    },
+    [applyMove, cells, done, puzzle]
+  );
+
+  // Native dblclick is a fallback for environments where the click-pair
+  // detector misses (e.g. mouse with a very short interval).
+  const onCellDoubleClick = useCallback(
+    (idx: number) => {
+      if (clickTimer.current) {
+        window.clearTimeout(clickTimer.current);
+        clickTimer.current = null;
+        pendingIdx.current = null;
+      }
+      applyMove(idx, dblClickResult(cells[idx]));
+    },
+    [applyMove, cells]
+  );
+
+  // Highlights when the player has three of the same symbol in a row or
+  // column. Pure detection — we don't auto-correct, just nudge the
+  // player to fix it themselves.
+  const tripletViolation = useMemo(() => {
+    if (!puzzle || done) return false;
+    const N = puzzle.size;
+    for (let r = 0; r < N; r++) {
+      for (let c = 0; c <= N - 3; c++) {
+        const a = cells[r * N + c];
+        const b = cells[r * N + c + 1];
+        const d = cells[r * N + c + 2];
+        if (a !== -1 && a === b && b === d) return true;
+      }
+    }
+    for (let c = 0; c < N; c++) {
+      for (let r = 0; r <= N - 3; r++) {
+        const a = cells[r * N + c];
+        const b = cells[(r + 1) * N + c];
+        const d = cells[(r + 2) * N + c];
+        if (a !== -1 && a === b && b === d) return true;
+      }
+    }
+    return false;
+  }, [cells, puzzle, done]);
 
   const onUndo = useCallback(() => {
     if (done) return;
@@ -199,11 +276,18 @@ export default function ZonMaanPage() {
         <DifficultyToggle value={difficulty} onChange={setDifficulty} />
       </div>
 
+      {tripletViolation && (
+        <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
+          {t("zonmaan_three_in_row")}
+        </div>
+      )}
+
       <ZonMaanGrid
         puzzle={puzzle}
         cells={cells}
         done={done}
         onClick={onCellClick}
+        onDoubleClick={onCellDoubleClick}
       />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -337,11 +421,13 @@ function ZonMaanGrid({
   cells,
   done,
   onClick,
+  onDoubleClick,
 }: {
   puzzle: ZonMaanPuzzle;
   cells: CellState[];
   done: boolean;
   onClick: (idx: number) => void;
+  onDoubleClick: (idx: number) => void;
 }) {
   const { size } = puzzle;
   // Render in a 2N-1 × 2N-1 mesh: cells at even/even, and edge slots on
@@ -366,6 +452,7 @@ function ZonMaanGrid({
             type="button"
             disabled={done || isClue}
             onClick={() => onClick(idx)}
+            onDoubleClick={() => onDoubleClick(idx)}
             aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}`}
             className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
               isClue
@@ -373,7 +460,7 @@ function ZonMaanGrid({
                 : "bg-[#15151c] hover:bg-[#1c1c25] border border-[#2a2a2a]"
             }`}
           >
-            {state === 1 ? <SunIcon /> : state === 0 ? <MoonIcon /> : null}
+            {state === 1 ? <SunIcon dim={isClue} /> : state === 0 ? <MoonIcon dim={isClue} /> : null}
           </button>
         );
       } else if (isCellRow && !isCellCol) {
@@ -433,11 +520,16 @@ function EdgeBadge({ sym }: { sym: "=" | "x" }) {
   );
 }
 
-function SunIcon() {
+function SunIcon({ dim }: { dim?: boolean } = {}) {
   // Solid orange disc; rays kept subtle so it reads at small sizes too.
+  // `dim` is set on pre-placed clue cells so the player can tell their
+  // own placements apart from the puzzle's givens at a glance.
+  const ray = dim ? "#92651a" : "#f59e0b";
+  const fill = dim ? "#8a5a16" : "#f39c12";
+  const stroke = dim ? "#5d3d0e" : "#d97706";
   return (
     <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
-      <g stroke="#f59e0b" strokeWidth="2" strokeLinecap="round">
+      <g stroke={ray} strokeWidth="2" strokeLinecap="round">
         <line x1="16" y1="3"  x2="16" y2="7" />
         <line x1="16" y1="25" x2="16" y2="29" />
         <line x1="3"  y1="16" x2="7"  y2="16" />
@@ -447,22 +539,29 @@ function SunIcon() {
         <line x1="6.6"  y1="25.4" x2="9.4"  y2="22.6" />
         <line x1="22.6" y1="9.4"  x2="25.4" y2="6.6" />
       </g>
-      <circle cx="16" cy="16" r="6.5" fill="#f39c12" stroke="#d97706" strokeWidth="1" />
+      <circle cx="16" cy="16" r="6.5" fill={fill} stroke={stroke} strokeWidth="1" />
     </svg>
   );
 }
 
-function MoonIcon() {
-  // Blue crescent built from two overlapping circles via mask.
+function MoonIcon({ dim }: { dim?: boolean } = {}) {
+  // Blue crescent built from two overlapping circles via mask. `dim`
+  // marks pre-placed clue cells so the player can tell givens apart
+  // from their own placements.
+  const fill = dim ? "#1e3a8a" : "#3b82f6";
+  const stroke = dim ? "#0e1e58" : "#1d4ed8";
+  // Each instance needs a unique mask id; React 19 useId would be cleaner
+  // but a per-prop suffix is enough for the two render variants.
+  const maskId = dim ? "zm-moon-mask-dim" : "zm-moon-mask";
   return (
     <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
       <defs>
-        <mask id="zm-moon-mask">
+        <mask id={maskId}>
           <rect width="32" height="32" fill="white" />
           <circle cx="20" cy="13" r="8" fill="black" />
         </mask>
       </defs>
-      <circle cx="16" cy="16" r="9" fill="#3b82f6" stroke="#1d4ed8" strokeWidth="1" mask="url(#zm-moon-mask)" />
+      <circle cx="16" cy="16" r="9" fill={fill} stroke={stroke} strokeWidth="1" mask={`url(#${maskId})`} />
     </svg>
   );
 }
