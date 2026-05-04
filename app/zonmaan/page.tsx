@@ -233,11 +233,15 @@ export default function ZonMaanPage() {
         <DifficultyToggle value={difficulty} onChange={setDifficulty} />
       </div>
 
-      {tripletViolation && (
+      {done ? (
+        <div className="mx-auto mt-4 max-w-md rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 text-center text-sm font-bold text-emerald-200">
+          ✓ {t("solved")}
+        </div>
+      ) : tripletViolation ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
           {t("zonmaan_three_in_row")}
         </div>
-      )}
+      ) : null}
 
       <ZonMaanGrid
         puzzle={puzzle}
@@ -408,7 +412,9 @@ function ZonMaanGrid({
             onClick={() => onClick(idx)}
             aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}`}
             className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
-              isClue
+              done
+                ? "bg-emerald-500/10 border border-emerald-500/40 cursor-default"
+                : isClue
                 ? "bg-[#13141c] border border-[#2a2a2a]"
                 : "bg-[#15151c] hover:bg-[#1c1c25] border border-[#2a2a2a]"
             }`}

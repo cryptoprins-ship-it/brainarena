@@ -80,46 +80,52 @@ function placeSolution(size: number, rng: () => number): number[] | null {
   return pick(0) ? cols : null;
 }
 
-// Grow N regions from the crown anchors by repeatedly absorbing a random
-// unclaimed neighbour. Always picks a region uniformly at random among those
-// that still have growth room — this keeps regions roughly balanced.
+// Grow N regions from the crown anchors. To avoid puzzles that *look*
+// unsolvable (one tiny single-cell region forcing a placement, while another
+// region eats half the board), each step expands the SMALLEST region that
+// still has a growth option. Ties are broken randomly so the daily puzzle
+// stays varied. The result: region sizes hover within ±2 of N (= total /
+// regions), giving the player room to deduce instead of being squeezed by
+// forced placements.
 function growRegions(size: number, solution: number[], rng: () => number): number[] {
   const N = size * size;
   const regions: number[] = new Array(N).fill(-1);
-  // Anchor each region at the crown cell.
+  const counts = new Array(size).fill(1);
   solution.forEach((col, r) => {
     regions[r * size + col] = r;
   });
-  // Frontier = region id → list of cells in that region with unclaimed neighbours
+
   let claimed = size;
   while (claimed < N) {
-    // Pick a region with at least one growth option.
-    const order = Array.from({ length: size }, (_, i) => i);
-    shuffleInPlace(order, rng);
-    let placed = false;
-    for (const region of order) {
-      // collect all cells of this region that have unclaimed neighbours
-      const candidates: { cell: number; nb: number }[] = [];
+    // Per-region growth candidates. A region with no candidates is locked.
+    const growable: number[] = [];
+    const candidatesByRegion: number[][] = [];
+    for (let region = 0; region < size; region++) {
+      const cands: number[] = [];
       for (let i = 0; i < N; i++) {
         if (regions[i] !== region) continue;
         for (const nb of neighbours4(i, size)) {
-          if (regions[nb] === -1) candidates.push({ cell: i, nb });
+          if (regions[nb] === -1) cands.push(nb);
         }
       }
-      if (!candidates.length) continue;
-      const pick = candidates[Math.floor(rng() * candidates.length)];
-      regions[pick.nb] = region;
-      claimed++;
-      placed = true;
+      candidatesByRegion[region] = cands;
+      if (cands.length) growable.push(region);
+    }
+    if (!growable.length) {
+      // Disconnected leftovers — shouldn't happen on a connected grid, but
+      // sweep them into region 0 as a guard.
+      for (let i = 0; i < N; i++) if (regions[i] === -1) regions[i] = 0;
       break;
     }
-    if (!placed) {
-      // Should be impossible for connected grids, but guard.
-      for (let i = 0; i < N; i++) {
-        if (regions[i] === -1) regions[i] = 0;
-      }
-      break;
-    }
+    // Smallest first, ties broken by shuffled order.
+    shuffleInPlace(growable, rng);
+    growable.sort((a, b) => counts[a] - counts[b]);
+    const region = growable[0];
+    const cands = candidatesByRegion[region];
+    const pick = cands[Math.floor(rng() * cands.length)];
+    regions[pick] = region;
+    counts[region]++;
+    claimed++;
   }
   return regions;
 }
