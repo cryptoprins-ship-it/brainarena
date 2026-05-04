@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { dayIndex } from "@/lib/dailyWord";
 import { getName, setName, submitScore } from "@/lib/scores";
+import { useLocale } from "@/lib/i18n";
+import {
+  isBoggleSupported,
+  loadDictionary,
+  getCachedDictionary,
+  type BoggleLocale,
+} from "@/lib/dictionary";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -58,6 +65,10 @@ function makeGrid(seed: number): string[] {
 }
 
 export default function BogglePage() {
+  const { t, locale } = useLocale();
+  const supported = isBoggleSupported(locale);
+  const dictLocale: BoggleLocale = supported ? locale : "en";
+
   const [grid, setGrid] = useState<string[]>([]);
   const [path, setPath] = useState<number[]>([]);
   const [flash, setFlash] = useState<number[]>([]);
@@ -66,11 +77,27 @@ export default function BogglePage() {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
+  const [invalidMsg, setInvalidMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [dictReady, setDictReady] = useState(() => getCachedDictionary(dictLocale) !== null);
+  const dictRef = useRef<Set<string> | null>(getCachedDictionary(dictLocale));
   const startedAt = useRef<number | null>(null);
   const pathRef = useRef<number[]>([]);
   useEffect(() => { pathRef.current = path; }, [path]);
+
+  // Pre-load the dictionary as soon as the page mounts so it's ready by
+  // the time the player commits their first word.
+  useEffect(() => {
+    if (!supported) return;
+    let cancelled = false;
+    loadDictionary(dictLocale).then((set) => {
+      if (cancelled) return;
+      dictRef.current = set;
+      setDictReady(true);
+    }).catch(() => { /* swallow — game still playable, all words rejected */ });
+    return () => { cancelled = true; };
+  }, [supported, dictLocale]);
 
   useEffect(() => { setGrid(makeGrid(dayIndex())); setNameState(getName()); }, []);
 
@@ -96,13 +123,22 @@ export default function BogglePage() {
     const p = pathRef.current;
     if (!running) { setPath([]); return; }
     const w = p.map((i) => grid[i]).join("").toLowerCase();
-    if (p.length >= 3 && !found.includes(w)) {
+    const dict = dictRef.current;
+    const inDict = dict?.has(w) === true;
+    if (p.length >= 3 && !found.includes(w) && inDict) {
       setFound((f) => [w, ...f]);
+      setInvalidMsg(null);
     } else if (p.length >= 1) {
       setShakeKey((k) => k + 1);
+      // Only show "not a word" once the dict is ready — before that, a
+      // failure could just be due to the dict still loading.
+      if (p.length >= 3 && !found.includes(w) && dict && !inDict) {
+        setInvalidMsg(t("boggle_invalid_word"));
+        window.setTimeout(() => setInvalidMsg(null), 1500);
+      }
     }
     setPath([]);
-  }, [found, grid, running]);
+  }, [found, grid, running, t]);
   const tryCommitRef = useRef(tryCommit);
   useEffect(() => { tryCommitRef.current = tryCommit; }, [tryCommit]);
 
@@ -206,6 +242,18 @@ export default function BogglePage() {
     }
   };
 
+  if (!supported) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-4 py-10">
+        <h1 className="text-2xl font-black">Boggle</h1>
+        <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm">
+          <p className="font-bold text-amber-200">{t("boggle_unsupported_title")}</p>
+          <p className="mt-2 text-amber-100">{t("boggle_unsupported_body")}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
       <StreakBanner />
@@ -268,9 +316,16 @@ export default function BogglePage() {
               ) : null}
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-gray-500">
-            Keyboard: type letters · Enter submits · Backspace undoes · Esc clears
-          </p>
+          <div className="mt-2 flex h-5 items-center justify-between text-[11px]">
+            <span className="text-gray-500">
+              Keyboard: type letters · Enter submits · Backspace undoes · Esc clears
+            </span>
+            {invalidMsg ? (
+              <span className="font-bold text-red-300">{invalidMsg}</span>
+            ) : !dictReady ? (
+              <span className="text-gray-500">{t("boggle_loading_dict")}</span>
+            ) : null}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">

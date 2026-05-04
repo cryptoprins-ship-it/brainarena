@@ -21,16 +21,12 @@ const BEST_KEY = (d: Difficulty) => `brainarena-zonmaan-best-${d}`;
 
 type Move = { idx: number; prev: CellState; next: CellState };
 
-// Single click semantics: empty → sun, sun → empty, moon → sun.
-// Double click semantics: any → moon, moon → empty.
-// (Per user: "klik = zon, dubbelklik = maan, klik je weer dan zon".)
-function clickResult(s: CellState): CellState {
-  if (s === 1) return -1;
-  return 1; // -1 → sun, 0 → sun
-}
-function dblClickResult(s: CellState): CellState {
-  if (s === 0) return -1;
-  return 0; // -1 → moon, 1 → moon
+// Single click cycles: empty → sun → moon → empty. No double-click —
+// avoids the latency a click/dblclick disambiguator would introduce.
+function cycleResult(s: CellState): CellState {
+  if (s === -1) return 1;  // empty → sun
+  if (s === 1) return 0;   // sun → moon
+  return -1;               // moon → empty
 }
 
 export default function ZonMaanPage() {
@@ -112,14 +108,6 @@ export default function ZonMaanPage() {
     }
   }, [cells, puzzle, done, difficulty, elapsed]);
 
-  // A click delays its effect by ~240ms so we can tell it apart from a
-  // double-click. If a second click on the same cell lands inside that
-  // window, the pending single-click is cancelled and the double-click
-  // path runs instead. Without this gate, a double-click would fire the
-  // single-click logic twice before the dblclick logic.
-  const clickTimer = useRef<number | null>(null);
-  const pendingIdx = useRef<number | null>(null);
-
   const applyMove = useCallback(
     (idx: number, nxt: CellState) => {
       if (done || !puzzle) return;
@@ -141,40 +129,9 @@ export default function ZonMaanPage() {
     (idx: number) => {
       if (done || !puzzle) return;
       if (idx in puzzle.clues) return;
-      // If there's a pending single-click on this same cell, that means a
-      // second click just landed — treat the pair as a double-click.
-      if (clickTimer.current && pendingIdx.current === idx) {
-        window.clearTimeout(clickTimer.current);
-        clickTimer.current = null;
-        pendingIdx.current = null;
-        applyMove(idx, dblClickResult(cells[idx]));
-        return;
-      }
-      if (clickTimer.current) {
-        window.clearTimeout(clickTimer.current);
-      }
-      pendingIdx.current = idx;
-      clickTimer.current = window.setTimeout(() => {
-        clickTimer.current = null;
-        pendingIdx.current = null;
-        applyMove(idx, clickResult(cells[idx]));
-      }, 240);
+      applyMove(idx, cycleResult(cells[idx]));
     },
     [applyMove, cells, done, puzzle]
-  );
-
-  // Native dblclick is a fallback for environments where the click-pair
-  // detector misses (e.g. mouse with a very short interval).
-  const onCellDoubleClick = useCallback(
-    (idx: number) => {
-      if (clickTimer.current) {
-        window.clearTimeout(clickTimer.current);
-        clickTimer.current = null;
-        pendingIdx.current = null;
-      }
-      applyMove(idx, dblClickResult(cells[idx]));
-    },
-    [applyMove, cells]
   );
 
   // Highlights when the player has three of the same symbol in a row or
@@ -287,7 +244,6 @@ export default function ZonMaanPage() {
         cells={cells}
         done={done}
         onClick={onCellClick}
-        onDoubleClick={onCellDoubleClick}
       />
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -421,13 +377,11 @@ function ZonMaanGrid({
   cells,
   done,
   onClick,
-  onDoubleClick,
 }: {
   puzzle: ZonMaanPuzzle;
   cells: CellState[];
   done: boolean;
   onClick: (idx: number) => void;
-  onDoubleClick: (idx: number) => void;
 }) {
   const { size } = puzzle;
   // Render in a 2N-1 × 2N-1 mesh: cells at even/even, and edge slots on
@@ -452,7 +406,6 @@ function ZonMaanGrid({
             type="button"
             disabled={done || isClue}
             onClick={() => onClick(idx)}
-            onDoubleClick={() => onDoubleClick(idx)}
             aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}`}
             className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
               isClue

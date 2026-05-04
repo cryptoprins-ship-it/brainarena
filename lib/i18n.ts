@@ -68,7 +68,12 @@ type TranslationKey =
   | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start"
   | "win_title" | "win_your_time" | "win_hints_used" | "win_best_time"
   | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share"
-  | "zonmaan_three_in_row";
+  | "zonmaan_three_in_row"
+  | "vlakken_drag_hint" | "vlakken_err_no_seed" | "vlakken_err_multi_seed"
+  | "vlakken_err_overlap" | "vlakken_err_size"
+  | "vlakken_err_must_square" | "vlakken_err_must_tall" | "vlakken_err_must_wide"
+  | "boggle_loading_dict" | "boggle_invalid_word"
+  | "boggle_unsupported_title" | "boggle_unsupported_body";
 
 const T: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -118,6 +123,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "New puzzle",
     win_share: "Share",
     zonmaan_three_in_row: "⚠ Three of the same symbol in a row or column.",
+    vlakken_drag_hint: "Drag a rectangle that contains exactly one numbered seed.",
+    vlakken_err_no_seed: "No numbered seed in that selection.",
+    vlakken_err_multi_seed: "More than one seed in that selection.",
+    vlakken_err_overlap: "Overlaps a solved shape.",
+    vlakken_err_size: "Wrong size:",
+    vlakken_err_must_square: "Must be a square.",
+    vlakken_err_must_tall: "Must be a tall rectangle.",
+    vlakken_err_must_wide: "Must be a wide rectangle.",
+    boggle_loading_dict: "Loading dictionary…",
+    boggle_invalid_word: "Not a valid word.",
+    boggle_unsupported_title: "Boggle is Latin alphabet only",
+    boggle_unsupported_body: "Boggle's letter grid uses A–Z, so it isn't available for this language. Switch to a Latin-script language to play.",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -166,6 +183,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "Nieuwe puzzel",
     win_share: "Deel",
     zonmaan_three_in_row: "⚠ Drie dezelfde symbolen op een rij of kolom.",
+    vlakken_drag_hint: "Sleep een rechthoek met precies één genummerde zaadcel.",
+    vlakken_err_no_seed: "Geen zaadcel in deze selectie.",
+    vlakken_err_multi_seed: "Meer dan één zaadcel in deze selectie.",
+    vlakken_err_overlap: "Overlapt een opgeloste vorm.",
+    vlakken_err_size: "Afmeting klopt niet:",
+    vlakken_err_must_square: "Moet een vierkant zijn.",
+    vlakken_err_must_tall: "Moet een hoge rechthoek zijn.",
+    vlakken_err_must_wide: "Moet een brede rechthoek zijn.",
+    boggle_loading_dict: "Woordenboek laden…",
+    boggle_invalid_word: "Geen geldig woord.",
+    boggle_unsupported_title: "Boggle alleen in Latijns alfabet",
+    boggle_unsupported_body: "Het Boggle-bord gebruikt A–Z, dus het is niet beschikbaar voor deze taal. Wissel naar een taal met Latijns schrift om te spelen.",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -215,6 +244,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "Neues Rätsel",
     win_share: "Teilen",
     zonmaan_three_in_row: "⚠ Drei gleiche Symbole in einer Zeile oder Spalte.",
+    vlakken_drag_hint: "Ziehe ein Rechteck, das genau einen nummerierten Anker enthält.",
+    vlakken_err_no_seed: "Kein Anker in der Auswahl.",
+    vlakken_err_multi_seed: "Mehr als ein Anker in der Auswahl.",
+    vlakken_err_overlap: "Überlappt eine gelöste Form.",
+    vlakken_err_size: "Falsche Größe:",
+    vlakken_err_must_square: "Muss ein Quadrat sein.",
+    vlakken_err_must_tall: "Muss ein hohes Rechteck sein.",
+    vlakken_err_must_wide: "Muss ein breites Rechteck sein.",
+    boggle_loading_dict: "Wörterbuch wird geladen…",
+    boggle_invalid_word: "Kein gültiges Wort.",
+    boggle_unsupported_title: "Boggle nur im lateinischen Alphabet",
+    boggle_unsupported_body: "Das Boggle-Raster verwendet A–Z, daher ist es für diese Sprache nicht verfügbar. Wechsle zu einer Sprache mit lateinischer Schrift, um zu spielen.",
   },
   // TBD: native review.
   fr: {
@@ -264,6 +305,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "Nouveau puzzle",
     win_share: "Partager",
     zonmaan_three_in_row: "⚠ Trois mêmes symboles sur une ligne ou colonne.",
+    vlakken_drag_hint: "Trace un rectangle contenant exactement un point numéroté.",
+    vlakken_err_no_seed: "Aucun point numéroté dans la sélection.",
+    vlakken_err_multi_seed: "Plus d'un point dans la sélection.",
+    vlakken_err_overlap: "Chevauche une forme déjà résolue.",
+    vlakken_err_size: "Taille incorrecte :",
+    vlakken_err_must_square: "Doit être un carré.",
+    vlakken_err_must_tall: "Doit être un rectangle vertical.",
+    vlakken_err_must_wide: "Doit être un rectangle horizontal.",
+    boggle_loading_dict: "Chargement du dictionnaire…",
+    boggle_invalid_word: "Mot invalide.",
+    boggle_unsupported_title: "Boggle uniquement en alphabet latin",
+    boggle_unsupported_body: "La grille Boggle utilise A–Z, donc elle n'est pas disponible pour cette langue. Passe à une langue à alphabet latin pour jouer.",
   },
   // TBD: native review.
   es: {
@@ -313,6 +366,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "Nuevo puzzle",
     win_share: "Compartir",
     zonmaan_three_in_row: "⚠ Tres símbolos iguales en una fila o columna.",
+    vlakken_drag_hint: "Arrastra un rectángulo que contenga exactamente un número.",
+    vlakken_err_no_seed: "Ningún número en la selección.",
+    vlakken_err_multi_seed: "Más de un número en la selección.",
+    vlakken_err_overlap: "Se superpone con una forma ya resuelta.",
+    vlakken_err_size: "Tamaño incorrecto:",
+    vlakken_err_must_square: "Debe ser un cuadrado.",
+    vlakken_err_must_tall: "Debe ser un rectángulo alto.",
+    vlakken_err_must_wide: "Debe ser un rectángulo ancho.",
+    boggle_loading_dict: "Cargando diccionario…",
+    boggle_invalid_word: "Palabra no válida.",
+    boggle_unsupported_title: "Boggle solo en alfabeto latino",
+    boggle_unsupported_body: "La cuadrícula Boggle usa A–Z, por eso no está disponible para este idioma. Cambia a un idioma con alfabeto latino para jugar.",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -362,6 +427,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "नई पहेली",
     win_share: "शेयर",
     zonmaan_three_in_row: "⚠ एक पंक्ति या स्तंभ में तीन समान चिह्न।",
+    vlakken_drag_hint: "ऐसा आयत खींचें जिसमें ठीक एक संख्या हो।",
+    vlakken_err_no_seed: "चयन में कोई संख्या नहीं।",
+    vlakken_err_multi_seed: "चयन में एक से अधिक संख्या।",
+    vlakken_err_overlap: "हल की गई आकृति से ओवरलैप।",
+    vlakken_err_size: "गलत आकार:",
+    vlakken_err_must_square: "वर्ग होना चाहिए।",
+    vlakken_err_must_tall: "लंबा आयत होना चाहिए।",
+    vlakken_err_must_wide: "चौड़ा आयत होना चाहिए।",
+    boggle_loading_dict: "शब्दकोश लोड हो रहा है…",
+    boggle_invalid_word: "मान्य शब्द नहीं।",
+    boggle_unsupported_title: "Boggle केवल लैटिन वर्णमाला में",
+    boggle_unsupported_body: "Boggle ग्रिड A–Z का उपयोग करता है, इसलिए यह इस भाषा में उपलब्ध नहीं है। खेलने के लिए लैटिन लिपि वाली भाषा पर जाएँ।",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -413,6 +490,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "Novo puzzle",
     win_share: "Compartilhar",
     zonmaan_three_in_row: "⚠ Três símbolos iguais em uma linha ou coluna.",
+    vlakken_drag_hint: "Arraste um retângulo com exatamente uma semente numerada.",
+    vlakken_err_no_seed: "Nenhuma semente na seleção.",
+    vlakken_err_multi_seed: "Mais de uma semente na seleção.",
+    vlakken_err_overlap: "Sobrepõe uma forma já resolvida.",
+    vlakken_err_size: "Tamanho incorreto:",
+    vlakken_err_must_square: "Deve ser um quadrado.",
+    vlakken_err_must_tall: "Deve ser um retângulo alto.",
+    vlakken_err_must_wide: "Deve ser um retângulo largo.",
+    boggle_loading_dict: "Carregando dicionário…",
+    boggle_invalid_word: "Palavra inválida.",
+    boggle_unsupported_title: "Boggle apenas no alfabeto latino",
+    boggle_unsupported_body: "A grade do Boggle usa A–Z, então não está disponível neste idioma. Mude para um idioma de alfabeto latino para jogar.",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -462,6 +551,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_new_puzzle: "新しいパズル",
     win_share: "シェア",
     zonmaan_three_in_row: "⚠ 同じ記号が縦・横に3つ並んでいます。",
+    vlakken_drag_hint: "番号付きの種を 1 つだけ含む長方形をドラッグしてください。",
+    vlakken_err_no_seed: "選択範囲に番号がありません。",
+    vlakken_err_multi_seed: "選択範囲に複数の番号があります。",
+    vlakken_err_overlap: "解決済みの形と重なっています。",
+    vlakken_err_size: "サイズが違います:",
+    vlakken_err_must_square: "正方形でなければなりません。",
+    vlakken_err_must_tall: "縦長の長方形でなければなりません。",
+    vlakken_err_must_wide: "横長の長方形でなければなりません。",
+    boggle_loading_dict: "辞書を読み込み中…",
+    boggle_invalid_word: "無効な単語です。",
+    boggle_unsupported_title: "Boggle はラテン文字のみ",
+    boggle_unsupported_body: "Boggle のグリッドは A–Z を使うため、この言語ではプレイできません。ラテン文字の言語に切り替えてください。",
   },
 };
 
