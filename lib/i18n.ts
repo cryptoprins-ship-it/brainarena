@@ -72,6 +72,7 @@ type TranslationKey =
   | "vlakken_drag_hint" | "vlakken_err_no_seed" | "vlakken_err_multi_seed"
   | "vlakken_err_overlap" | "vlakken_err_size"
   | "vlakken_err_must_square" | "vlakken_err_must_tall" | "vlakken_err_must_wide"
+  | "vlakken_err_hidden_wrong"
   | "boggle_loading_dict" | "boggle_invalid_word"
   | "boggle_unsupported_title" | "boggle_unsupported_body";
 
@@ -131,6 +132,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Must be a square.",
     vlakken_err_must_tall: "Must be a tall rectangle.",
     vlakken_err_must_wide: "Must be a wide rectangle.",
+    vlakken_err_hidden_wrong: "Not the right shape — the seed has no number, deduce it from the rest of the board.",
     boggle_loading_dict: "Loading dictionary…",
     boggle_invalid_word: "Not a valid word.",
     boggle_unsupported_title: "Boggle is Latin alphabet only",
@@ -191,6 +193,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Moet een vierkant zijn.",
     vlakken_err_must_tall: "Moet een hoge rechthoek zijn.",
     vlakken_err_must_wide: "Moet een brede rechthoek zijn.",
+    vlakken_err_hidden_wrong: "Niet de juiste vorm — deze zaadcel heeft geen getal, leid 'm af uit de rest.",
     boggle_loading_dict: "Woordenboek laden…",
     boggle_invalid_word: "Geen geldig woord.",
     boggle_unsupported_title: "Boggle alleen in Latijns alfabet",
@@ -252,6 +255,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Muss ein Quadrat sein.",
     vlakken_err_must_tall: "Muss ein hohes Rechteck sein.",
     vlakken_err_must_wide: "Muss ein breites Rechteck sein.",
+    vlakken_err_hidden_wrong: "Nicht die richtige Form — dieser Anker hat keine Zahl, leite sie aus dem Rest ab.",
     boggle_loading_dict: "Wörterbuch wird geladen…",
     boggle_invalid_word: "Kein gültiges Wort.",
     boggle_unsupported_title: "Boggle nur im lateinischen Alphabet",
@@ -313,6 +317,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Doit être un carré.",
     vlakken_err_must_tall: "Doit être un rectangle vertical.",
     vlakken_err_must_wide: "Doit être un rectangle horizontal.",
+    vlakken_err_hidden_wrong: "Pas la bonne forme — cette ancre n'a pas de chiffre, déduis-la du reste.",
     boggle_loading_dict: "Chargement du dictionnaire…",
     boggle_invalid_word: "Mot invalide.",
     boggle_unsupported_title: "Boggle uniquement en alphabet latin",
@@ -374,6 +379,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Debe ser un cuadrado.",
     vlakken_err_must_tall: "Debe ser un rectángulo alto.",
     vlakken_err_must_wide: "Debe ser un rectángulo ancho.",
+    vlakken_err_hidden_wrong: "No es la forma correcta — este ancla no tiene número, dedúcelo del resto.",
     boggle_loading_dict: "Cargando diccionario…",
     boggle_invalid_word: "Palabra no válida.",
     boggle_unsupported_title: "Boggle solo en alfabeto latino",
@@ -435,6 +441,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "वर्ग होना चाहिए।",
     vlakken_err_must_tall: "लंबा आयत होना चाहिए।",
     vlakken_err_must_wide: "चौड़ा आयत होना चाहिए।",
+    vlakken_err_hidden_wrong: "सही आकार नहीं — इस एंकर पर कोई संख्या नहीं, बाकी से अनुमान लगाएँ।",
     boggle_loading_dict: "शब्दकोश लोड हो रहा है…",
     boggle_invalid_word: "मान्य शब्द नहीं।",
     boggle_unsupported_title: "Boggle केवल लैटिन वर्णमाला में",
@@ -498,6 +505,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "Deve ser um quadrado.",
     vlakken_err_must_tall: "Deve ser um retângulo alto.",
     vlakken_err_must_wide: "Deve ser um retângulo largo.",
+    vlakken_err_hidden_wrong: "Forma incorreta — esta semente não tem número, deduza pelo resto.",
     boggle_loading_dict: "Carregando dicionário…",
     boggle_invalid_word: "Palavra inválida.",
     boggle_unsupported_title: "Boggle apenas no alfabeto latino",
@@ -559,6 +567,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     vlakken_err_must_square: "正方形でなければなりません。",
     vlakken_err_must_tall: "縦長の長方形でなければなりません。",
     vlakken_err_must_wide: "横長の長方形でなければなりません。",
+    vlakken_err_hidden_wrong: "形が違います — この種には数字がないため、他から推測してください。",
     boggle_loading_dict: "辞書を読み込み中…",
     boggle_invalid_word: "無効な単語です。",
     boggle_unsupported_title: "Boggle はラテン文字のみ",

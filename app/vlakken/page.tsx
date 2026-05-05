@@ -12,6 +12,10 @@ type Difficulty = "easy" | "medium" | "hard";
 const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 7, hard: 9 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
+// Number of anchors hidden ("?"-style) per difficulty. The generator only
+// applies a hide-set that keeps the puzzle uniquely solvable, so on rare
+// hard puzzles you may end up with one hidden anchor instead of two.
+const HIDE_FOR: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const BEST_KEY = (d: Difficulty) => `brainarena-vlakken-best-${d}`;
 
 // Vivid, well-separated hues so adjacent shapes are easy to distinguish.
@@ -53,7 +57,7 @@ export default function VlakkenPage() {
 
   useEffect(() => {
     const size = SIZE_FOR[difficulty];
-    const p = generateVlakken(size, seed);
+    const p = generateVlakken(size, seed, 0.3, HIDE_FOR[difficulty]);
     setPuzzle(p);
     setStates({});
     setHistory([]);
@@ -207,21 +211,30 @@ export default function VlakkenPage() {
       }
 
       const placedSize = w * h;
-      const sizeOk = placedSize === target.size;
-      const modeOk = sizeOk && modeMatches(w, h, target.mode);
+      let valid = false;
+      let errMsg: string | null = null;
+      if (target.hidden) {
+        // Hidden anchors carry no size/mode info, so the only valid
+        // placement is the one that matches the embedded solution.
+        const truth = puzzle.rects[target.anchorIdx];
+        valid = topLeft === truth.topLeft && w === truth.width && h === truth.height;
+        if (!valid) errMsg = t("vlakken_err_hidden_wrong");
+      } else {
+        const sizeOk = placedSize === target.size;
+        const modeOk = sizeOk && modeMatches(w, h, target.mode);
+        valid = sizeOk && modeOk;
+        if (!sizeOk) errMsg = `${t("vlakken_err_size")} ${placedSize}/${target.size}`;
+        else if (!modeOk) errMsg = modeErrorFor(t, target.mode);
+      }
 
       newStates[target.anchorIdx] = {
         rect: { topLeft, w, h },
-        locked: sizeOk && modeOk,
+        locked: valid,
       };
       setStates(newStates);
 
-      if (!sizeOk) {
-        showError(`${t("vlakken_err_size")} ${placedSize}/${target.size}`);
-        return;
-      }
-      if (!modeOk) {
-        showError(modeErrorFor(t, target.mode));
+      if (errMsg) {
+        showError(errMsg);
         return;
       }
 
@@ -410,8 +423,8 @@ export default function VlakkenPage() {
 
       <div
         ref={gridRef}
-        className="mx-auto mt-4 grid gap-[2px] rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] p-[2px] touch-none select-none"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+        className="mx-auto mt-4 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] touch-none select-none overflow-hidden"
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
       >
         {Array.from({ length: size * size }, (_, idx) => {
           const owner = cellOwner.get(idx);
@@ -423,6 +436,25 @@ export default function VlakkenPage() {
           const anchor = anchorIdx >= 0 ? puzzle.anchors[anchorIdx] : null;
           const showSeed = anchor && !states[anchorIdx]?.locked;
           const inDrag = dragCells?.has(idx);
+
+          // Per-side borders: draw a dark grid line only between cells that
+          // belong to different shapes (or against empty cells / grid edge).
+          // Cells of the same shape share invisible borders so they read as
+          // one continuous block.
+          const r = Math.floor(idx / size), c = idx % size;
+          const sameAs = (otherIdx: number | undefined) => {
+            if (owner === undefined || otherIdx === undefined) return false;
+            return cellOwner.get(otherIdx) === owner;
+          };
+          const topIdx = r > 0 ? idx - size : undefined;
+          const bottomIdx = r < size - 1 ? idx + size : undefined;
+          const leftIdx = c > 0 ? idx - 1 : undefined;
+          const rightIdx = c < size - 1 ? idx + 1 : undefined;
+          const lineColor = "#0a0a0a";
+          const borderTop = sameAs(topIdx) ? fillColour : lineColor;
+          const borderBottom = sameAs(bottomIdx) ? fillColour : lineColor;
+          const borderLeft = sameAs(leftIdx) ? fillColour : lineColor;
+          const borderRight = sameAs(rightIdx) ? fillColour : lineColor;
           return (
             <button
               key={idx}
@@ -431,7 +463,17 @@ export default function VlakkenPage() {
               onPointerDown={(e) => onCellPointerDown(idx, e)}
               disabled={done}
               className="relative aspect-square grid place-items-center text-sm font-bold transition active:scale-[0.98]"
-              style={{ background: fillColour, opacity: ownerOpacity, touchAction: "none" }}
+              style={{
+                background: fillColour,
+                opacity: ownerOpacity,
+                touchAction: "none",
+                borderStyle: "solid",
+                borderWidth: "1px",
+                borderTopColor: borderTop,
+                borderRightColor: borderRight,
+                borderBottomColor: borderBottom,
+                borderLeftColor: borderLeft,
+              }}
             >
               {showSeed && anchor ? (
                 <span className="pointer-events-none flex flex-col items-center gap-0.5 leading-none">
@@ -439,15 +481,17 @@ export default function VlakkenPage() {
                     className="rounded-md px-1.5 py-0.5 text-base font-black text-[#0a0a0a]"
                     style={{
                       background: "rgba(255,255,255,0.92)",
-                      outline: anchor.mode === "any"
+                      outline: anchor.hidden
+                        ? "2px dotted rgba(245,158,11,0.95)"
+                        : anchor.mode === "any"
                         ? "2px dashed rgba(255,255,255,0.85)"
                         : "2px solid rgba(255,255,255,0.85)",
                       outlineOffset: 2,
                     }}
                   >
-                    {anchor.size}
+                    {anchor.hidden ? "?" : anchor.size}
                   </span>
-                  <ModeGlyph mode={anchor.mode} />
+                  {anchor.hidden ? null : <ModeGlyph mode={anchor.mode} />}
                 </span>
               ) : null}
               {inDrag ? (
