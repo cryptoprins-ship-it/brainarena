@@ -15,18 +15,19 @@ const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 const BEST_KEY = (d: Difficulty) => `brainarena-kronen-best-${d}`;
 
-// Warm, distinctly non-LinkedIn palette.
+// LinkedIn-Queens-style vivid palette: high-contrast, mutually distinct
+// hues so neighbouring regions never blur together.
 const KRONEN_PALETTE = [
-  "#c97b63", // terracotta
-  "#7a8d6c", // sage
-  "#bca06a", // ochre
-  "#6b8aa6", // dusty blue
-  "#a07a8a", // mauve
-  "#d8b58a", // sand
-  "#8d6855", // clay
-  "#5e6f7a", // steel
-  "#a0764e", // bronze
-  "#7d8b78", // stone
+  "#60a5fa", // blue
+  "#fb923c", // orange
+  "#a855f7", // purple
+  "#22c55e", // green
+  "#f87171", // coral
+  "#facc15", // yellow
+  "#94a3b8", // slate
+  "#ec4899", // pink
+  "#14b8a6", // teal
+  "#84cc16", // lime
 ];
 
 type Move = { idx: number; prev: CellMark; next: CellMark };
@@ -211,14 +212,30 @@ export default function KronenPage() {
       </div>
 
       <div
-        className="mx-auto mt-5 grid gap-[2px] rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] p-[2px]"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))` }}
+        className="mx-auto mt-5 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] overflow-hidden"
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
       >
         {puzzle.regions.map((region, idx) => {
           const mark = marks[idx];
           const r = Math.floor(idx / size);
           const c = idx % size;
           const conflict = mark === 2 && hasConflict(idx, marks, puzzle);
+          const fill = KRONEN_PALETTE[region % KRONEN_PALETTE.length];
+          // LinkedIn-style region outlines: thick dark border between
+          // different regions, thin same-fill border within a region (so
+          // adjacent same-region cells still get a hairline cell separator).
+          const sameRegion = (otherIdx: number | undefined) =>
+            otherIdx !== undefined && puzzle.regions[otherIdx] === region;
+          const top = r > 0 ? idx - size : undefined;
+          const bottom = r < size - 1 ? idx + size : undefined;
+          const left = c > 0 ? idx - 1 : undefined;
+          const right = c < size - 1 ? idx + 1 : undefined;
+          const lineColor = "#0a0a0a";
+          const innerColor = "rgba(0,0,0,0.18)";
+          const borderTopWidth = sameRegion(top) ? 1 : 3;
+          const borderBottomWidth = sameRegion(bottom) ? 1 : 3;
+          const borderLeftWidth = sameRegion(left) ? 1 : 3;
+          const borderRightWidth = sameRegion(right) ? 1 : 3;
           return (
             <button
               key={idx}
@@ -227,9 +244,20 @@ export default function KronenPage() {
               onClick={() => onCellClick(idx)}
               disabled={done}
               className={`aspect-square grid place-items-center text-lg font-bold transition active:scale-[0.97] ${
-                conflict ? "ring-2 ring-red-400" : ""
+                conflict ? "ring-2 ring-red-500 ring-inset z-10" : ""
               }`}
-              style={{ background: KRONEN_PALETTE[region % KRONEN_PALETTE.length] }}
+              style={{
+                background: fill,
+                borderStyle: "solid",
+                borderTopColor: sameRegion(top) ? innerColor : lineColor,
+                borderBottomColor: sameRegion(bottom) ? innerColor : lineColor,
+                borderLeftColor: sameRegion(left) ? innerColor : lineColor,
+                borderRightColor: sameRegion(right) ? innerColor : lineColor,
+                borderTopWidth,
+                borderBottomWidth,
+                borderLeftWidth,
+                borderRightWidth,
+              }}
             >
               {mark === 2 ? (
                 <span className="text-2xl leading-none text-[#0a0a0a] drop-shadow">♛</span>

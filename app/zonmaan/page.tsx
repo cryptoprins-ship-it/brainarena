@@ -29,6 +29,13 @@ function cycleResult(s: CellState): CellState {
   return -1;               // moon → empty
 }
 
+function formatDuration(seconds: number) {
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return remainder === 0 ? `${minutes}m` : `${minutes}m ${remainder}s`;
+}
+
 export default function ZonMaanPage() {
   const { t, locale } = useLocale();
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
@@ -217,6 +224,7 @@ export default function ZonMaanPage() {
   }
 
   const size = puzzle.size;
+  const solvedMessage = done ? t("zonmaan_solved_in", { time: formatDuration(elapsed) }) : null;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -236,6 +244,9 @@ export default function ZonMaanPage() {
       {done ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 text-center text-sm font-bold text-emerald-200">
           ✓ {t("solved")}
+          {solvedMessage ? (
+            <p className="mt-1 text-sm font-normal text-white">{solvedMessage}</p>
+          ) : null}
         </div>
       ) : tripletViolation ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
