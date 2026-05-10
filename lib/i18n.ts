@@ -69,6 +69,7 @@ type TranslationKey =
   | "win_title" | "win_your_time" | "win_hints_used" | "win_best_time"
   | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share"
   | "zonmaan_three_in_row"
+  | "zonmaan_solved_in"
   | "vlakken_drag_hint" | "vlakken_err_no_seed" | "vlakken_err_multi_seed"
   | "vlakken_err_overlap" | "vlakken_err_size"
   | "vlakken_err_must_square" | "vlakken_err_must_tall" | "vlakken_err_must_wide"
@@ -634,8 +635,18 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
   },
 };
 
-export function translate(locale: Locale, key: TranslationKey): string {
-  return T[locale]?.[key] ?? T.en[key] ?? key;
+export function translate(
+  locale: Locale,
+  key: TranslationKey,
+  params?: Record<string, string | number>
+): string {
+  let str = T[locale]?.[key] ?? T.en[key] ?? key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      str = str.replaceAll(`{${k}}`, String(v));
+    }
+  }
+  return str;
 }
 
 let current: Locale = "en";
@@ -696,6 +707,9 @@ export function useLocale() {
   }, []);
 
   const change = useCallback((l: Locale) => setLocale(l), []);
-  const t = useCallback((key: TranslationKey) => translate(locale, key), [locale]);
+  const t = useCallback(
+    (key: TranslationKey, params?: Record<string, string | number>) => translate(locale, key, params),
+    [locale]
+  );
   return { locale, setLocale: change, t };
 }
