@@ -83,17 +83,42 @@ export default function KronenPage() {
     return () => window.clearInterval(id);
   }, [done]);
 
-  // Win detection: every row has exactly one crown placed at the solution column.
+  // Win detection: validate the rules directly instead of comparing against
+  // the embedded solution. On hard (10x10) the uniqueness refiner sometimes
+  // can't make a puzzle unique within budget, so a player who places a
+  // valid placement that isn't the embedded one would otherwise never see
+  // a win. Rule-based: exactly N crowns, one per row, one per column, one
+  // per region, and no two crowns king-adjacent.
   const isWin = useCallback(
     (current: CellMark[]) => {
       if (!puzzle) return false;
-      const { size, solution } = puzzle;
-      for (let r = 0; r < size; r++) {
-        const want = solution[r];
-        for (let c = 0; c < size; c++) {
-          const isCrown = current[r * size + c] === 2;
-          if (c === want && !isCrown) return false;
-          if (c !== want && isCrown) return false;
+      const { size, regions } = puzzle;
+      const crownCells: number[] = [];
+      for (let i = 0; i < size * size; i++) {
+        if (current[i] === 2) crownCells.push(i);
+      }
+      if (crownCells.length !== size) return false;
+
+      const rowsSeen = new Set<number>();
+      const colsSeen = new Set<number>();
+      const regionsSeen = new Set<number>();
+      for (const idx of crownCells) {
+        const r = Math.floor(idx / size);
+        const c = idx % size;
+        const reg = regions[idx];
+        if (rowsSeen.has(r) || colsSeen.has(c) || regionsSeen.has(reg)) return false;
+        rowsSeen.add(r);
+        colsSeen.add(c);
+        regionsSeen.add(reg);
+      }
+
+      for (let i = 0; i < crownCells.length; i++) {
+        const r1 = Math.floor(crownCells[i] / size);
+        const c1 = crownCells[i] % size;
+        for (let j = i + 1; j < crownCells.length; j++) {
+          const r2 = Math.floor(crownCells[j] / size);
+          const c2 = crownCells[j] % size;
+          if (Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1) return false;
         }
       }
       return true;
