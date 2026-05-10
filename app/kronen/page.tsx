@@ -220,6 +220,7 @@ export default function KronenPage() {
   }
 
   const size = puzzle.size;
+  const conflictKind = firstConflict(marks, puzzle);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -294,6 +295,20 @@ export default function KronenPage() {
         })}
       </div>
 
+      {/* Conflict banner — explains *why* the placement isn't a solution.
+          The thin red ring on each conflicting crown is easy to miss, so we
+          surface the first conflict kind found in plain text. */}
+      {conflictKind && !done ? (
+        <div
+          role="status"
+          className="mt-3 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-200"
+        >
+          {t(`kronen_conflict_${conflictKind}` as
+            | "kronen_conflict_row" | "kronen_conflict_col"
+            | "kronen_conflict_region" | "kronen_conflict_adjacent")}
+        </div>
+      ) : null}
+
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
           <button
@@ -367,6 +382,32 @@ function hasConflict(idx: number, marks: CellMark[], puzzle: KronenPuzzle): bool
   return false;
 }
 
+type ConflictKind = "row" | "col" | "region" | "adjacent";
+
+// Walk all placed crowns and return the first conflict kind found, or null.
+// Priority: row → col → region → adjacent (row/col are the most obvious to a
+// player so we surface those first). Used for the inline warning banner.
+function firstConflict(marks: CellMark[], puzzle: KronenPuzzle): ConflictKind | null {
+  const { size, regions } = puzzle;
+  const crowns: number[] = [];
+  for (let i = 0; i < size * size; i++) {
+    if (marks[i] === 2) crowns.push(i);
+  }
+  for (let i = 0; i < crowns.length; i++) {
+    const r1 = Math.floor(crowns[i] / size);
+    const c1 = crowns[i] % size;
+    for (let j = i + 1; j < crowns.length; j++) {
+      const r2 = Math.floor(crowns[j] / size);
+      const c2 = crowns[j] % size;
+      if (r1 === r2) return "row";
+      if (c1 === c2) return "col";
+      if (regions[crowns[i]] === regions[crowns[j]]) return "region";
+      if (Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1) return "adjacent";
+    }
+  }
+  return null;
+}
+
 function DifficultyToggle({
   value,
   onChange,
@@ -381,6 +422,7 @@ function DifficultyToggle({
       {items.map((d) => (
         <button
           key={d}
+          type="button"
           onClick={() => onChange(d)}
           className={`rounded-md px-3 py-1.5 capitalize ${
             value === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"
