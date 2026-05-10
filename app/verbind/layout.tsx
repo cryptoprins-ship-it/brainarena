@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import GameJsonLd from "@/components/GameJsonLd";
 
 export const metadata: Metadata = {
   title: "Verbind — Connect-the-Numbers Path Puzzle",
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function VerbindLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <GameJsonLd slug="verbind" />
+      {children}
+    </>
+  );
 }

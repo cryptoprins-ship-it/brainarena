@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import GameJsonLd from "@/components/GameJsonLd";
 
 export const metadata: Metadata = {
   title: "Zon & Maan — Sun & Moon Logic Grid",
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function ZonMaanLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <GameJsonLd slug="zonmaan" />
+      {children}
+    </>
+  );
 }

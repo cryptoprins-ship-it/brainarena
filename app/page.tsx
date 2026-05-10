@@ -203,8 +203,40 @@ export default function HomePage() {
   const today = new Date().toISOString().slice(0, 10);
   const playedToday = stats?.lastPlayed === today;
 
+  const BASE = "https://brainarena.fun";
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "BrainArena games",
+    itemListOrder: "https://schema.org/ItemListUnordered",
+    numberOfItems: GAMES.length,
+    itemListElement: GAMES.map((g, i) => {
+      const entry = howTo[g.game];
+      return {
+        "@type": "ListItem",
+        position: i + 1,
+        item: {
+          "@type": "VideoGame",
+          name: entry.label,
+          url: `${BASE}${g.href}`,
+          description: entry.summary,
+          genre: "Puzzle",
+          gamePlatform: "Web",
+          applicationCategory: "Game",
+          operatingSystem: "Any",
+          offers: { "@type": "Offer", price: 0, priceCurrency: "EUR" },
+        },
+      };
+    }),
+  };
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
+      <script
+        type="application/ld+json"
+        // eslint-disable-next-line react/no-danger
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
       <div id="adsense-top" className="w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
         Advertisement
       </div>
@@ -247,14 +279,14 @@ export default function HomePage() {
           New puzzles every day. <span className="text-indigo-400">Beat them all.</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-gray-300 md:text-base">
-          Twelve free puzzle and word games. Same daily challenge for everyone — race the world.
+          Eleven free puzzle and word games. Same daily challenge for everyone — race the world.
         </p>
         <p className="mt-4 text-sm text-gray-400">
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500 mr-2 align-middle" />
           {players ? `${players.toLocaleString()} players today` : "Loading…"}
         </p>
         <p className="mt-3 text-xs text-gray-500">
-          🎮 12 Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+          🎮 11 Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
         </p>
       </section>
 
@@ -290,7 +322,7 @@ export default function HomePage() {
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <p className="text-xs uppercase tracking-widest text-gray-500">Today</p>
-          <h3 className="mt-1 text-xl font-bold">12 daily puzzles</h3>
+          <h3 className="mt-1 text-xl font-bold">11 daily puzzles</h3>
           <p className="mt-2 text-sm text-gray-400">Synced worldwide. Beat your streak.</p>
         </div>
         <Link href="/leaderboard" className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 hover:border-indigo-400/40">

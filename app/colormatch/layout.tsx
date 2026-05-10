@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import GameJsonLd from "@/components/GameJsonLd";
 
 export const metadata: Metadata = {
   title: "ColorMatch — RAL Color Code Quiz Game",
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function ColorMatchLayout({ children }: { children: React.ReactNode }) {
-  return children;
+  return (
+    <>
+      <GameJsonLd slug="colormatch" />
+      {children}
+    </>
+  );
 }

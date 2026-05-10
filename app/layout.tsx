@@ -6,6 +6,7 @@ import NavBar from "@/components/NavBar";
 import AchievementToast from "@/components/AchievementToast";
 import CookieBanner from "@/components/CookieBanner";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
+import JsonLd from "@/components/JsonLd";
 import "./globals.css";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
@@ -80,6 +81,34 @@ export default function RootLayout({
       className={`antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
     >
       <body className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white">
+        {/* Site-wide structured data — Organization + WebSite. Game-specific
+            VideoGame schemas live in each game's layout.tsx; homepage adds
+            an ItemList of games. */}
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": `${BASE}#organization`,
+                name: "BrainArena",
+                url: BASE,
+                logo: `${BASE}/icon.png`,
+                sameAs: [],
+              },
+              {
+                "@type": "WebSite",
+                "@id": `${BASE}#website`,
+                url: BASE,
+                name: "BrainArena",
+                description:
+                  "Free daily puzzles and word games — Wordle, Boggle, Sudoku, logic puzzles and more.",
+                publisher: { "@id": `${BASE}#organization` },
+                inLanguage: ["en", "nl", "de", "fr", "es", "pt-BR"],
+              },
+            ],
+          }}
+        />
         {/* Plausible analytics — cookieless, GDPR-exempt by design (no
             cookies, no fingerprinting, IP anonymised before storage).
             Loads unconditionally; the "Analytics" toggle in CookieBanner
