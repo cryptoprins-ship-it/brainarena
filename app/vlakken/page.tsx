@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
@@ -28,6 +29,7 @@ const VLAKKEN_PALETTE = [
 type Rect = { topLeft: number; w: number; h: number };
 type AnchorState = { rect: Rect; locked: boolean };
 type DragState = { startCell: number; currentCell: number; pointerId: number };
+type ErrorState = { msg: string; anchorIdx: number | null };
 
 export default function VlakkenPage() {
   const { t, locale } = useLocale();
@@ -44,7 +46,7 @@ export default function VlakkenPage() {
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
   const [drag, setDrag] = useState<DragState | null>(null);
   const startedAt = useRef<number | null>(null);
   const errorTimerRef = useRef<number | null>(null);
@@ -87,10 +89,10 @@ export default function VlakkenPage() {
     if (errorTimerRef.current) window.clearTimeout(errorTimerRef.current);
   }, []);
 
-  const showError = useCallback((msg: string) => {
-    setError(msg);
+  const showError = useCallback((msg: string, anchorIdx: number | null = null) => {
+    setError({ msg, anchorIdx });
     if (errorTimerRef.current) window.clearTimeout(errorTimerRef.current);
-    errorTimerRef.current = window.setTimeout(() => setError(null), 4000);
+    errorTimerRef.current = window.setTimeout(() => setError(null), 5000);
   }, []);
 
   function persistBest(time: number) {
@@ -100,33 +102,6 @@ export default function VlakkenPage() {
       setBestSeconds(time);
     }
   }
-
-  // Compute, for each cell index, the anchor index whose rect (locked or
-  // attempt) covers it. Locked wins over attempt; if neither covers it, -1.
-  const cellOwner = useMemo(() => {
-    if (!puzzle) return new Map<number, number>();
-    const m = new Map<number, number>();
-    const size = puzzle.size;
-    // Locked first so they can't be overwritten by a stale attempt.
-    for (const [k, st] of Object.entries(states)) {
-      if (!st.locked) continue;
-      const aIdx = Number(k);
-      const top = Math.floor(st.rect.topLeft / size), left = st.rect.topLeft % size;
-      for (let r = 0; r < st.rect.h; r++) for (let c = 0; c < st.rect.w; c++) {
-        m.set((top + r) * size + left + c, aIdx);
-      }
-    }
-    for (const [k, st] of Object.entries(states)) {
-      if (st.locked) continue;
-      const aIdx = Number(k);
-      const top = Math.floor(st.rect.topLeft / size), left = st.rect.topLeft % size;
-      for (let r = 0; r < st.rect.h; r++) for (let c = 0; c < st.rect.w; c++) {
-        const idx = (top + r) * size + left + c;
-        if (!m.has(idx)) m.set(idx, aIdx);
-      }
-    }
-    return m;
-  }, [puzzle, states]);
 
   const dragRect: Rect | null = useMemo(() => {
     if (!drag || !puzzle) return null;
@@ -234,7 +209,7 @@ export default function VlakkenPage() {
       setStates(newStates);
 
       if (errMsg) {
-        showError(errMsg);
+        showError(errMsg, target.anchorIdx);
         return;
       }
 
@@ -390,10 +365,9 @@ export default function VlakkenPage() {
   }
 
   const size = puzzle.size;
-  const dragCells = dragRect ? rectCellSet(dragRect, size) : null;
   const dragValid = (() => {
-    if (!dragRect || !dragCells) return true;
-    // Drag is "valid-looking" if it doesn't overlap any locked cell.
+    if (!dragRect) return true;
+    const dragCells = rectCellSet(dragRect, size);
     for (const st of Object.values(states)) {
       if (!st.locked) continue;
       const tt = Math.floor(st.rect.topLeft / size), ll = st.rect.topLeft % size;
@@ -421,119 +395,121 @@ export default function VlakkenPage() {
 
       <p className="mt-3 text-xs text-gray-500">{t("vlakken_drag_hint")}</p>
 
+      {/* Grid wrapper — base cells render the empty/dashed look + anchor seeds.
+          Rect overlays (locked + attempt + drag) layer on top. */}
       <div
         ref={gridRef}
-        className="mx-auto mt-4 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] touch-none select-none overflow-hidden"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
+        className="relative mx-auto mt-4 aspect-square w-full overflow-hidden rounded-md border border-[#2a2a2a] bg-[#0e0e0e] touch-none select-none"
       >
-        {Array.from({ length: size * size }, (_, idx) => {
-          const owner = cellOwner.get(idx);
-          const ownerState = owner !== undefined ? states[owner] : undefined;
-          const isLocked = ownerState?.locked === true;
-          const fillColour = owner !== undefined ? VLAKKEN_PALETTE[owner % VLAKKEN_PALETTE.length] : "#1a1a1a";
-          const ownerOpacity = ownerState ? (isLocked ? 1 : 0.55) : 1;
-          const anchorIdx = puzzle.anchors.findIndex((a) => a.idx === idx);
-          const anchor = anchorIdx >= 0 ? puzzle.anchors[anchorIdx] : null;
-          const showSeed = anchor && !states[anchorIdx]?.locked;
-          const inDrag = dragCells?.has(idx);
+        <div
+          className="grid h-full w-full"
+          style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
+        >
+          {Array.from({ length: size * size }, (_, idx) => {
+            const r = Math.floor(idx / size), c = idx % size;
+            const anchorIdx = puzzle.anchors.findIndex((a) => a.idx === idx);
+            const anchor = anchorIdx >= 0 ? puzzle.anchors[anchorIdx] : null;
+            return (
+              <button
+                key={idx}
+                type="button"
+                data-cell-idx={idx}
+                onPointerDown={(e) => onCellPointerDown(idx, e)}
+                disabled={done}
+                className="relative flex items-start justify-start"
+                style={{
+                  touchAction: "none",
+                  borderRight: c < size - 1 ? "1px dashed #232323" : "none",
+                  borderBottom: r < size - 1 ? "1px dashed #232323" : "none",
+                }}
+              >
+                {anchor ? <AnchorSeed anchor={anchor} colorIdx={anchorIdx} /> : null}
+              </button>
+            );
+          })}
+        </div>
 
-          // Per-side borders: draw a dark grid line only between cells that
-          // belong to different shapes (or against empty cells / grid edge).
-          // Cells of the same shape share invisible borders so they read as
-          // one continuous block.
-          const r = Math.floor(idx / size), c = idx % size;
-          const sameAs = (otherIdx: number | undefined) => {
-            if (owner === undefined || otherIdx === undefined) return false;
-            return cellOwner.get(otherIdx) === owner;
-          };
-          const topIdx = r > 0 ? idx - size : undefined;
-          const bottomIdx = r < size - 1 ? idx + size : undefined;
-          const leftIdx = c > 0 ? idx - 1 : undefined;
-          const rightIdx = c < size - 1 ? idx + 1 : undefined;
-          const lineColor = "#0a0a0a";
-          const borderTop = sameAs(topIdx) ? fillColour : lineColor;
-          const borderBottom = sameAs(bottomIdx) ? fillColour : lineColor;
-          const borderLeft = sameAs(leftIdx) ? fillColour : lineColor;
-          const borderRight = sameAs(rightIdx) ? fillColour : lineColor;
-          return (
-            <button
-              key={idx}
-              type="button"
-              data-cell-idx={idx}
-              onPointerDown={(e) => onCellPointerDown(idx, e)}
-              disabled={done}
-              className="relative aspect-square grid place-items-center text-sm font-bold transition active:scale-[0.98]"
-              style={{
-                background: fillColour,
-                opacity: ownerOpacity,
-                touchAction: "none",
-                borderStyle: "solid",
-                borderWidth: "1px",
-                borderTopColor: borderTop,
-                borderRightColor: borderRight,
-                borderBottomColor: borderBottom,
-                borderLeftColor: borderLeft,
-              }}
-            >
-              {showSeed && anchor ? (
-                <span className="pointer-events-none flex flex-col items-center gap-0.5 leading-none">
-                  <span
-                    className="rounded-md px-1.5 py-0.5 text-base font-black text-[#0a0a0a]"
-                    style={{
-                      background: "rgba(255,255,255,0.92)",
-                      outline: anchor.hidden
-                        ? "2px dotted rgba(245,158,11,0.95)"
-                        : anchor.mode === "any"
-                        ? "2px dashed rgba(255,255,255,0.85)"
-                        : "2px solid rgba(255,255,255,0.85)",
-                      outlineOffset: 2,
-                    }}
-                  >
-                    {anchor.hidden ? "?" : anchor.size}
-                  </span>
-                  {anchor.hidden ? null : <ModeGlyph mode={anchor.mode} />}
-                </span>
-              ) : null}
-              {inDrag ? (
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute inset-0 rounded-[2px]"
-                  style={{
-                    background: dragValid ? "rgba(250, 204, 21, 0.28)" : "rgba(248, 113, 113, 0.30)",
-                    outline: dragValid ? "2px solid rgba(250, 204, 21, 0.9)" : "2px solid rgba(248, 113, 113, 0.9)",
-                    outlineOffset: -2,
-                  }}
-                />
-              ) : null}
-            </button>
-          );
-        })}
+        {/* Overlay layer — pointer-events:none lets drag pass through to cells */}
+        <div className="pointer-events-none absolute inset-0">
+          {Object.entries(states).map(([k, st]) => {
+            const aIdx = Number(k);
+            return (
+              <RectOverlay
+                key={aIdx}
+                rect={st.rect}
+                size={size}
+                color={VLAKKEN_PALETTE[aIdx % VLAKKEN_PALETTE.length]}
+                locked={st.locked}
+              />
+            );
+          })}
+          {dragRect ? <DragOverlay rect={dragRect} valid={dragValid} size={size} /> : null}
+          {error && error.anchorIdx != null && states[error.anchorIdx] ? (
+            <ErrorTooltip
+              msg={error.msg}
+              rect={states[error.anchorIdx].rect}
+              size={size}
+              onClose={() => setError(null)}
+            />
+          ) : null}
+        </div>
       </div>
 
-      {error ? (
+      {/* Generic-error banner — shown when the error has no anchor to attach
+          to (overlap / no-seed / multi-seed during drag, before commit). */}
+      {error && error.anchorIdx == null ? (
         <div className="mt-3 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-          {error}
+          {error.msg}
         </div>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
-          <button onClick={onNewGame} className="rounded-md bg-indigo-600 px-3 py-2 text-sm font-bold hover:opacity-90">
-            {t("new_game")}
-          </button>
-          <button onClick={onHint} disabled={hintsLeft <= 0 || done} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40">
-            {t("hint")} ({hintsLeft})
-          </button>
-          <button onClick={onUndo} disabled={!history.length || done} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm disabled:opacity-40">
-            {t("undo")}
-          </button>
-          <button onClick={onReset} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-2 text-sm">
-            {t("reset")}
-          </button>
+      <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+        <button
+          type="button"
+          onClick={onUndo}
+          disabled={!history.length || done}
+          className="rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-5 py-2 text-sm hover:bg-[#222] disabled:opacity-40"
+        >
+          {t("undo")}
+        </button>
+        <button
+          type="button"
+          onClick={onHint}
+          disabled={hintsLeft <= 0 || done}
+          className="rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-5 py-2 text-sm hover:bg-[#222] disabled:opacity-40"
+        >
+          {t("hint")} ({hintsLeft})
+        </button>
+        <button
+          type="button"
+          onClick={onReset}
+          className="rounded-full border border-[#2a2a2a] bg-[#1a1a1a] px-5 py-2 text-sm hover:bg-[#222]"
+        >
+          {t("reset")}
+        </button>
+        <button
+          type="button"
+          onClick={onNewGame}
+          className="rounded-full bg-indigo-600 px-5 py-2 text-sm font-bold hover:opacity-90"
+        >
+          {t("new_game")}
+        </button>
+      </div>
+
+      <p className="mt-3 text-center text-xs text-gray-500">
+        {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
+      </p>
+
+      {/* Legend card — explains the four mode glyphs that appear on anchor seeds */}
+      <div className="mt-5 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4">
+        <p className="text-center text-sm font-bold text-gray-200">{t("vlakken_legend_title")}</p>
+        <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-300">
+          <LegendItem mode="square" label={t("vlakken_mode_square")} />
+          <LegendItem mode="tall" label={t("vlakken_mode_tall")} />
+          <LegendItem mode="wide" label={t("vlakken_mode_wide")} />
+          <LegendItem mode="any" label={t("vlakken_mode_any")} />
         </div>
-        <p className="text-xs text-gray-500">
-          {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
-        </p>
+        <p className="mt-3 text-center text-xs text-gray-500">{t("vlakken_legend_help")}</p>
       </div>
 
       {done ? (
@@ -564,36 +540,201 @@ function modeMatches(w: number, h: number, mode: AnchorMode): boolean {
   return false;
 }
 
-function ModeGlyph({ mode }: { mode: AnchorMode }) {
-  // 16×16 viewBox, white-filled rectangle whose proportions clearly signal
-  // orientation. "any" overlays a horizontal + vertical bar to suggest
-  // "either way works".
-  const stroke = "rgba(0,0,0,0.55)";
+// Anchor seed — small colored badge in the cell's top-left corner. Always
+// visible (also under a locked overlay, since the overlay is translucent),
+// so the player keeps the size/mode reference even after solving.
+function AnchorSeed({
+  anchor,
+  colorIdx,
+}: {
+  anchor: { size: number; mode: AnchorMode; hidden?: boolean };
+  colorIdx: number;
+}) {
+  const color = VLAKKEN_PALETTE[colorIdx % VLAKKEN_PALETTE.length];
+  return (
+    <span
+      className="pointer-events-none absolute left-1 top-1 z-[1] flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-black text-white shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
+      style={{ background: color }}
+    >
+      <span className="leading-none">{anchor.hidden ? "?" : anchor.size}</span>
+      {!anchor.hidden && anchor.mode !== "any" ? (
+        <ModeGlyph mode={anchor.mode} compact />
+      ) : null}
+    </span>
+  );
+}
+
+// Locked rect: pastel fill + colored border + size badge in corner.
+// Attempt rect: pastel fill + diagonal hatching + red ring.
+function RectOverlay({
+  rect,
+  size,
+  color,
+  locked,
+}: {
+  rect: Rect;
+  size: number;
+  color: string;
+  locked: boolean;
+}) {
+  const top = Math.floor(rect.topLeft / size);
+  const left = rect.topLeft % size;
+  const cellPct = 100 / size;
+  const baseStyle: CSSProperties = {
+    position: "absolute",
+    top: `${top * cellPct}%`,
+    left: `${left * cellPct}%`,
+    width: `${rect.w * cellPct}%`,
+    height: `${rect.h * cellPct}%`,
+  };
+
+  if (locked) {
+    return (
+      <div
+        style={{
+          ...baseStyle,
+          background: `${color}33`,
+          border: `2px solid ${color}`,
+          borderRadius: 2,
+        }}
+      >
+        <span
+          className="absolute right-1 bottom-1 rounded bg-black/55 px-1 text-[10px] font-bold leading-tight text-white"
+        >
+          {rect.w * rect.h}
+        </span>
+      </div>
+    );
+  }
+
+  // Attempt — wrong placement awaiting feedback / re-drag
+  const hatch = `repeating-linear-gradient(-45deg, ${color}66 0 6px, transparent 6px 12px), ${color}22`;
+  return (
+    <div
+      style={{
+        ...baseStyle,
+        background: hatch,
+        border: "2px solid #ef4444",
+        borderRadius: 2,
+      }}
+    />
+  );
+}
+
+function DragOverlay({ rect, valid, size }: { rect: Rect; valid: boolean; size: number }) {
+  const top = Math.floor(rect.topLeft / size);
+  const left = rect.topLeft % size;
+  const cellPct = 100 / size;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: `${top * cellPct}%`,
+        left: `${left * cellPct}%`,
+        width: `${rect.w * cellPct}%`,
+        height: `${rect.h * cellPct}%`,
+        background: valid ? "rgba(250, 204, 21, 0.22)" : "rgba(248, 113, 113, 0.28)",
+        outline: valid ? "2px solid rgba(250, 204, 21, 0.95)" : "2px solid rgba(248, 113, 113, 0.95)",
+        outlineOffset: -2,
+        borderRadius: 2,
+      }}
+    />
+  );
+}
+
+// Inline tooltip anchored to the offending rect. Auto-flips above when the
+// rect sits in the bottom third of the grid (so the tooltip stays in view).
+function ErrorTooltip({
+  msg,
+  rect,
+  size,
+  onClose,
+}: {
+  msg: string;
+  rect: Rect;
+  size: number;
+  onClose: () => void;
+}) {
+  const top = Math.floor(rect.topLeft / size);
+  const left = rect.topLeft % size;
+  const cellPct = 100 / size;
+  const showAbove = top + rect.h > size * 0.6;
+  const positionStyle: CSSProperties = showAbove
+    ? {
+        bottom: `${(size - top) * cellPct}%`,
+        left: `${left * cellPct}%`,
+        marginBottom: 4,
+      }
+    : {
+        top: `${(top + rect.h) * cellPct}%`,
+        left: `${left * cellPct}%`,
+        marginTop: 4,
+      };
+  return (
+    <div
+      role="status"
+      className="pointer-events-auto absolute z-20 max-w-[14rem] rounded-md border border-red-500/70 bg-[#1a1010] px-3 py-2 text-xs text-red-200 shadow-lg"
+      style={positionStyle}
+    >
+      <div className="flex items-start gap-2">
+        <span className="flex-1 leading-snug">{msg}</span>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Dismiss"
+          className="-mr-1 -mt-1 cursor-pointer p-1 text-red-400 hover:text-red-200"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function LegendItem({ mode, label }: { mode: AnchorMode; label: string }) {
+  return (
+    <div className="flex items-center gap-2">
+      <span
+        className="inline-flex h-6 w-6 items-center justify-center rounded border border-[#2a2a2a] bg-[#0e0e0e]"
+      >
+        <ModeGlyph mode={mode} />
+      </span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function ModeGlyph({ mode, compact = false }: { mode: AnchorMode; compact?: boolean }) {
+  // 16×16 viewBox, white-ish filled rectangle whose proportions clearly signal
+  // orientation. Stroke uses a translucent white so the glyph reads on both
+  // colored seed-backgrounds and the dark legend panel.
+  const s = compact ? 12 : 14;
+  const stroke = "rgba(255,255,255,0.55)";
   const fill = "rgba(255,255,255,0.95)";
   if (mode === "square") {
     return (
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
         <rect x="3" y="3" width="10" height="10" fill={fill} stroke={stroke} strokeWidth="1" />
       </svg>
     );
   }
   if (mode === "tall") {
     return (
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
         <rect x="5" y="1" width="6" height="14" fill={fill} stroke={stroke} strokeWidth="1" />
       </svg>
     );
   }
   if (mode === "wide") {
     return (
-      <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
         <rect x="1" y="5" width="14" height="6" fill={fill} stroke={stroke} strokeWidth="1" />
       </svg>
     );
   }
   // "any": dashed square with crossed bars
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
+    <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
       <rect
         x="2.5" y="2.5" width="11" height="11"
         fill="none" stroke={fill} strokeWidth="1.5" strokeDasharray="2 1.5"
@@ -628,6 +769,7 @@ function DifficultyToggle({ value, onChange }: { value: Difficulty; onChange: (d
       {items.map((d) => (
         <button
           key={d}
+          type="button"
           onClick={() => onChange(d)}
           className={`rounded-md px-3 py-1.5 capitalize ${value === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
         >
