@@ -141,9 +141,9 @@ export default function ZonMaanPage() {
     [applyMove, cells, done, puzzle]
   );
 
-  // Highlights when the player has three of the same symbol in a row or
-  // column. Pure detection — we don't auto-correct, just nudge the
-  // player to fix it themselves.
+  // Highlights when the player has three of the same symbol consecutively
+  // in a row or column. Pure detection — we don't auto-correct, just nudge
+  // the player to fix it themselves.
   const tripletViolation = useMemo(() => {
     if (!puzzle || done) return false;
     const N = puzzle.size;
@@ -164,6 +164,45 @@ export default function ZonMaanPage() {
       }
     }
     return false;
+  }, [cells, puzzle, done]);
+
+  // Row/column balance — flag rows or columns that already hold more than
+  // half their cells as one symbol. With N=6 the cap is 3, so a 4th sun
+  // (or moon) in the same row/column is impossible in any valid solution.
+  // Returns the set of offending cell indices so they can be tinted red
+  // in the grid — pure detection, no auto-correct.
+  const overBalanceCells = useMemo(() => {
+    const out = new Set<number>();
+    if (!puzzle || done) return out;
+    const N = puzzle.size;
+    const cap = N / 2;
+    for (let r = 0; r < N; r++) {
+      let suns = 0, moons = 0;
+      for (let c = 0; c < N; c++) {
+        const v = cells[r * N + c];
+        if (v === 1) suns++; else if (v === 0) moons++;
+      }
+      if (suns > cap) {
+        for (let c = 0; c < N; c++) if (cells[r * N + c] === 1) out.add(r * N + c);
+      }
+      if (moons > cap) {
+        for (let c = 0; c < N; c++) if (cells[r * N + c] === 0) out.add(r * N + c);
+      }
+    }
+    for (let c = 0; c < N; c++) {
+      let suns = 0, moons = 0;
+      for (let r = 0; r < N; r++) {
+        const v = cells[r * N + c];
+        if (v === 1) suns++; else if (v === 0) moons++;
+      }
+      if (suns > cap) {
+        for (let r = 0; r < N; r++) if (cells[r * N + c] === 1) out.add(r * N + c);
+      }
+      if (moons > cap) {
+        for (let r = 0; r < N; r++) if (cells[r * N + c] === 0) out.add(r * N + c);
+      }
+    }
+    return out;
   }, [cells, puzzle, done]);
 
   const onUndo = useCallback(() => {
@@ -248,6 +287,10 @@ export default function ZonMaanPage() {
             <p className="mt-1 text-sm font-normal text-white">{solvedMessage}</p>
           ) : null}
         </div>
+      ) : overBalanceCells.size > 0 ? (
+        <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/60 bg-rose-500/15 px-3 py-2 text-center text-sm font-bold text-rose-100">
+          {t("zonmaan_max_three")}
+        </div>
       ) : tripletViolation ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
           {t("zonmaan_three_in_row")}
@@ -258,6 +301,7 @@ export default function ZonMaanPage() {
         puzzle={puzzle}
         cells={cells}
         done={done}
+        badCells={overBalanceCells}
         onClick={onCellClick}
       />
 
@@ -391,11 +435,13 @@ function ZonMaanGrid({
   puzzle,
   cells,
   done,
+  badCells,
   onClick,
 }: {
   puzzle: ZonMaanPuzzle;
   cells: CellState[];
   done: boolean;
+  badCells: Set<number>;
   onClick: (idx: number) => void;
 }) {
   const { size } = puzzle;
@@ -414,6 +460,7 @@ function ZonMaanGrid({
         const idx = r * size + c;
         const state = cells[idx];
         const isClue = idx in puzzle.clues;
+        const isBad = badCells.has(idx);
         const stateLabel = state === 1 ? "sun" : state === 0 ? "moon" : "empty";
         slots.push(
           <button
@@ -421,10 +468,12 @@ function ZonMaanGrid({
             type="button"
             disabled={done || isClue}
             onClick={() => onClick(idx)}
-            aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}`}
+            aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}${isBad ? ", too many" : ""}`}
             className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
               done
                 ? "bg-emerald-500/10 border border-emerald-500/40 cursor-default"
+                : isBad
+                ? "bg-rose-500/25 border border-rose-500/70"
                 : isClue
                 ? "bg-[#13141c] border border-[#2a2a2a]"
                 : "bg-[#15151c] hover:bg-[#1c1c25] border border-[#2a2a2a]"
