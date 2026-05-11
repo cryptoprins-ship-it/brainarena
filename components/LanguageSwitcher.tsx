@@ -60,7 +60,7 @@ export default function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label="Languages"
-          className="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-[#2a2a2a] bg-[#111] shadow-xl shadow-black/60 py-1 max-h-[80vh] overflow-y-auto"
+          className="absolute right-0 z-50 mt-2 w-56 max-w-[calc(100vw-1rem)] rounded-lg border border-[#2a2a2a] bg-[#111] shadow-xl shadow-black/60 py-1 max-h-[80vh] overflow-y-auto max-sm:fixed max-sm:top-14 max-sm:right-2 max-sm:left-auto max-sm:mt-0"
         >
           {SUPPORTED.map((l) => {
             const pending = REVIEW_PENDING.has(l);

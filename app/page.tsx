@@ -237,9 +237,6 @@ export default function HomePage() {
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
-      <div id="adsense-top" className="w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
-        Advertisement
-      </div>
 
       {showWelcome ? (
         <section className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
@@ -332,9 +329,6 @@ export default function HomePage() {
         </Link>
       </section>
 
-      <div id="adsense-bottom" className="mt-8 w-full h-24 bg-gray-900 rounded-xl flex items-center justify-center text-gray-600 text-xs">
-        Advertisement
-      </div>
     </div>
   );
 }
