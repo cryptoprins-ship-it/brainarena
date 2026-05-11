@@ -276,14 +276,14 @@ export default function HomePage() {
           New puzzles every day. <span className="text-indigo-400">Beat them all.</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-gray-300 md:text-base">
-          Eleven free puzzle and word games. Same daily challenge for everyone — race the world.
+          Free puzzle and word games. Same daily challenge for everyone — race the world.
         </p>
         <p className="mt-4 text-sm text-gray-400">
           <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500 mr-2 align-middle" />
           {players ? `${players.toLocaleString()} players today` : "Loading…"}
         </p>
         <p className="mt-3 text-xs text-gray-500">
-          🎮 11 Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+          🎮 Daily Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
         </p>
       </section>
 
@@ -319,7 +319,7 @@ export default function HomePage() {
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <p className="text-xs uppercase tracking-widest text-gray-500">Today</p>
-          <h3 className="mt-1 text-xl font-bold">11 daily puzzles</h3>
+          <h3 className="mt-1 text-xl font-bold">Daily puzzles</h3>
           <p className="mt-2 text-sm text-gray-400">Synced worldwide. Beat your streak.</p>
         </div>
         <Link href="/leaderboard" className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 hover:border-indigo-400/40">

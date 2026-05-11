@@ -10,7 +10,7 @@ import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/game
 import { dayIndex } from "@/lib/games/kronen";
 
 type Difficulty = "easy" | "medium" | "hard";
-const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 7, hard: 9 };
+const SIZE_FOR: Record<Difficulty, number> = { easy: 7, medium: 8, hard: 10 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 // Number of anchors hidden ("?"-style) per difficulty. The generator only
