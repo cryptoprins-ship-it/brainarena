@@ -83,12 +83,48 @@ export type SubmitBody = {
   meta?: Record<string, unknown>;
 };
 
+// Prompts the player for a name via the global NameGate modal if none is
+// stored yet. Resolves with the chosen (and now-persisted) name.  De-dupes
+// concurrent calls so two simultaneous game-end submits share one prompt.
+let pendingNamePrompt: Promise<string> | null = null;
+
+export function ensurePlayerName(): Promise<string> {
+  if (typeof window === "undefined") return Promise.resolve("");
+  const existing = getName().trim();
+  if (existing && existing !== "Anonymous") return Promise.resolve(existing);
+  if (pendingNamePrompt) return pendingNamePrompt;
+  pendingNamePrompt = new Promise<string>((resolve) => {
+    const handler = (e: Event) => {
+      const ce = e as CustomEvent<string>;
+      const name = (ce.detail ?? "").toString().trim().slice(0, 24);
+      window.removeEventListener("brainarena:name-submitted", handler);
+      pendingNamePrompt = null;
+      if (name) setName(name);
+      resolve(name);
+    };
+    window.addEventListener("brainarena:name-submitted", handler);
+    window.dispatchEvent(new CustomEvent("brainarena:request-name"));
+  });
+  return pendingNamePrompt;
+}
+
 export async function submitScore(body: SubmitBody): Promise<{ rank: number } | null> {
+  // Gate on having a real player name. If the call site passed an empty
+  // string or the legacy "Anonymous" placeholder, prompt the player via
+  // the NameGate modal before posting — otherwise every score lands as
+  // "Anonymous" and the leaderboard becomes meaningless.
+  let finalBody = body;
+  const incoming = (body.name ?? "").trim();
+  if (!incoming || incoming === "Anonymous") {
+    const name = await ensurePlayerName();
+    if (!name) return null; // player dismissed the prompt — skip submission
+    finalBody = { ...body, name };
+  }
   try {
     const res = await fetch("/api/leaderboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(finalBody),
     });
     if (!res.ok) return null;
     return res.json();

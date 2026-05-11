@@ -4,6 +4,7 @@ import Script from "next/script";
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import AchievementToast from "@/components/AchievementToast";
+import NameGate from "@/components/NameGate";
 import CookieBanner from "@/components/CookieBanner";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
 import JsonLd from "@/components/JsonLd";
@@ -122,6 +123,9 @@ export default function RootLayout({
         <NavBar />
         <main className="flex-1">{children}</main>
         <AchievementToast />
+        {/* Prompts for player name on first score submission so leaderboard
+            entries have real identities instead of "Anonymous". */}
+        <NameGate />
         {/* CookieBanner mounts the AdSense loader only after the user
             opts in to advertising cookies. NEXT_PUBLIC_ADSENSE_CLIENT
             controls which publisher ID is used; until it's set, no

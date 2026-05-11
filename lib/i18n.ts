@@ -80,7 +80,9 @@ type TranslationKey =
   | "vlakken_mode_square" | "vlakken_mode_tall"
   | "vlakken_mode_wide" | "vlakken_mode_any"
   | "boggle_loading_dict" | "boggle_invalid_word"
-  | "boggle_unsupported_title" | "boggle_unsupported_body";
+  | "boggle_unsupported_title" | "boggle_unsupported_body"
+  | "name_gate_title" | "name_gate_subtitle" | "name_gate_placeholder"
+  | "name_gate_submit" | "name_gate_required";
 
 const T: Record<Locale, Record<TranslationKey, string>> = {
   en: {
@@ -154,6 +156,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Not a valid word.",
     boggle_unsupported_title: "Boggle is Latin alphabet only",
     boggle_unsupported_body: "Boggle's letter grid uses A–Z, so it isn't available for this language. Switch to a Latin-script language to play.",
+    name_gate_title: "Save your score",
+    name_gate_subtitle: "Pick a name for the global leaderboard. You can change it later.",
+    name_gate_placeholder: "Your name",
+    name_gate_submit: "Save & continue",
+    name_gate_required: "Please enter a name",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -226,6 +233,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Geen geldig woord.",
     boggle_unsupported_title: "Boggle alleen in Latijns alfabet",
     boggle_unsupported_body: "Het Boggle-bord gebruikt A–Z, dus het is niet beschikbaar voor deze taal. Wissel naar een taal met Latijns schrift om te spelen.",
+    name_gate_title: "Sla je score op",
+    name_gate_subtitle: "Kies een naam voor het wereldwijde scorebord. Je kunt deze later wijzigen.",
+    name_gate_placeholder: "Je naam",
+    name_gate_submit: "Opslaan en doorgaan",
+    name_gate_required: "Voer een naam in",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -299,6 +311,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Kein gültiges Wort.",
     boggle_unsupported_title: "Boggle nur im lateinischen Alphabet",
     boggle_unsupported_body: "Das Boggle-Raster verwendet A–Z, daher ist es für diese Sprache nicht verfügbar. Wechsle zu einer Sprache mit lateinischer Schrift, um zu spielen.",
+    name_gate_title: "Punktzahl speichern",
+    name_gate_subtitle: "Wähle einen Namen für die globale Bestenliste. Du kannst ihn später ändern.",
+    name_gate_placeholder: "Dein Name",
+    name_gate_submit: "Speichern und weiter",
+    name_gate_required: "Bitte gib einen Namen ein",
   },
   // TBD: native review.
   fr: {
@@ -372,6 +389,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Mot invalide.",
     boggle_unsupported_title: "Boggle uniquement en alphabet latin",
     boggle_unsupported_body: "La grille Boggle utilise A–Z, donc elle n'est pas disponible pour cette langue. Passe à une langue à alphabet latin pour jouer.",
+    name_gate_title: "Enregistre ton score",
+    name_gate_subtitle: "Choisis un nom pour le classement mondial. Tu peux le changer plus tard.",
+    name_gate_placeholder: "Ton nom",
+    name_gate_submit: "Enregistrer et continuer",
+    name_gate_required: "Veuillez saisir un nom",
   },
   // TBD: native review.
   es: {
@@ -445,6 +467,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Palabra no válida.",
     boggle_unsupported_title: "Boggle solo en alfabeto latino",
     boggle_unsupported_body: "La cuadrícula Boggle usa A–Z, por eso no está disponible para este idioma. Cambia a un idioma con alfabeto latino para jugar.",
+    name_gate_title: "Guarda tu puntuación",
+    name_gate_subtitle: "Elige un nombre para la clasificación mundial. Puedes cambiarlo más tarde.",
+    name_gate_placeholder: "Tu nombre",
+    name_gate_submit: "Guardar y continuar",
+    name_gate_required: "Por favor ingresa un nombre",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -518,6 +545,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "मान्य शब्द नहीं।",
     boggle_unsupported_title: "Boggle केवल लैटिन वर्णमाला में",
     boggle_unsupported_body: "Boggle ग्रिड A–Z का उपयोग करता है, इसलिए यह इस भाषा में उपलब्ध नहीं है। खेलने के लिए लैटिन लिपि वाली भाषा पर जाएँ।",
+    name_gate_title: "अपना स्कोर सेव करें",
+    name_gate_subtitle: "वैश्विक लीडरबोर्ड के लिए एक नाम चुनें। आप इसे बाद में बदल सकते हैं।",
+    name_gate_placeholder: "आपका नाम",
+    name_gate_submit: "सेव करें और जारी रखें",
+    name_gate_required: "कृपया एक नाम दर्ज करें",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -593,6 +625,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "Palavra inválida.",
     boggle_unsupported_title: "Boggle apenas no alfabeto latino",
     boggle_unsupported_body: "A grade do Boggle usa A–Z, então não está disponível neste idioma. Mude para um idioma de alfabeto latino para jogar.",
+    name_gate_title: "Salve sua pontuação",
+    name_gate_subtitle: "Escolha um nome para o ranking global. Você pode alterá-lo depois.",
+    name_gate_placeholder: "Seu nome",
+    name_gate_submit: "Salvar e continuar",
+    name_gate_required: "Por favor digite um nome",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -666,6 +703,11 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     boggle_invalid_word: "無効な単語です。",
     boggle_unsupported_title: "Boggle はラテン文字のみ",
     boggle_unsupported_body: "Boggle のグリッドは A–Z を使うため、この言語ではプレイできません。ラテン文字の言語に切り替えてください。",
+    name_gate_title: "スコアを保存",
+    name_gate_subtitle: "グローバルランキング用の名前を選んでください。後で変更できます。",
+    name_gate_placeholder: "あなたの名前",
+    name_gate_submit: "保存して続行",
+    name_gate_required: "名前を入力してください",
   },
 };
 
