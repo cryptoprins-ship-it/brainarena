@@ -235,6 +235,34 @@ export default function TileDropPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [hardDrop, move, rotateNow, step, swapHold]);
 
+  // Auto-repeat for the on-screen arrow buttons — without this, the
+  // player has to tap-tap-tap to walk a piece across the board. Initial
+  // 200ms delay matches the OS-level key-repeat feel; subsequent ticks
+  // at 60ms keep it fast enough for a 10-wide board.
+  const repeatTimeout = useRef<number | null>(null);
+  const repeatInterval = useRef<number | null>(null);
+
+  const stopRepeat = useCallback(() => {
+    if (repeatTimeout.current) {
+      window.clearTimeout(repeatTimeout.current);
+      repeatTimeout.current = null;
+    }
+    if (repeatInterval.current) {
+      window.clearInterval(repeatInterval.current);
+      repeatInterval.current = null;
+    }
+  }, []);
+
+  const startRepeat = useCallback((action: () => void) => {
+    stopRepeat();
+    action();
+    repeatTimeout.current = window.setTimeout(() => {
+      repeatInterval.current = window.setInterval(action, 60);
+    }, 200);
+  }, [stopRepeat]);
+
+  useEffect(() => () => stopRepeat(), [stopRepeat]);
+
   // Touch / swipe.
   const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
@@ -324,13 +352,13 @@ export default function TileDropPage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 pb-28 md:pb-6">
       <StreakBanner />
       <HowToPlay game="tiledrop" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">TileDrop</h1>
-          <p className="text-xs text-gray-400">←→ / swipe · ↑ / tap rotate · Space / swipe ↓ to drop · C hold · P pause</p>
+          <p className="text-xs text-gray-400">Desktop: ←→ rotate ↑ drop space · Mobile: buttons below + swipe ↓ to drop</p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
@@ -368,16 +396,48 @@ export default function TileDropPage() {
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-xs text-gray-400">
             High score<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
           </div>
-          <div className="grid grid-cols-2 gap-2 md:hidden">
-            <button onClick={() => move(-1)} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">←</button>
-            <button onClick={() => move(1)} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">→</button>
-            <button onClick={rotateNow} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">⟳</button>
-            <button onClick={hardDrop} className="rounded-md bg-indigo-600 py-2 text-sm font-bold">Drop</button>
-          </div>
           <button onClick={() => setPaused((p) => !p)} className="w-full rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">
             {paused ? "Resume" : "Pause"}
           </button>
         </aside>
+      </div>
+
+      {/* Mobile-only control bar — pinned to the viewport bottom with
+          safe-area inset so the iOS home indicator doesn't eat the
+          tap target. Arrows auto-repeat on hold (200ms then 60ms);
+          rotate fires once per tap. Hard-drop is still available via
+          swipe-down over the board. */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-3 gap-2 border-t border-[#2a2a2a] bg-[#0a0a0a]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+        <button
+          type="button"
+          aria-label="Move left"
+          onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(-1)); }}
+          onPointerUp={stopRepeat}
+          onPointerLeave={stopRepeat}
+          onPointerCancel={stopRepeat}
+          className="h-14 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] text-3xl font-bold leading-none active:bg-[#222] select-none touch-none"
+        >
+          ←
+        </button>
+        <button
+          type="button"
+          aria-label="Rotate"
+          onClick={rotateNow}
+          className="h-14 rounded-xl border border-indigo-500/40 bg-indigo-600/20 text-3xl leading-none active:bg-indigo-600/40 select-none touch-none"
+        >
+          ⟳
+        </button>
+        <button
+          type="button"
+          aria-label="Move right"
+          onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(1)); }}
+          onPointerUp={stopRepeat}
+          onPointerLeave={stopRepeat}
+          onPointerCancel={stopRepeat}
+          className="h-14 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] text-3xl font-bold leading-none active:bg-[#222] select-none touch-none"
+        >
+          →
+        </button>
       </div>
 
       {over ? (
