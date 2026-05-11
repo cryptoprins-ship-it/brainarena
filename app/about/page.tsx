@@ -22,7 +22,7 @@ const COPY = {
       "I play when I'm bored. Sudoku is the one I keep coming back to, but Crowns has also become a daily habit. Keeping the brain trained matters — five minutes of a logic grid is a small thing that adds up over years.",
     what_h: "What's here",
     what:
-      "Eleven daily puzzles spanning word games (Wordle, Boggle, LetterStack), logic grids (Sudoku, Patches, Connect, Sun & Moon, Crowns), and arcade-style brain teasers (TileDrop, ColorMatch, Typing). Each game has Easy / Medium / Hard, a daily seed everyone shares, and a global leaderboard. Your progress lives in your browser — no account required.",
+      "Daily puzzles spanning word games (Wordle, Boggle, LetterStack), logic grids (Sudoku, Patches, Connect, Sun & Moon, Crowns), and arcade-style brain teasers (TileDrop, ColorMatch, Typing). Each game has Easy / Medium / Hard, a daily seed everyone shares, and a global leaderboard. Your progress lives in your browser — no account required.",
     free_h: "Free, and how that works",
     free:
       "BrainArena is free for everyone. Hosting, domains, and email cost real money, so I run Google AdSense to cover those bills. You opt in to advertising cookies via the banner — if you say no, the site still works, you just don't see ads. I don't sell your data and there's no premium tier dangling features behind a paywall.",

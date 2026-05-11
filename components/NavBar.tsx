@@ -9,14 +9,18 @@ export default function NavBar() {
   const [medals, setMedals] = useState(0);
   useEffect(() => { setMedals(medalCount(loadStats())); }, []);
 
+  // Mobile-aware layout: Logo + LanguageSwitcher stay on the top row
+  // (justify-between gives logo left, switcher right). The big game-link
+  // strip flips to a horizontally-scrollable row beneath on small screens
+  // and inlines into the same row on md+ via `order` / `w-full` switches.
   return (
     <header className="border-b border-[#2a2a2a] bg-[#0a0a0a]">
-      <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+      <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
         <Link href="/" className="text-lg font-bold tracking-tight">
           <span className="text-white">Brain</span>
           <span className="text-indigo-400">Arena</span>
         </Link>
-        <div className="flex flex-wrap items-center gap-1 text-sm">
+        <div className="order-3 w-full md:order-2 md:w-auto md:flex-1 flex flex-wrap items-center justify-center gap-1 text-sm">
           <Link href="/wordle" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Wordle</Link>
           <Link href="/boggle" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Boggle</Link>
           <Link href="/sudoku" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Sudoku</Link>
@@ -41,7 +45,9 @@ export default function NavBar() {
             ) : null}
           </Link>
         </div>
-        <LanguageSwitcher />
+        <div className="order-2 ml-auto md:order-3 md:ml-0">
+          <LanguageSwitcher />
+        </div>
       </nav>
     </header>
   );

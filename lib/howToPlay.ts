@@ -1116,7 +1116,7 @@ export const UI_STRINGS: Record<Locale, {
 }> = {
   en: {
     howToPlayHeading: "How to play",
-    howToPlaySubtitle: "Quick rules for each of the twelve BrainArena games. Pick one and dive in.",
+    howToPlaySubtitle: "Quick rules for each BrainArena game. Pick one and dive in.",
     howToPlayPrefix: "How to play",
     seeFullGuide: "See full guide →",
     wantAllGames: "Want all the games?",
@@ -1124,7 +1124,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   nl: {
     howToPlayHeading: "Hoe te spelen",
-    howToPlaySubtitle: "Snelle regels voor elk van de twaalf BrainArena-games. Kies er een en duik erin.",
+    howToPlaySubtitle: "Snelle regels voor elke BrainArena-game. Kies er een en duik erin.",
     howToPlayPrefix: "Hoe speel je",
     seeFullGuide: "Volledige gids →",
     wantAllGames: "Alle games zien?",
@@ -1132,7 +1132,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   de: {
     howToPlayHeading: "Spielanleitung",
-    howToPlaySubtitle: "Schnelle Regeln für alle zwölf BrainArena-Spiele. Such dir eines aus und leg los.",
+    howToPlaySubtitle: "Schnelle Regeln für jedes BrainArena-Spiel. Such dir eines aus und leg los.",
     howToPlayPrefix: "So spielst du",
     seeFullGuide: "Vollständige Anleitung →",
     wantAllGames: "Alle Spiele sehen?",
@@ -1140,7 +1140,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   fr: {
     howToPlayHeading: "Comment jouer",
-    howToPlaySubtitle: "Les règles rapides des douze jeux BrainArena. Choisis-en un et lance-toi.",
+    howToPlaySubtitle: "Les règles rapides de chaque jeu BrainArena. Choisis-en un et lance-toi.",
     howToPlayPrefix: "Comment jouer à",
     seeFullGuide: "Voir le guide complet →",
     wantAllGames: "Voir tous les jeux ?",
@@ -1148,7 +1148,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   es: {
     howToPlayHeading: "Cómo jugar",
-    howToPlaySubtitle: "Reglas rápidas para los doce juegos de BrainArena. Elige uno y empieza.",
+    howToPlaySubtitle: "Reglas rápidas para cada juego de BrainArena. Elige uno y empieza.",
     howToPlayPrefix: "Cómo jugar a",
     seeFullGuide: "Ver guía completa →",
     wantAllGames: "¿Ver todos los juegos?",
@@ -1156,7 +1156,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   hi: {
     howToPlayHeading: "कैसे खेलें",
-    howToPlaySubtitle: "BrainArena के बारह खेलों के त्वरित नियम। एक चुनें और शुरू करें।",
+    howToPlaySubtitle: "BrainArena के प्रत्येक खेल के त्वरित नियम। एक चुनें और शुरू करें।",
     howToPlayPrefix: "कैसे खेलें",
     seeFullGuide: "पूरी गाइड देखें →",
     wantAllGames: "सभी खेल देखें?",
@@ -1164,7 +1164,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   "pt-BR": {
     howToPlayHeading: "Como jogar",
-    howToPlaySubtitle: "Regras rápidas para os doze jogos do BrainArena. Escolha um e comece.",
+    howToPlaySubtitle: "Regras rápidas para cada jogo do BrainArena. Escolha um e comece.",
     howToPlayPrefix: "Como jogar",
     seeFullGuide: "Ver guia completo →",
     wantAllGames: "Ver todos os jogos?",
@@ -1172,7 +1172,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   ja: {
     howToPlayHeading: "遊び方",
-    howToPlaySubtitle: "BrainArena の 12 種類のゲームのクイックルール。1 つ選んで始めよう。",
+    howToPlaySubtitle: "BrainArena の各ゲームのクイックルール。1 つ選んで始めよう。",
     howToPlayPrefix: "遊び方",
     seeFullGuide: "ガイドを全部見る →",
     wantAllGames: "全ゲームを見る?",
