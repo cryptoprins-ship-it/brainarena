@@ -60,6 +60,11 @@ const GAMES = {
     description:
       "Uncover safe cells, flag the mines, never tap a bomb. 9×9, 12×12 and 14×14 daily boards.",
   },
+  connections: {
+    name: "Connections",
+    description:
+      "Find four hidden groups of four words. One daily 16-word puzzle, four mistakes allowed.",
+  },
 } as const;
 
 export type GameSlug = keyof typeof GAMES;

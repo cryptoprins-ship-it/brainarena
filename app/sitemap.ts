@@ -18,6 +18,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "zonmaan",
     "kronen",
     "minesweeper",
+    "connections",
     "achievements",
     "leaderboard",
     "how-to-play",

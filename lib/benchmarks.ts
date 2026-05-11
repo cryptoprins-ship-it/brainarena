@@ -65,6 +65,11 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
     "Engineers": 74,
     "Risk analysts": 80,
   },
+  connections: {
+    "Linguists": 82,
+    "Crossword fans": 84,
+    "Editors": 76,
+  },
 };
 
 // Map raw game results → a coarse 0–100 percentile so we can compare against
@@ -156,6 +161,15 @@ export function percentileFor(s: Score): number {
       if (v >= 2000) return 80;
       if (v >= 500) return 55;
       return 30;
+    }
+    case "connections": {
+      // Score is (4 - mistakes) * 1000, so 4000 = perfect, 0 = failed.
+      const v = s.score;
+      if (v >= 4000) return 95;
+      if (v >= 3000) return 80;
+      if (v >= 2000) return 55;
+      if (v >= 1000) return 30;
+      return 10;
     }
   }
 }

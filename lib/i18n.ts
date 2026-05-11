@@ -61,6 +61,10 @@ type TranslationKey =
   | "game_minesweeper" | "game_minesweeper_desc"
   | "minesweeper_hint_touch" | "minesweeper_hint_mouse"
   | "minesweeper_solved_in" | "minesweeper_lost" | "minesweeper_flags_placed"
+  | "game_connections" | "game_connections_desc"
+  | "connections_mistakes" | "connections_one_away"
+  | "connections_shuffle" | "connections_deselect"
+  | "connections_won" | "connections_lost"
   | "how_to_play" | "undo" | "hint" | "reset" | "new_game"
   | "easy" | "medium" | "hard"
   | "completed" | "best_time" | "your_time"
@@ -172,6 +176,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "You cleared the field in {time}.",
     minesweeper_lost: "You hit a mine. Game over.",
     minesweeper_flags_placed: "Flags placed",
+    game_connections: "Connections",
+    game_connections_desc: "Find four groups of four — one daily puzzle.",
+    connections_mistakes: "Mistakes",
+    connections_one_away: "One away — try again!",
+    connections_shuffle: "Shuffle",
+    connections_deselect: "Deselect all",
+    connections_won: "Solved with {mistakes} mistake(s)!",
+    connections_lost: "Out of guesses. Better luck tomorrow!",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -257,6 +269,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "Veld geveegd in {time}.",
     minesweeper_lost: "Mijn geraakt. Spel voorbij.",
     minesweeper_flags_placed: "Vlaggen geplaatst",
+    game_connections: "Verbanden",
+    game_connections_desc: "Vind vier groepen van vier — één puzzel per dag.",
+    connections_mistakes: "Fouten",
+    connections_one_away: "Eentje mis — probeer opnieuw!",
+    connections_shuffle: "Schudden",
+    connections_deselect: "Alles deselecteren",
+    connections_won: "Opgelost met {mistakes} fout(en)!",
+    connections_lost: "Geen pogingen meer. Morgen weer een kans!",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -343,6 +363,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "Feld in {time} geräumt.",
     minesweeper_lost: "Mine getroffen. Spiel vorbei.",
     minesweeper_flags_placed: "Flaggen gesetzt",
+    game_connections: "Connections",
+    game_connections_desc: "Finde vier Gruppen zu je vier — ein tägliches Rätsel.",
+    connections_mistakes: "Fehler",
+    connections_one_away: "Fast! Eine daneben — versuch's nochmal!",
+    connections_shuffle: "Mischen",
+    connections_deselect: "Alle abwählen",
+    connections_won: "Gelöst mit {mistakes} Fehler(n)!",
+    connections_lost: "Keine Versuche mehr. Morgen wieder!",
   },
   // TBD: native review.
   fr: {
@@ -429,6 +457,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "Terrain déminé en {time}.",
     minesweeper_lost: "Mine touchée. Fin de partie.",
     minesweeper_flags_placed: "Drapeaux posés",
+    game_connections: "Connections",
+    game_connections_desc: "Trouve quatre groupes de quatre — une énigme par jour.",
+    connections_mistakes: "Erreurs",
+    connections_one_away: "Presque ! Une de travers — réessaie !",
+    connections_shuffle: "Mélanger",
+    connections_deselect: "Tout désélectionner",
+    connections_won: "Résolu avec {mistakes} erreur(s) !",
+    connections_lost: "Plus d'essais. Reviens demain !",
   },
   // TBD: native review.
   es: {
@@ -515,6 +551,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "Campo despejado en {time}.",
     minesweeper_lost: "Has tocado una mina. Fin del juego.",
     minesweeper_flags_placed: "Banderas colocadas",
+    game_connections: "Conexiones",
+    game_connections_desc: "Encuentra cuatro grupos de cuatro — un acertijo por día.",
+    connections_mistakes: "Errores",
+    connections_one_away: "¡Casi! Falta una — vuelve a intentarlo.",
+    connections_shuffle: "Mezclar",
+    connections_deselect: "Deseleccionar todo",
+    connections_won: "¡Resuelto con {mistakes} error(es)!",
+    connections_lost: "Sin más intentos. ¡Vuelve mañana!",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -601,6 +645,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "मैदान {time} में साफ़ किया।",
     minesweeper_lost: "खान फट गई। खेल समाप्त।",
     minesweeper_flags_placed: "झंडे लगाए",
+    game_connections: "Connections",
+    game_connections_desc: "चार-चार के चार समूह खोजें — रोज़ एक पहेली।",
+    connections_mistakes: "गलतियाँ",
+    connections_one_away: "लगभग! एक गलत — फिर से कोशिश करें।",
+    connections_shuffle: "मिश्रण",
+    connections_deselect: "सब हटाएँ",
+    connections_won: "{mistakes} गलती से हल किया!",
+    connections_lost: "और मौके नहीं। कल फिर कोशिश करें।",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -689,6 +741,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "Campo limpo em {time}.",
     minesweeper_lost: "Acertou uma mina. Fim de jogo.",
     minesweeper_flags_placed: "Bandeiras colocadas",
+    game_connections: "Conexões",
+    game_connections_desc: "Encontre quatro grupos de quatro — um enigma por dia.",
+    connections_mistakes: "Erros",
+    connections_one_away: "Quase! Uma errada — tente de novo.",
+    connections_shuffle: "Embaralhar",
+    connections_deselect: "Desmarcar todos",
+    connections_won: "Resolvido com {mistakes} erro(s)!",
+    connections_lost: "Tentativas esgotadas. Volte amanhã!",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -775,6 +835,14 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     minesweeper_solved_in: "{time} で全マス開けました。",
     minesweeper_lost: "地雷を踏みました。ゲームオーバー。",
     minesweeper_flags_placed: "立てた旗",
+    game_connections: "コネクションズ",
+    game_connections_desc: "4 つの 4 つ組を見つけよう — 1 日 1 パズル。",
+    connections_mistakes: "ミス",
+    connections_one_away: "あと 1 つ違う — もう一度!",
+    connections_shuffle: "シャッフル",
+    connections_deselect: "選択を全て解除",
+    connections_won: "{mistakes} ミスでクリア!",
+    connections_lost: "残り回数なし。また明日!",
   },
 };
 

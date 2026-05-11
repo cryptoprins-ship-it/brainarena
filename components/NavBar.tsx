@@ -33,6 +33,7 @@ export default function NavBar() {
           <Link href="/zonmaan" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Zon &amp; Maan</Link>
           <Link href="/kronen" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Kronen</Link>
           <Link href="/minesweeper" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Minesweeper</Link>
+          <Link href="/connections" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Connections</Link>
           <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Leaderboard</Link>
           <Link
             href="/achievements"

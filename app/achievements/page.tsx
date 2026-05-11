@@ -17,6 +17,7 @@ const GAME_LABEL: Record<GameKey, string> = {
   zonmaan: "Zon & Maan",
   kronen: "Kronen",
   minesweeper: "Minesweeper",
+  connections: "Connections",
 };
 
 function formatTime(seconds: number): string {

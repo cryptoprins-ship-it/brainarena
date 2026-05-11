@@ -153,6 +153,18 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "First click is always safe — go ahead and start in the middle.",
     ],
   },
+  connections: {
+    label: "Connections",
+    href: "/connections",
+    summary: "Find four groups of four — one daily puzzle.",
+    rules: [
+      "16 words on the board form 4 hidden categories of 4 words each.",
+      "Pick 4 words you think belong together and submit. Get a category, lose a word.",
+      "Wrong guess costs one of your 4 mistakes; 4 strikes = game over.",
+      "'One away' hint shows when 3 of your 4 are in the same group.",
+      "Words are always English even on other-language locales — the puzzle is wordplay-dependent.",
+    ],
+  },
 };
 
 const NL: Record<GameKey, HowToPlayEntry> = {
@@ -298,6 +310,18 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "Getallen tonen hoeveel mijnen het vakje raken (tot 8).",
       "Klik een onthuld getal aan met de juiste vlaggen erom om de rest open te maken (chord).",
       "Eerste klik is altijd veilig — begin gerust in het midden.",
+    ],
+  },
+  connections: {
+    label: "Verbanden",
+    href: "/connections",
+    summary: "Vind vier groepen van vier — één puzzel per dag.",
+    rules: [
+      "16 woorden vormen 4 verborgen categorieën van 4 woorden.",
+      "Selecteer 4 woorden die volgens jou bij elkaar horen en druk op Verzenden.",
+      "Fout = één van je 4 fouten verbrand. 4 fouten = game over.",
+      "'Eentje mis' verschijnt als 3 van je 4 in dezelfde groep zitten.",
+      "Woorden zijn altijd Engels — de puzzel hangt af van wordplay.",
     ],
   },
 };
@@ -447,6 +471,18 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Der erste Klick ist immer sicher — leg ruhig in der Mitte los.",
     ],
   },
+  connections: {
+    label: "Connections",
+    href: "/connections",
+    summary: "Finde vier Gruppen zu je vier — ein tägliches Rätsel.",
+    rules: [
+      "16 Wörter bilden 4 versteckte Kategorien zu je 4 Wörtern.",
+      "Wähle 4 Wörter aus und drücke auf Absenden.",
+      "Falsch geraten kostet einen von 4 Fehlern. 4 Fehler = vorbei.",
+      "'Fast!' erscheint, wenn 3 deiner 4 in derselben Gruppe sind.",
+      "Wörter sind immer Englisch — das Rätsel basiert auf Wortspielen.",
+    ],
+  },
 };
 
 const FR: Record<GameKey, HowToPlayEntry> = {
@@ -594,6 +630,18 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "Le premier clic est toujours sûr — commence au milieu sans crainte.",
     ],
   },
+  connections: {
+    label: "Connections",
+    href: "/connections",
+    summary: "Trouve quatre groupes de quatre — une énigme par jour.",
+    rules: [
+      "16 mots forment 4 catégories cachées de 4 mots chacune.",
+      "Sélectionne 4 mots qui vont ensemble et appuie sur Soumettre.",
+      "Une mauvaise réponse coûte une de tes 4 erreurs. 4 erreurs = fin.",
+      "'Presque !' apparaît quand 3 de tes 4 sont dans le même groupe.",
+      "Les mots sont toujours en anglais — l'énigme repose sur des jeux de mots.",
+    ],
+  },
 };
 
 const ES: Record<GameKey, HowToPlayEntry> = {
@@ -739,6 +787,18 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "Los números indican cuántas minas tocan la casilla (hasta 8).",
       "Toca un número descubierto con las banderas correctas para destapar el resto (chord).",
       "El primer clic siempre es seguro — empieza en el centro tranquilamente.",
+    ],
+  },
+  connections: {
+    label: "Conexiones",
+    href: "/connections",
+    summary: "Encuentra cuatro grupos de cuatro — un acertijo por día.",
+    rules: [
+      "16 palabras forman 4 categorías ocultas de 4 palabras.",
+      "Elige 4 palabras que crees que van juntas y pulsa Enviar.",
+      "Una respuesta incorrecta cuesta uno de tus 4 errores. 4 errores = fin.",
+      "'¡Casi!' aparece cuando 3 de tus 4 están en el mismo grupo.",
+      "Las palabras siempre están en inglés — el acertijo depende del juego de palabras.",
     ],
   },
 };
@@ -889,6 +949,18 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "O primeiro toque é sempre seguro — comece pelo meio sem medo.",
     ],
   },
+  connections: {
+    label: "Conexões",
+    href: "/connections",
+    summary: "Encontre quatro grupos de quatro — um enigma por dia.",
+    rules: [
+      "16 palavras formam 4 categorias ocultas de 4 palavras.",
+      "Escolha 4 palavras que combinam e pressione Enviar.",
+      "Uma resposta errada custa um dos seus 4 erros. 4 erros = fim.",
+      "'Quase!' aparece quando 3 das suas 4 estão no mesmo grupo.",
+      "As palavras estão sempre em inglês — o enigma depende de jogo de palavras.",
+    ],
+  },
 };
 
 // High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
@@ -1037,6 +1109,18 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "पहला क्लिक हमेशा सुरक्षित होता है — बीच में शुरू करें।",
     ],
   },
+  connections: {
+    label: "Connections",
+    href: "/connections",
+    summary: "चार-चार के चार समूह खोजें — रोज़ एक पहेली।",
+    rules: [
+      "16 शब्द 4 छिपी हुई श्रेणियाँ (हर एक में 4 शब्द) बनाते हैं।",
+      "4 शब्द चुनें जो आपको लगते हैं एक साथ हैं और सबमिट करें।",
+      "ग़लत जवाब आपकी 4 गलतियों में से एक ले लेता है। 4 गलतियाँ = खेल समाप्त।",
+      "'लगभग!' तब दिखता है जब आपके 4 में से 3 एक ही समूह में हैं।",
+      "शब्द हमेशा अंग्रेज़ी में होते हैं — पहेली शब्द-खेल पर निर्भर है।",
+    ],
+  },
 };
 
 // High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
@@ -1183,6 +1267,18 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "数字はそのマスに接する地雷の数（最大 8）を示します。",
       "正しい旗が立った数字をクリックすると残りを一気に開けます（chord）。",
       "最初のクリックは必ず安全 — 中央から始めてください。",
+    ],
+  },
+  connections: {
+    label: "コネクションズ",
+    href: "/connections",
+    summary: "4 つの 4 つ組を見つけよう — 1 日 1 パズル。",
+    rules: [
+      "16 個の単語が 4 つの隠れたカテゴリー（各 4 単語）を作ります。",
+      "同じカテゴリーだと思う 4 単語を選んで送信。",
+      "間違えると 4 ミスのうち 1 を消費。4 ミスでゲームオーバー。",
+      "4 つのうち 3 つが同じグループにあると「あと 1 つ」が出ます。",
+      "単語は常に英語 — パズルは言葉遊びに依存します。",
     ],
   },
 };

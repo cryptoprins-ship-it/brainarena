@@ -22,6 +22,7 @@ const GAMES = [
   "zonmaan",
   "kronen",
   "minesweeper",
+  "connections",
 ] as const;
 type Game = (typeof GAMES)[number];
 

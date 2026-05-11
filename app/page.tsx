@@ -193,6 +193,19 @@ const GAMES: {
       </div>
     ),
   },
+  {
+    href: "/connections",
+    game: "connections",
+    accent: "from-amber-500/20 to-amber-500/0",
+    preview: (
+      <div className="grid grid-cols-2 gap-1">
+        <div className="h-3 w-10 rounded bg-amber-400" />
+        <div className="h-3 w-10 rounded bg-emerald-500" />
+        <div className="h-3 w-10 rounded bg-sky-500" />
+        <div className="h-3 w-10 rounded bg-purple-500" />
+      </div>
+    ),
+  },
 ];
 
 export default function HomePage() {

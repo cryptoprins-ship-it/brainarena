@@ -12,7 +12,8 @@ export type GameKey =
   | "verbind"
   | "zonmaan"
   | "kronen"
-  | "minesweeper";
+  | "minesweeper"
+  | "connections";
 
 const NAME_KEY = "brainarena-player-name";
 const STREAK_KEY = (g: GameKey) => `brainarena-streak-${g}`;
