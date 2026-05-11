@@ -141,6 +141,18 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "Solved when all crowns are placed correctly.",
     ],
   },
+  minesweeper: {
+    label: "Minesweeper",
+    href: "/minesweeper",
+    summary: "Uncover safe cells, flag the mines, don't tap a bomb.",
+    rules: [
+      "Mouse: left-click reveals, right-click flags.",
+      "Touch: tap reveals, long-press flags (a small vibration confirms).",
+      "Numbered cells tell you how many mines touch that cell (up to 8).",
+      "Click a revealed number with the right flags around it to clear the rest (chord).",
+      "First click is always safe — go ahead and start in the middle.",
+    ],
+  },
 };
 
 const NL: Record<GameKey, HowToPlayEntry> = {
@@ -274,6 +286,18 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "Elk gekleurd gebied bevat precies één kroon.",
       "Kronen mogen elkaar niet raken — ook niet diagonaal.",
       "Opgelost wanneer alle kronen correct staan.",
+    ],
+  },
+  minesweeper: {
+    label: "Mijnenveger",
+    href: "/minesweeper",
+    summary: "Maak veilige vakjes open, zet vlaggen op mijnen, raak geen bom.",
+    rules: [
+      "Muis: links-klikken onthult, rechts-klikken zet een vlag.",
+      "Touch: tikken onthult, lang ingedrukt houden zet een vlag (kleine vibratie bevestigt).",
+      "Getallen tonen hoeveel mijnen het vakje raken (tot 8).",
+      "Klik een onthuld getal aan met de juiste vlaggen erom om de rest open te maken (chord).",
+      "Eerste klik is altijd veilig — begin gerust in het midden.",
     ],
   },
 };
@@ -411,6 +435,18 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Gelöst, wenn alle Kronen korrekt platziert sind.",
     ],
   },
+  minesweeper: {
+    label: "Minesweeper",
+    href: "/minesweeper",
+    summary: "Decke sichere Felder auf, markiere die Minen, klick keine Bombe.",
+    rules: [
+      "Maus: Linksklick deckt auf, Rechtsklick markiert.",
+      "Touch: Tippen deckt auf, langes Drücken markiert (leichte Vibration als Bestätigung).",
+      "Zahlen zeigen, wie viele Minen das Feld berühren (bis zu 8).",
+      "Klick eine aufgedeckte Zahl mit korrekt gesetzten Flaggen, um den Rest aufzudecken (Chord).",
+      "Der erste Klick ist immer sicher — leg ruhig in der Mitte los.",
+    ],
+  },
 };
 
 const FR: Record<GameKey, HowToPlayEntry> = {
@@ -546,6 +582,18 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "Résolu quand toutes les couronnes sont bien placées.",
     ],
   },
+  minesweeper: {
+    label: "Démineur",
+    href: "/minesweeper",
+    summary: "Découvre les cases sûres, marque les mines, ne clique pas sur une bombe.",
+    rules: [
+      "Souris : clic gauche pour révéler, clic droit pour marquer.",
+      "Tactile : appui pour révéler, appui long pour marquer (une légère vibration confirme).",
+      "Les chiffres indiquent combien de mines touchent la case (jusqu'à 8).",
+      "Clique un chiffre déjà révélé avec les drapeaux corrects autour pour révéler le reste (chord).",
+      "Le premier clic est toujours sûr — commence au milieu sans crainte.",
+    ],
+  },
 };
 
 const ES: Record<GameKey, HowToPlayEntry> = {
@@ -679,6 +727,18 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "Cada región de color contiene exactamente una corona.",
       "Las coronas no pueden tocarse — ni siquiera en diagonal.",
       "Resuelto cuando todas las coronas están bien colocadas.",
+    ],
+  },
+  minesweeper: {
+    label: "Buscaminas",
+    href: "/minesweeper",
+    summary: "Descubre las casillas seguras, marca las minas, no toques una bomba.",
+    rules: [
+      "Ratón: clic izquierdo descubre, clic derecho marca.",
+      "Táctil: toca para descubrir, mantén pulsado para marcar (una vibración corta lo confirma).",
+      "Los números indican cuántas minas tocan la casilla (hasta 8).",
+      "Toca un número descubierto con las banderas correctas para destapar el resto (chord).",
+      "El primer clic siempre es seguro — empieza en el centro tranquilamente.",
     ],
   },
 };
@@ -817,6 +877,18 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "Resolvido quando todas as coroas estão bem colocadas.",
     ],
   },
+  minesweeper: {
+    label: "Campo Minado",
+    href: "/minesweeper",
+    summary: "Descubra as casas seguras, marque as minas, não toque numa bomba.",
+    rules: [
+      "Mouse: clique esquerdo revela, clique direito marca.",
+      "Toque: toque revela, segurar marca (uma pequena vibração confirma).",
+      "Os números indicam quantas minas tocam aquela casa (até 8).",
+      "Toque um número revelado com as bandeiras corretas para abrir o resto (chord).",
+      "O primeiro toque é sempre seguro — comece pelo meio sem medo.",
+    ],
+  },
 };
 
 // High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
@@ -953,6 +1025,18 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "जब सब मुकुट सही जगह हों — हल हो गया।",
     ],
   },
+  minesweeper: {
+    label: "माइनस्वीपर",
+    href: "/minesweeper",
+    summary: "सुरक्षित कोष्ठकों को खोलें, खानों पर झंडा लगाएँ, बम मत दबाएँ।",
+    rules: [
+      "माउस: बायाँ क्लिक खोलता है, दायाँ क्लिक झंडा लगाता है।",
+      "टच: टैप खोलता है, लंबा-दबाना झंडा लगाता है (हल्की कंपन से पुष्टि होती है)।",
+      "संख्याएँ बताती हैं कि उस कोष्ठक को कितनी खानें छूती हैं (अधिकतम 8)।",
+      "किसी खुले अंक पर सही झंडे लगाकर क्लिक करें ताकि बाकी कोष्ठक खुल जाएँ (chord)।",
+      "पहला क्लिक हमेशा सुरक्षित होता है — बीच में शुरू करें।",
+    ],
+  },
 };
 
 // High-risk machine translation — gated behind REVIEW_PENDING in i18n.ts.
@@ -1087,6 +1171,18 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "各カラー領域にちょうど 1 つのクラウン。",
       "クラウン同士は接してはいけない — 斜めも不可。",
       "全クラウンが正しい位置になればクリア。",
+    ],
+  },
+  minesweeper: {
+    label: "マインスイーパ",
+    href: "/minesweeper",
+    summary: "安全なマスを開け、地雷に旗を立て、爆弾には触れないで。",
+    rules: [
+      "マウス: 左クリックで開く、右クリックで旗。",
+      "タッチ: タップで開く、長押しで旗（軽い振動で確認）。",
+      "数字はそのマスに接する地雷の数（最大 8）を示します。",
+      "正しい旗が立った数字をクリックすると残りを一気に開けます（chord）。",
+      "最初のクリックは必ず安全 — 中央から始めてください。",
     ],
   },
 };

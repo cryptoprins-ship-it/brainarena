@@ -26,7 +26,8 @@ const NEXT_GAME: Record<GameKey, GameKey> = {
   vlakken: "verbind",
   verbind: "zonmaan",
   zonmaan: "kronen",
-  kronen: "wordle",
+  kronen: "minesweeper",
+  minesweeper: "wordle",
 };
 
 export default function EndScreenAddon({ game, score, time, meta, rank }: Props) {

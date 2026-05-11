@@ -60,6 +60,11 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
     "Gamers": 79,
     "Engineers": 70,
   },
+  minesweeper: {
+    "Software developers": 78,
+    "Engineers": 74,
+    "Risk analysts": 80,
+  },
 };
 
 // Map raw game results → a coarse 0–100 percentile so we can compare against
@@ -132,7 +137,8 @@ export function percentileFor(s: Score): number {
     case "vlakken":
     case "verbind":
     case "zonmaan":
-    case "kronen": {
+    case "kronen":
+    case "minesweeper": {
       // Logic puzzles: score = time-based (lower = better; encoded as 100000 - seconds).
       const t = s.time ?? Infinity;
       const diff = (s.meta as { difficulty?: string } | undefined)?.difficulty ?? "easy";

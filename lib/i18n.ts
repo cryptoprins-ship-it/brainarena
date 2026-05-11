@@ -58,6 +58,9 @@ type TranslationKey =
   | "game_verbind" | "game_verbind_desc"
   | "game_zonmaan" | "game_zonmaan_desc"
   | "game_kronen"  | "game_kronen_desc"
+  | "game_minesweeper" | "game_minesweeper_desc"
+  | "minesweeper_hint_touch" | "minesweeper_hint_mouse"
+  | "minesweeper_solved_in" | "minesweeper_lost" | "minesweeper_flags_placed"
   | "how_to_play" | "undo" | "hint" | "reset" | "new_game"
   | "easy" | "medium" | "hard"
   | "completed" | "best_time" | "your_time"
@@ -162,6 +165,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Your name",
     name_gate_submit: "Save & continue",
     name_gate_required: "Please enter a name",
+    game_minesweeper: "Minesweeper",
+    game_minesweeper_desc: "Uncover safe cells, flag the mines, don't tap a bomb.",
+    minesweeper_hint_touch: "Tap to reveal · long-press to flag",
+    minesweeper_hint_mouse: "Left-click to reveal · right-click to flag",
+    minesweeper_solved_in: "You cleared the field in {time}.",
+    minesweeper_lost: "You hit a mine. Game over.",
+    minesweeper_flags_placed: "Flags placed",
   },
   nl: {
     game_vlakken: "Vlakken",
@@ -240,6 +250,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Je naam",
     name_gate_submit: "Opslaan en doorgaan",
     name_gate_required: "Voer een naam in",
+    game_minesweeper: "Mijnenveger",
+    game_minesweeper_desc: "Maak veilige vakjes open, zet vlaggen op mijnen, raak geen bom.",
+    minesweeper_hint_touch: "Tik om te openen · lang ingedrukt voor vlag",
+    minesweeper_hint_mouse: "Linkermuisklik onthult · rechtermuisklik zet vlag",
+    minesweeper_solved_in: "Veld geveegd in {time}.",
+    minesweeper_lost: "Mijn geraakt. Spel voorbij.",
+    minesweeper_flags_placed: "Vlaggen geplaatst",
   },
   // TBD: native review (machine-translated starting point).
   de: {
@@ -319,6 +336,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Dein Name",
     name_gate_submit: "Speichern und weiter",
     name_gate_required: "Bitte gib einen Namen ein",
+    game_minesweeper: "Minesweeper",
+    game_minesweeper_desc: "Decke sichere Felder auf, markiere die Minen, triff keine Bombe.",
+    minesweeper_hint_touch: "Tippen zum Aufdecken · langes Drücken zum Markieren",
+    minesweeper_hint_mouse: "Linksklick deckt auf · Rechtsklick markiert",
+    minesweeper_solved_in: "Feld in {time} geräumt.",
+    minesweeper_lost: "Mine getroffen. Spiel vorbei.",
+    minesweeper_flags_placed: "Flaggen gesetzt",
   },
   // TBD: native review.
   fr: {
@@ -398,6 +422,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Ton nom",
     name_gate_submit: "Enregistrer et continuer",
     name_gate_required: "Veuillez saisir un nom",
+    game_minesweeper: "Démineur",
+    game_minesweeper_desc: "Découvre les cases sûres, marque les mines, ne touche pas une bombe.",
+    minesweeper_hint_touch: "Toucher pour révéler · appui long pour marquer",
+    minesweeper_hint_mouse: "Clic gauche révèle · clic droit marque",
+    minesweeper_solved_in: "Terrain déminé en {time}.",
+    minesweeper_lost: "Mine touchée. Fin de partie.",
+    minesweeper_flags_placed: "Drapeaux posés",
   },
   // TBD: native review.
   es: {
@@ -477,6 +508,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Tu nombre",
     name_gate_submit: "Guardar y continuar",
     name_gate_required: "Por favor ingresa un nombre",
+    game_minesweeper: "Buscaminas",
+    game_minesweeper_desc: "Descubre las casillas seguras, marca las minas, no toques una bomba.",
+    minesweeper_hint_touch: "Toca para descubrir · mantén pulsado para marcar",
+    minesweeper_hint_mouse: "Clic izquierdo descubre · clic derecho marca",
+    minesweeper_solved_in: "Campo despejado en {time}.",
+    minesweeper_lost: "Has tocado una mina. Fin del juego.",
+    minesweeper_flags_placed: "Banderas colocadas",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   hi: {
@@ -556,6 +594,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "आपका नाम",
     name_gate_submit: "सेव करें और जारी रखें",
     name_gate_required: "कृपया एक नाम दर्ज करें",
+    game_minesweeper: "माइनस्वीपर",
+    game_minesweeper_desc: "सुरक्षित कोष्ठक खोलें, खानों पर झंडा लगाएँ, बम न दबाएँ।",
+    minesweeper_hint_touch: "टैप करके खोलें · लंबा-दबाकर झंडा लगाएँ",
+    minesweeper_hint_mouse: "बायाँ क्लिक खोलता है · दायाँ क्लिक झंडा",
+    minesweeper_solved_in: "मैदान {time} में साफ़ किया।",
+    minesweeper_lost: "खान फट गई। खेल समाप्त।",
+    minesweeper_flags_placed: "झंडे लगाए",
   },
   // TBD: native review (Brazilian Portuguese — pt-BR not pt-PT). Many
   // strings carried over from the prior pt-PT seed; ensure Brazilian
@@ -637,6 +682,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "Seu nome",
     name_gate_submit: "Salvar e continuar",
     name_gate_required: "Por favor digite um nome",
+    game_minesweeper: "Campo Minado",
+    game_minesweeper_desc: "Descubra as casas seguras, marque as minas, não toque numa bomba.",
+    minesweeper_hint_touch: "Toque para revelar · segure para marcar",
+    minesweeper_hint_mouse: "Clique esquerdo revela · clique direito marca",
+    minesweeper_solved_in: "Campo limpo em {time}.",
+    minesweeper_lost: "Acertou uma mina. Fim de jogo.",
+    minesweeper_flags_placed: "Bandeiras colocadas",
   },
   // High-risk machine translation — gated behind REVIEW_PENDING.
   ja: {
@@ -716,6 +768,13 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     name_gate_placeholder: "あなたの名前",
     name_gate_submit: "保存して続行",
     name_gate_required: "名前を入力してください",
+    game_minesweeper: "マインスイーパ",
+    game_minesweeper_desc: "安全なマスを開け、地雷に旗を立て、爆弾は絶対に踏まないで。",
+    minesweeper_hint_touch: "タップで開く · 長押しで旗",
+    minesweeper_hint_mouse: "左クリックで開く · 右クリックで旗",
+    minesweeper_solved_in: "{time} で全マス開けました。",
+    minesweeper_lost: "地雷を踏みました。ゲームオーバー。",
+    minesweeper_flags_placed: "立てた旗",
   },
 };
 

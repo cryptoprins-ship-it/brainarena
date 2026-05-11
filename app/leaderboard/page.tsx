@@ -13,7 +13,8 @@ type Game =
   | "vlakken"
   | "verbind"
   | "zonmaan"
-  | "kronen";
+  | "kronen"
+  | "minesweeper";
 type Period = "today" | "week" | "alltime";
 
 type Entry = {
@@ -37,6 +38,7 @@ const GAMES: { key: Game; label: string }[] = [
   { key: "verbind", label: "Verbind" },
   { key: "zonmaan", label: "Zon & Maan" },
   { key: "kronen", label: "Kronen" },
+  { key: "minesweeper", label: "Minesweeper" },
 ];
 
 const PERIODS: { key: Period; label: string }[] = [

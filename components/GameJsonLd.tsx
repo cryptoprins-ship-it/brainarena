@@ -55,6 +55,11 @@ const GAMES = {
     description:
       "Place one crown in each row, column and colour region. No two crowns may touch.",
   },
+  minesweeper: {
+    name: "Minesweeper",
+    description:
+      "Uncover safe cells, flag the mines, never tap a bomb. 9×9, 12×12 and 14×14 daily boards.",
+  },
 } as const;
 
 export type GameSlug = keyof typeof GAMES;

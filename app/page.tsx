@@ -176,6 +176,23 @@ const GAMES: {
       </div>
     ),
   },
+  {
+    href: "/minesweeper",
+    game: "minesweeper",
+    accent: "from-slate-500/20 to-slate-500/0",
+    preview: (
+      <div className="grid grid-cols-4 gap-px bg-[#3a3a3c] p-px text-[10px] font-bold">
+        <div className="h-5 w-5 bg-[#0e0e15] grid place-items-center text-sky-400">1</div>
+        <div className="h-5 w-5 bg-[#0e0e15] grid place-items-center text-emerald-400">2</div>
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a] grid place-items-center text-[11px]">🚩</div>
+        <div className="h-5 w-5 bg-[#0e0e15] grid place-items-center text-sky-400">1</div>
+        <div className="h-5 w-5 bg-rose-500/30 border border-rose-500/50 grid place-items-center text-[10px]">●</div>
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+        <div className="h-5 w-5 bg-[#1a1a1a]" />
+      </div>
+    ),
+  },
 ];
 
 export default function HomePage() {

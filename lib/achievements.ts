@@ -218,7 +218,8 @@ export function recordGame(payload: GameResultPayload): RecordResult {
     payload.game === "vlakken" ||
     payload.game === "verbind" ||
     payload.game === "zonmaan" ||
-    payload.game === "kronen"
+    payload.game === "kronen" ||
+    payload.game === "minesweeper"
   ) {
     const won = (payload.meta as { won?: boolean } | undefined)?.won;
     if (won) r.logicGamesSolved += 1;
