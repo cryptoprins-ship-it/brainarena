@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(echo \"---EXIT $?---\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(unzip -o files.zip)",
+      "Bash(where npm *)",
+      "Bash(npm --version)",
+      "Bash(corepack enable *)",
+      "Bash(corepack prepare *)",
+      "Bash(pnpm --version)",
+      "Bash(npm config *)",
+      "Bash(npm install *)",
+      "Bash(mkdir -p \"C:/projects/TPCtreeheroes/.starter-backup\")",
+      "Bash(mv \"C:/projects/TPCtreeheroes/CLAUDE.md\" \"C:/projects/TPCtreeheroes/.starter-backup/\")",
+      "Bash(mv \"C:/projects/TPCtreeheroes/Footer.tsx\" \"C:/projects/TPCtreeheroes/.starter-backup/\")",
+      "Bash(mv \"C:/projects/TPCtreeheroes/files.zip\" \"C:/projects/TPCtreeheroes/.starter-backup/\")",
+      "Bash(pnpm create *)"
+    ]
+  }
+}
