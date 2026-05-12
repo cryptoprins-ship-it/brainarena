@@ -7,6 +7,8 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import { useLocale } from "@/lib/i18n";
 import { generateVerbind, type VerbindPuzzle } from "@/lib/games/verbind";
 import { dayIndex } from "@/lib/games/kronen";
+import { getName, setName, submitScore } from "@/lib/scores";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 type Difficulty = "easy" | "medium" | "hard";
 const SIZE_FOR: Record<Difficulty, number> = { easy: 5, medium: 6, hard: 7 };
@@ -27,8 +29,16 @@ export default function VerbindPage() {
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
+  const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
+  const [nameInput, setNameInput] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
   const dragPointerRef = useRef<number | null>(null);
+
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("verbind", todayIdx, difficulty);
+  useEffect(() => { setNameInput(getName()); }, []);
 
   const seed = useMemo(
     () => dayIndex() * 1601 + DIFF_INDEX[difficulty] * 23 + seedNonce,
@@ -45,8 +55,43 @@ export default function VerbindPage() {
     setHintsLeft(HINTS_FOR[difficulty]);
     setElapsed(0);
     setDone(false);
+    setSubmitted(null);
+    setEligibleToSubmit(false);
+    recordedRef.current = false;
     startedAt.current = null;
   }, [difficulty, seed]);
+
+  // Submit to leaderboard on win, gated by the 3-attempt daily cap (per
+  // difficulty since each difficulty is a separate puzzle stream).
+  useEffect(() => {
+    if (!done) return;
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "verbind",
+        name: getName() || "Anonymous",
+        score: Math.max(1, 100000 - elapsed),
+        time: elapsed,
+        meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
+
+  const saveName = useCallback(() => {
+    setName(nameInput);
+    if (done && eligibleToSubmit && !submitted) {
+      submitScore({
+        game: "verbind",
+        name: nameInput || "Anonymous",
+        score: Math.max(1, 100000 - elapsed),
+        time: elapsed,
+        meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [nameInput, done, eligibleToSubmit, submitted, elapsed, difficulty, hintsLeft]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -259,7 +304,10 @@ export default function VerbindPage() {
         <div>
           <h1 className="text-2xl font-black">{t("game_verbind")}</h1>
           <p className="text-xs text-gray-400">
-            {t("game_verbind_desc")} · {locale.toUpperCase()} · ⏱ <span className="font-mono">{elapsed}s</span>
+            {t("game_verbind_desc")} · {locale.toUpperCase()} · ⏱ <span className="font-mono">{elapsed}s</span> ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
           </p>
         </div>
         <DifficultyToggle value={difficulty} onChange={setDifficulty} />
@@ -417,6 +465,25 @@ export default function VerbindPage() {
             <p className="mt-1 text-emerald-100">
               {t("your_time")}: <span className="font-mono">{elapsed}s</span>
             </p>
+            {!submitted && eligibleToSubmit ? (
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Your name"
+                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
+                />
+                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
+              </div>
+            ) : null}
+            {submitted ? (
+              <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+            ) : null}
+            {!eligibleToSubmit && !submitted ? (
+              <p className="mt-3 text-xs text-amber-300">
+                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {difficulty} puzzle. Tomorrow resets the counter.
+              </p>
+            ) : null}
           </div>
           <EndScreenAddon
             game="verbind"

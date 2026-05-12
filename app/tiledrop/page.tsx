@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getName, setName, submitScore } from "@/lib/scores";
+import { dayIndex } from "@/lib/dailyWord";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -95,6 +97,10 @@ export default function TileDropPage() {
   const [highScore, setHighScore] = useState(0);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("tiledrop", todayIdx);
 
   const tickRef = useRef<number | null>(null);
   const dropMs = useMemo(() => Math.max(80, 800 - (level - 1) * 70), [level]);
@@ -297,14 +303,18 @@ export default function TileDropPage() {
     else if (dy > 30) { hardDrop(); }
   };
 
-  // High score + submit on game over.
+  // High score + submit on game over, gated by the 3-attempt daily cap.
   useEffect(() => {
-    if (!over) return;
+    if (!over) { recordedRef.current = false; return; }
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem("tiledrop-hi", String(score));
     }
-    if (!submitted) {
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
       submitScore({
         game: "tiledrop",
         name: getName() || "Anonymous",
@@ -312,7 +322,7 @@ export default function TileDropPage() {
         meta: { lines, level },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [highScore, level, lines, over, score, submitted]);
+  }, [highScore, level, lines, over, record, score, submitted]);
 
   // Compose render board with active piece + ghost.
   const renderBoard = useMemo(() => {
@@ -358,12 +368,14 @@ export default function TileDropPage() {
   const next = bag[0];
   const saveName = () => {
     setName(name);
-    submitScore({
-      game: "tiledrop",
-      name: name || "Anonymous",
-      score,
-      meta: { lines, level },
-    }).then((r) => r && setSubmitted(r));
+    if (over && eligibleToSubmit && !submitted) {
+      submitScore({
+        game: "tiledrop",
+        name: name || "Anonymous",
+        score,
+        meta: { lines, level },
+      }).then((r) => r && setSubmitted(r));
+    }
   };
 
   return (
@@ -373,7 +385,12 @@ export default function TileDropPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">TileDrop</h1>
-          <p className="text-xs text-gray-400">Desktop: ←→ rotate ↑ drop space · Mobile: buttons below + swipe ↓ to drop</p>
+          <p className="text-xs text-gray-400">
+            Desktop: ←→ rotate ↑ drop space · Mobile: buttons below + swipe ↓ to drop ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
@@ -470,7 +487,7 @@ export default function TileDropPage() {
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">Game Over · {score} pts</h2>
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
@@ -480,9 +497,15 @@ export default function TileDropPage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+            </p>
+          ) : null}
           <button onClick={reset} className="mt-3 rounded-lg bg-[#0a0a0a] border border-[#2a2a2a] px-4 py-2 text-sm">
             Play again
           </button>

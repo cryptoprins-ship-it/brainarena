@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { pickText } from "@/lib/typingTexts";
 import { getName, setName, submitScore } from "@/lib/scores";
+import { dayIndex } from "@/lib/dailyWord";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -20,6 +22,11 @@ export default function TypingPage() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  // Typing has no daily seed but we cap per locale — texts differ per language.
+  const { attempts: dailyAttempts, record } = useDailyAttempts("typing", todayIdx, locale);
 
   const reset = useCallback(() => {
     setText(pickText(locale));
@@ -70,29 +77,37 @@ export default function TypingPage() {
     return () => window.clearInterval(id);
   }, [done]);
 
-  // Submit on done.
+  // Submit on done, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "typing",
-      name: getName() || "Anonymous",
-      score: stats.wpm,
-      time: stats.elapsed,
-      language: locale,
-      meta: { accuracy: stats.accuracy },
-    }).then((r) => r && setSubmitted(r));
-  }, [done, locale, stats.accuracy, stats.elapsed, stats.wpm, submitted]);
+    if (!done) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "typing",
+        name: getName() || "Anonymous",
+        score: stats.wpm,
+        time: stats.elapsed,
+        language: locale,
+        meta: { accuracy: stats.accuracy },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [done, locale, record, stats.accuracy, stats.elapsed, stats.wpm, submitted]);
 
   const saveName = () => {
     setName(name);
-    submitScore({
-      game: "typing",
-      name: name || "Anonymous",
-      score: stats.wpm,
-      time: stats.elapsed,
-      language: locale,
-      meta: { accuracy: stats.accuracy },
-    }).then((r) => r && setSubmitted(r));
+    if (done && eligibleToSubmit && !submitted) {
+      submitScore({
+        game: "typing",
+        name: name || "Anonymous",
+        score: stats.wpm,
+        time: stats.elapsed,
+        language: locale,
+        meta: { accuracy: stats.accuracy },
+      }).then((r) => r && setSubmitted(r));
+    }
   };
 
   return (
@@ -114,7 +129,12 @@ export default function TypingPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Typing Speed</h1>
-          <p className="text-xs text-gray-400">{locale.toUpperCase()} · {DURATION}s test</p>
+          <p className="text-xs text-gray-400">
+            {locale.toUpperCase()} · {DURATION}s test ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-3 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">⏱ {time}s</span>
@@ -172,7 +192,7 @@ export default function TypingPage() {
           <p className="mt-1 text-sm text-gray-300">
             <span className="font-bold text-indigo-300">{stats.wpm} WPM</span> · {stats.accuracy}% accuracy · {stats.correct} correct chars
           </p>
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
@@ -182,9 +202,15 @@ export default function TypingPage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+            </p>
+          ) : null}
         </div>
       ) : null}
       </div>

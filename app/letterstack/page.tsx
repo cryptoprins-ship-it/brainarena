@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { isInWordList } from "@/lib/dailyWord";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isInWordList, dayIndex } from "@/lib/dailyWord";
 import { useLocale } from "@/lib/i18n";
 import { getName, setName, submitScore } from "@/lib/scores";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -29,8 +30,12 @@ export default function LetterStackPage() {
   const [wildAvailable, setWildAvailable] = useState(false);
   const [bombAvailable, setBombAvailable] = useState(false);
   const [milestones, setMilestones] = useState<number>(0);
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
   const idRef = useRef(0);
   const startRef = useRef<number>(Date.now());
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, locale);
 
   useEffect(() => { setNameState(getName()); }, []);
 
@@ -148,16 +153,23 @@ export default function LetterStackPage() {
     });
   }, [input, locale, milestones, over, stack, wildAvailable]);
 
-  // Stack overflow → game over (already handled in tryCatch). Submit on game over.
+  // Stack overflow → game over (already handled in tryCatch). Submit on game
+  // over, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {
-    if (!over || submitted) return;
-    submitScore({
-      game: "letterstack",
-      name: getName() || "Anonymous",
-      score,
-      meta: { missed },
-    }).then((r) => r && setSubmitted(r));
-  }, [missed, over, score, submitted]);
+    if (!over) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "letterstack",
+        name: getName() || "Anonymous",
+        score,
+        meta: { missed },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [missed, over, record, score, submitted]);
 
   const useBomb = () => {
     if (!bombAvailable) return;
@@ -167,12 +179,14 @@ export default function LetterStackPage() {
 
   const saveName = () => {
     setName(name);
-    submitScore({
-      game: "letterstack",
-      name: name || "Anonymous",
-      score,
-      meta: { missed },
-    }).then((r) => r && setSubmitted(r));
+    if (over && eligibleToSubmit && !submitted) {
+      submitScore({
+        game: "letterstack",
+        name: name || "Anonymous",
+        score,
+        meta: { missed },
+      }).then((r) => r && setSubmitted(r));
+    }
   };
 
   return (
@@ -182,7 +196,12 @@ export default function LetterStackPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">LetterStack</h1>
-          <p className="text-xs text-gray-400">Press letter keys to catch · Enter to submit · {locale.toUpperCase()}</p>
+          <p className="text-xs text-gray-400">
+            Press letter keys to catch · Enter to submit · {locale.toUpperCase()} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
@@ -255,7 +274,7 @@ export default function LetterStackPage() {
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">Stack overflowed · {score} pts</h2>
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
@@ -265,9 +284,15 @@ export default function LetterStackPage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

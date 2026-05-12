@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
@@ -14,6 +14,8 @@ import {
   type ConnectionsPuzzle,
 } from "@/lib/games/connections";
 import { dayIndex } from "@/lib/games/kronen";
+import { getName, setName, submitScore } from "@/lib/scores";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const MAX_MISTAKES = 4;
 
@@ -42,7 +44,21 @@ export default function ConnectionsPage() {
   const [state, setState] = useState<GameState>("playing");
   const [oneAwayFlash, setOneAwayFlash] = useState(false);
   const [shakeFlash, setShakeFlash] = useState(false);
-  const [startedAt] = useState<number>(() => Date.now());
+  const [startedAt, setStartedAt] = useState<number>(() => Date.now());
+  const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
+  const [nameInput, setNameInput] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  // Snapshot of "groups the player actually solved" (0-4) at game-end —
+  // captured BEFORE the lost-state auto-fill so the leaderboard score
+  // reflects the player's real performance, not the autopaste.
+  const [playerScore, setPlayerScore] = useState<number | null>(null);
+  const [finalElapsed, setFinalElapsed] = useState<number | null>(null);
+  const recordedRef = useRef(false);
+
+  const todayIdx = useMemo(() => dayIndex(), []);
+  // Connections has one puzzle per day (with optional nonce for replays).
+  const { attempts: dailyAttempts, record } = useDailyAttempts("connections", todayIdx);
+  useEffect(() => { setNameInput(getName()); }, []);
 
   useEffect(() => {
     setOrder(shuffleSeeded(allWords(puzzle), seed));
@@ -52,6 +68,12 @@ export default function ConnectionsPage() {
     setState("playing");
     setOneAwayFlash(false);
     setShakeFlash(false);
+    setSubmitted(null);
+    setEligibleToSubmit(false);
+    setPlayerScore(null);
+    setFinalElapsed(null);
+    recordedRef.current = false;
+    setStartedAt(Date.now());
   }, [puzzle, seed]);
 
   const remaining = useMemo(() => {
@@ -95,12 +117,19 @@ export default function ConnectionsPage() {
       setSolved((s) => [...s, group]);
       setSelected(new Set());
       if (solved.length + 1 === 4) {
+        setPlayerScore(4);
+        setFinalElapsed(Math.floor((Date.now() - startedAt) / 1000));
         setState("won");
       }
     } else {
       setMistakes((m) => {
         const next = m + 1;
         if (next >= MAX_MISTAKES) {
+          // Capture the player's real groups-solved BEFORE we auto-fill
+          // the rest — otherwise the leaderboard score would always
+          // record 4 even on a 0-correct loss.
+          setPlayerScore(solved.length);
+          setFinalElapsed(Math.floor((Date.now() - startedAt) / 1000));
           // Reveal the remaining groups as auto-solved so the player can
           // see the answers.
           const solvedColors = new Set(solved.map((g) => g.color));
@@ -117,7 +146,48 @@ export default function ConnectionsPage() {
         setTimeout(() => setOneAwayFlash(false), 2200);
       }
     }
-  }, [puzzle, selected, solved, state]);
+  }, [puzzle, selected, solved, startedAt, state]);
+
+  // Submit to leaderboard on game end (won OR lost), gated by 3-attempt
+  // cap. Score = groups solved by the player (0-4), time = elapsed —
+  // matches the API's "score desc, time asc" sort so winners rank by
+  // speed, losers rank by partial progress.
+  useEffect(() => {
+    if (state !== "won" && state !== "lost") return;
+    if (recordedRef.current) return;
+    if (playerScore == null || finalElapsed == null) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "connections",
+        name: getName() || "Anonymous",
+        score: playerScore,
+        time: finalElapsed,
+        meta: { mistakes, won: state === "won" },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [state, playerScore, finalElapsed, mistakes, record, submitted]);
+
+  const saveName = useCallback(() => {
+    setName(nameInput);
+    if (
+      (state === "won" || state === "lost") &&
+      eligibleToSubmit &&
+      !submitted &&
+      playerScore != null &&
+      finalElapsed != null
+    ) {
+      submitScore({
+        game: "connections",
+        name: nameInput || "Anonymous",
+        score: playerScore,
+        time: finalElapsed,
+        meta: { mistakes, won: state === "won" },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [nameInput, state, eligibleToSubmit, submitted, playerScore, finalElapsed, mistakes]);
 
   const onNewPuzzle = useCallback(() => setSeedNonce((n) => n + 1), []);
 
@@ -135,7 +205,10 @@ export default function ConnectionsPage() {
         <div>
           <h1 className="text-2xl font-black">{t("game_connections")}</h1>
           <p className="text-xs text-gray-400">
-            {t("game_connections_desc")} · {locale.toUpperCase()}
+            {t("game_connections_desc")} · {locale.toUpperCase()} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1.5 text-xs">
@@ -247,12 +320,41 @@ export default function ConnectionsPage() {
       ) : null}
 
       {done ? (
-        <EndScreenAddon
-          game="connections"
-          score={Math.max(1, (MAX_MISTAKES - mistakes) * 1000)}
-          time={elapsed}
-          meta={{ mistakes, won }}
-        />
+        <>
+          <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
+            <p className="font-bold text-emerald-200">
+              {won ? t("solved") : t("connections_lost")}
+            </p>
+            <p className="mt-1 text-emerald-100">
+              {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? elapsed}s</span>
+            </p>
+            {!submitted && eligibleToSubmit ? (
+              <div className="mt-3 flex gap-2">
+                <input
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  placeholder="Your name"
+                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
+                />
+                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
+              </div>
+            ) : null}
+            {submitted ? (
+              <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+            ) : null}
+            {!eligibleToSubmit && !submitted ? (
+              <p className="mt-3 text-xs text-amber-300">
+                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s puzzle. Tomorrow resets the counter.
+              </p>
+            ) : null}
+          </div>
+          <EndScreenAddon
+            game="connections"
+            score={Math.max(1, (MAX_MISTAKES - mistakes) * 1000)}
+            time={elapsed}
+            meta={{ mistakes, won }}
+          />
+        </>
       ) : null}
     </div>
   );
