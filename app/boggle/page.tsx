@@ -13,6 +13,7 @@ import {
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const SIZE = 4;
 const DURATION = 180; // seconds
@@ -80,6 +81,12 @@ export default function BogglePage() {
   const [invalidMsg, setInvalidMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  // Grid is the same for everyone today, but each locale draws from its
+  // own dictionary, so attempts are tracked per-locale.
+  const { attempts: dailyAttempts, record } = useDailyAttempts("boggle", todayIdx, dictLocale);
   const [dictReady, setDictReady] = useState(() => getCachedDictionary(dictLocale) !== null);
   const dictRef = useRef<Set<string> | null>(getCachedDictionary(dictLocale));
   const startedAt = useRef<number | null>(null);
@@ -217,21 +224,27 @@ export default function BogglePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [done, grid, running, flashCandidates]);
 
-  // Submit on game end.
+  // Submit on game end, gated by the daily attempt cap.
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "boggle",
-      name: getName() || "Anonymous",
-      score,
-      time: DURATION,
-      meta: { found },
-    }).then((r) => r && setSubmitted(r));
-  }, [done, found, score, submitted]);
+    if (!done) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "boggle",
+        name: getName() || "Anonymous",
+        score,
+        time: DURATION,
+        meta: { found },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [done, found, record, score, submitted]);
 
   const saveName = () => {
     setName(name);
-    if (done) {
+    if (done && eligibleToSubmit && !submitted) {
       submitScore({
         game: "boggle",
         name: name || "Anonymous",
@@ -261,7 +274,12 @@ export default function BogglePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Boggle</h1>
-          <p className="text-xs text-gray-400">Daily 4×4 · find words 3+ letters · {DURATION}s</p>
+          <p className="text-xs text-gray-400">
+            Daily 4×4 · find words 3+ letters · {DURATION}s ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1 text-sm font-mono">⏱ {time}s</span>
@@ -356,7 +374,7 @@ export default function BogglePage() {
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">Time! Final score: <span className="text-indigo-300">{score}</span></h2>
           <p className="mt-1 text-sm text-gray-400">{found.length} words found.</p>
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
@@ -366,9 +384,15 @@ export default function BogglePage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="mt-3 text-sm text-emerald-300">You ranked #{submitted.rank} globally.</p>
-          )}
+          ) : null}
+          {done && !eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s grid. Tomorrow resets the counter.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

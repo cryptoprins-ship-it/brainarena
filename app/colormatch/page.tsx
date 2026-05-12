@@ -7,6 +7,7 @@ import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const ROUNDS = 10;
 const ROUND_MS = 5000;
@@ -56,7 +57,8 @@ function ratingFor(correct: number): string {
 }
 
 export default function ColorMatchPage() {
-  const questions = useMemo(() => buildQuestions(dayIndex()), []);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const questions = useMemo(() => buildQuestions(todayIdx), [todayIdx]);
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
   const [correct, setCorrect] = useState(0);
@@ -65,7 +67,10 @@ export default function ColorMatchPage() {
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("colormatch", todayIdx);
 
   useEffect(() => { setNameState(getName()); }, []);
 
@@ -112,19 +117,26 @@ export default function ColorMatchPage() {
     window.setTimeout(advance, 800);
   };
 
-  // Submit on done.
+  // Submit on done, gated by the daily attempt cap.
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "colormatch",
-      name: getName() || "Anonymous",
-      score,
-      meta: { correct, rating: ratingFor(correct) },
-    }).then((r) => r && setSubmitted(r));
-  }, [correct, done, score, submitted]);
+    if (!done) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "colormatch",
+        name: getName() || "Anonymous",
+        score,
+        meta: { correct, rating: ratingFor(correct) },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [correct, done, record, score, submitted]);
 
   const saveName = () => {
     setName(name);
+    if (!eligibleToSubmit || submitted) return;
     submitScore({
       game: "colormatch",
       name: name || "Anonymous",
@@ -141,7 +153,7 @@ export default function ColorMatchPage() {
         <p className="mt-1 text-sm text-gray-300">{correct}/{ROUNDS} correct · <span className="text-indigo-300">{ratingFor(correct)}</span></p>
 
         <div className="mt-4 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="flex gap-2">
               <input
                 value={name}
@@ -151,9 +163,15 @@ export default function ColorMatchPage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          ) : null}
+          {!submitted && !eligibleToSubmit ? (
+            <p className="text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+            </p>
+          ) : null}
         </div>
 
         <EndScreenAddon
@@ -192,7 +210,12 @@ export default function ColorMatchPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">ColorMatch</h1>
-          <p className="text-xs text-gray-400">Round {round + 1}/{ROUNDS} · ★ {score}</p>
+          <p className="text-xs text-gray-400">
+            Round {round + 1}/{ROUNDS} · ★ {score} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + 1, MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="text-sm font-mono">⏱ {(remaining / 1000).toFixed(1)}s</div>
       </div>

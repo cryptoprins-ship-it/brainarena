@@ -7,6 +7,8 @@ import { bumpStreak, breakStreak, getStreak, getName, setName, submitScore } fro
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import { dayIndex } from "@/lib/games/kronen";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const ROWS = 6;
 const COLS = 5;
@@ -73,6 +75,20 @@ export default function WordlePage() {
   const [showModal, setShowModal] = useState(false);
   const [name, setNameState] = useState("");
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
+  // Whether the just-finished play still qualifies for the leaderboard.
+  // Captured the moment `record()` fires so both auto-submit and the
+  // saveName fallback agree (record itself is single-shot — we'd race
+  // ourselves if we re-asked the counter).
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+
+  const dayIdx = useMemo(() => dayIndex(), []);
+  // Per-locale variant: each language has its own daily word, so attempts
+  // count separately.
+  const { attempts: dailyAttempts, remaining, record } = useDailyAttempts(
+    "wordle",
+    dayIdx,
+    locale
+  );
 
   // Reset on locale or mode change.
   useEffect(() => {
@@ -86,6 +102,7 @@ export default function WordlePage() {
     startedAt.current = null;
     setShowModal(false);
     setSubmitted(null);
+    setEligibleToSubmit(false);
     setStreak(getStreak("wordle"));
     setNameState(getName());
   }, [locale, unlimited]);
@@ -117,24 +134,34 @@ export default function WordlePage() {
       setStreak(newStreak);
       window.setTimeout(() => setShowModal(true), 1500);
       if (!unlimited) {
-        const playerName = getName() || "Anonymous";
-        submitScore({
-          game: "wordle",
-          name: playerName,
-          score: ROWS - next.length + 1, // higher = fewer guesses
-          time: elapsedSec,
-          language: locale,
-          meta: { guesses: next.length, target },
-        }).then((r) => r && setSubmitted(r));
+        const { shouldSubmit } = record();
+        setEligibleToSubmit(shouldSubmit);
+        if (shouldSubmit) {
+          const playerName = getName() || "Anonymous";
+          submitScore({
+            game: "wordle",
+            name: playerName,
+            score: ROWS - next.length + 1, // higher = fewer guesses
+            time: elapsedSec,
+            language: locale,
+            meta: { guesses: next.length, target },
+          }).then((r) => r && setSubmitted(r));
+        }
       }
     } else if (next.length >= ROWS) {
       setDone("lose");
-      if (!unlimited) breakStreak("wordle");
+      if (!unlimited) {
+        breakStreak("wordle");
+        // A loss still counts as an attempt — without this, players
+        // could deliberately tank the first plays to "save" leaderboard
+        // submissions for after they've memorised the word.
+        record();
+      }
       setStreak(unlimited ? streak : 0);
       window.setTimeout(() => setShowModal(true), 1500);
     }
     setCurrent("");
-  }, [current, done, guesses, locale, streak, target, unlimited]);
+  }, [current, done, guesses, locale, record, streak, target, unlimited]);
 
   const onKey = useCallback((k: string) => {
     if (done) return;
@@ -197,7 +224,7 @@ export default function WordlePage() {
 
   const saveName = useCallback(() => {
     setName(name);
-    if (done === "win" && !submitted) {
+    if (done === "win" && !submitted && eligibleToSubmit) {
       submitScore({
         game: "wordle",
         name: name || "Anonymous",
@@ -207,7 +234,7 @@ export default function WordlePage() {
         meta: { guesses: guesses.length, target },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [done, elapsed, guesses, locale, name, submitted, target]);
+  }, [done, elapsed, eligibleToSubmit, guesses, locale, name, submitted, target]);
 
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
@@ -219,6 +246,14 @@ export default function WordlePage() {
           <p className="text-xs text-gray-400">
             {unlimited ? "Unlimited" : "Daily"} · {locale.toUpperCase()} ·{" "}
             <span className="tabular-nums">{elapsed}s</span> · 🔥 {streak}
+            {!unlimited ? (
+              <>
+                {" · "}
+                <span className={remaining === 0 ? "text-amber-300" : "text-gray-400"}>
+                  {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+                </span>
+              </>
+            ) : null}
           </p>
         </div>
         <label className="flex items-center gap-2 text-xs text-gray-300">
@@ -288,7 +323,7 @@ export default function WordlePage() {
               <p className="mt-2 text-sm text-gray-300">The word was <span className="font-bold uppercase text-emerald-400">{target}</span></p>
             )}
 
-            {done === "win" && !submitted ? (
+            {done === "win" && !submitted && eligibleToSubmit ? (
               <div className="mt-4 flex gap-2">
                 <input
                   value={name}
@@ -298,6 +333,11 @@ export default function WordlePage() {
                 />
                 <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
               </div>
+            ) : null}
+            {done && !unlimited && !eligibleToSubmit && !submitted ? (
+              <p className="mt-3 text-xs text-amber-300">
+                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts for today&apos;s puzzle. Tomorrow resets the counter.
+              </p>
             ) : null}
             {submitted ? (
               <p className="mt-3 text-sm text-emerald-300">You ranked #{submitted.rank} on the leaderboard!</p>

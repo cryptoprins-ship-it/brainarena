@@ -7,6 +7,7 @@ import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const DIFFS: Difficulty[] = ["easy", "medium", "hard"];
 const N = 9;
@@ -22,7 +23,13 @@ export default function SudokuPage() {
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const startedAt = useRef<number | null>(null);
+
+  // Each difficulty has its own daily puzzle, so attempts are tracked
+  // per (sudoku, dayIdx, difficulty).
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("sudoku", todayIdx, diff);
 
   // Seed: dayIndex × difficulty index → unique daily puzzle per difficulty.
   useEffect(() => {
@@ -36,6 +43,7 @@ export default function SudokuPage() {
     setTime(0);
     setDone(false);
     setSubmitted(null);
+    setEligibleToSubmit(false);
     setNameState(getName());
     startedAt.current = null;
   }, [diff]);
@@ -102,17 +110,31 @@ export default function SudokuPage() {
     }
   }, [board, done, solution, time]);
 
-  // Submit on completion.
+  // Submit on completion — but only if this play still qualifies for the
+  // daily leaderboard (first MAX_LEADERBOARD_ATTEMPTS attempts per
+  // difficulty). `record()` is single-shot per useEffect run, so we guard
+  // with a ref-style early-return on `submitted` to avoid double-counting
+  // under StrictMode's double-invoke.
+  const recordedRef = useRef(false);
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "sudoku",
-      name: getName() || "Anonymous",
-      score: 1, // sortable by time anyway
-      time,
-      meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
-    }).then((r) => r && setSubmitted(r));
-  }, [diff, done, hintsLeft, submitted, time]);
+    if (!done) {
+      recordedRef.current = false;
+      return;
+    }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "sudoku",
+        name: getName() || "Anonymous",
+        score: 1, // sortable by time anyway
+        time,
+        meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [diff, done, hintsLeft, record, submitted, time]);
 
   // Keyboard input.
   useEffect(() => {
@@ -136,7 +158,7 @@ export default function SudokuPage() {
 
   const saveName = () => {
     setName(name);
-    if (done) {
+    if (done && eligibleToSubmit && !submitted) {
       submitScore({
         game: "sudoku",
         name: name || "Anonymous",
@@ -154,7 +176,12 @@ export default function SudokuPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Sudoku</h1>
-          <p className="text-xs text-gray-400">Daily · ⏱ <span className="tabular-nums">{time}s</span> · 💡 {hintsLeft} hints</p>
+          <p className="text-xs text-gray-400">
+            Daily · ⏱ <span className="tabular-nums">{time}s</span> · 💡 {hintsLeft} hints ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-1 text-xs">
           {DIFFS.map((d) => (
@@ -238,7 +265,7 @@ export default function SudokuPage() {
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
           <h2 className="text-xl font-black">🎉 Solved in <span className="tabular-nums">{time}s</span>!</h2>
-          {!submitted ? (
+          {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
@@ -248,9 +275,15 @@ export default function SudokuPage() {
               />
               <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
             </div>
-          ) : (
+          ) : null}
+          {submitted ? (
             <p className="mt-2 text-sm text-emerald-300">You ranked #{submitted.rank} on the {diff} board.</p>
-          )}
+          ) : null}
+          {done && !eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {diff} puzzle. Tomorrow resets the counter.
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>
