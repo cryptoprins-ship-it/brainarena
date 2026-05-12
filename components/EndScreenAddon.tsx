@@ -92,7 +92,7 @@ export default function EndScreenAddon({ game, score, time, meta, rank }: Props)
       <p className="pt-1 text-xs text-gray-500">
         Missing a game?{" "}
         <a
-          href={`mailto:hello@brainarena.fun?subject=${encodeURIComponent("Game suggestion")}&body=${encodeURIComponent("I'd love to see this game on BrainArena: ")}`}
+          href={`mailto:info@brainarena.fun?subject=${encodeURIComponent("Game suggestion")}&body=${encodeURIComponent("I'd love to see this game on BrainArena: ")}`}
           className="underline hover:text-indigo-300"
         >
           Let us know →

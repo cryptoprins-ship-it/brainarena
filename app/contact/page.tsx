@@ -17,8 +17,7 @@ export default function ContactPage() {
   const [topic, setTopic] = useState("general");
   const [message, setMessage] = useState("");
 
-  const recipient =
-    topic === "privacy" ? "privacy@brainarena.fun" : "hello@brainarena.fun";
+  const recipient = "info@brainarena.fun";
 
   function buildMailto() {
     const subject = `[${topic}] BrainArena — ${name || "Contact"}`;
@@ -45,27 +44,18 @@ export default function ContactPage() {
         Bug reports, leaderboard removal requests, partnerships — drop us a line.
       </p>
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        <a
-          href="mailto:hello@brainarena.fun"
-          className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:border-indigo-400/40"
-        >
-          <p className="text-xs uppercase tracking-wider text-gray-500">General</p>
-          <p className="mt-1 text-base font-bold">hello@brainarena.fun</p>
-          <p className="mt-1 text-sm text-gray-400">Questions, feedback, partnerships.</p>
-        </a>
-        <a
-          href="mailto:privacy@brainarena.fun"
-          className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:border-indigo-400/40"
-        >
-          <p className="text-xs uppercase tracking-wider text-gray-500">Privacy</p>
-          <p className="mt-1 text-base font-bold">privacy@brainarena.fun</p>
-          <p className="mt-1 text-sm text-gray-400">
-            Data removal requests — see also our{" "}
-            <Link href="/privacy" className="underline hover:text-indigo-300">privacy policy</Link>.
-          </p>
-        </a>
-      </div>
+      <a
+        href="mailto:info@brainarena.fun"
+        className="mt-6 block rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:border-indigo-400/40"
+      >
+        <p className="text-xs uppercase tracking-wider text-gray-500">Email</p>
+        <p className="mt-1 text-base font-bold">info@brainarena.fun</p>
+        <p className="mt-1 text-sm text-gray-400">
+          Questions, feedback, bug reports, partnerships, privacy / data
+          removal requests — all welcome. See also our{" "}
+          <Link href="/privacy" className="underline hover:text-indigo-300">privacy policy</Link>.
+        </p>
+      </a>
 
       <form
         onSubmit={handleSubmit}
@@ -142,7 +132,7 @@ export default function ContactPage() {
 
       <p className="mt-8 text-xs text-gray-600">
         Prefer a one-line approach?{" "}
-        <a href="mailto:hello@brainarena.fun" className="underline hover:text-indigo-300">
+        <a href="mailto:info@brainarena.fun" className="underline hover:text-indigo-300">
           email us directly
         </a>.
       </p>
