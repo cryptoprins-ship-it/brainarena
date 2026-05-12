@@ -80,8 +80,17 @@ export default function RootLayout({
     <html
       lang="en"
       className={`antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
+      // Inline style is render-blocking and applies before the external
+      // CSS bundle arrives — without this, mobile cold-load shows a
+      // ~1-2s white flash because the Tailwind classes on <body> (and
+      // the html/body rule in globals.css) only kick in once the CSS
+      // file is parsed. The inline color matches `--bg` in globals.css.
+      style={{ background: "#0a0a0a", colorScheme: "dark" }}
     >
-      <body className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white">
+      <body
+        className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white"
+        style={{ background: "#0a0a0a", color: "#ffffff" }}
+      >
         {/* Site-wide structured data — Organization + WebSite. Game-specific
             VideoGame schemas live in each game's layout.tsx; homepage adds
             an ItemList of games. */}
