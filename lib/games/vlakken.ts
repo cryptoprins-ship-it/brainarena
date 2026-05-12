@@ -6,12 +6,14 @@
 //   - a shape mode: "square" | "tall" | "wide" | "any"
 //
 // "any"-mode anchors (rendered with a dashed border) accept any rectangle of
-// the right size. Squares (sizes 1, 4, 9) only fit one shape, so they are
+// the right size. Squares (sizes 4, 9) only fit one shape, so they are
 // always "square" mode regardless.
 //
-// Sizes used: 4 (2×2), 6 (2×3 tall or 3×2 wide), 9 (3×3). For grids that
-// can't be tiled cleanly with those alone, the generator falls back to size
-// 3 (1×3 / 3×1) and 2 (1×2 / 2×1) and finally 1 (1×1) to guarantee coverage.
+// Sizes used: 3 (1×3 tall or 3×1 wide), 4 (2×2), 6 (2×3 tall or 3×2 wide),
+// 9 (3×3). 1×1 and 1×2/2×1 pieces are excluded by design — single cells
+// and dominoes feel trivial and dilute the puzzle. The greedy tiler
+// occasionally fails with this restricted dim set; `generateVlakken`
+// retries with reseeded RNG up to 60 times.
 
 export type AnchorMode = "square" | "tall" | "wide" | "any";
 
@@ -64,6 +66,8 @@ function shuffleInPlace<T>(arr: T[], rng: () => number) {
 
 // Available rectangle dimensions, sorted largest area first so the tiler
 // places big shapes first (greedy tends to leave fewer awkward leftovers).
+// Minimum area is 3 — 1×1 and 1×2/2×1 were dropped because single cells
+// and dominoes feel trivial as a puzzle shape.
 const RECT_DIMS: Array<{ w: number; h: number; area: number; mode: AnchorMode }> = [
   { w: 3, h: 3, area: 9, mode: "square" },
   { w: 2, h: 3, area: 6, mode: "tall" },
@@ -71,9 +75,6 @@ const RECT_DIMS: Array<{ w: number; h: number; area: number; mode: AnchorMode }>
   { w: 2, h: 2, area: 4, mode: "square" },
   { w: 1, h: 3, area: 3, mode: "tall" },
   { w: 3, h: 1, area: 3, mode: "wide" },
-  { w: 1, h: 2, area: 2, mode: "tall" },
-  { w: 2, h: 1, area: 2, mode: "wide" },
-  { w: 1, h: 1, area: 1, mode: "square" },
 ];
 
 function fits(size: number, claimed: number[], top: number, left: number, w: number, h: number): boolean {
@@ -128,10 +129,9 @@ function tileGrid(
 }
 
 // Every (w, h) rectangle the generator can produce. Used for hidden anchors,
-// which accept any rectangle of any of these dimensions.
+// which accept any rectangle of any of these dimensions. Mirrors RECT_DIMS
+// minus the mode/area metadata.
 const ALL_DIMS: Array<{ w: number; h: number }> = [
-  { w: 1, h: 1 },
-  { w: 2, h: 1 }, { w: 1, h: 2 },
   { w: 3, h: 1 }, { w: 1, h: 3 },
   { w: 2, h: 2 },
   { w: 3, h: 2 }, { w: 2, h: 3 },
@@ -152,11 +152,6 @@ function placementsFor(size: number, anchor: VlakkenAnchor): Array<{ topLeft: nu
     dims.push(...ALL_DIMS);
   } else {
     switch (anchor.size) {
-      case 1: dims.push({ w: 1, h: 1 }); break;
-      case 2:
-        if (anchor.mode === "wide" || anchor.mode === "any") dims.push({ w: 2, h: 1 });
-        if (anchor.mode === "tall" || anchor.mode === "any") dims.push({ w: 1, h: 2 });
-        break;
       case 3:
         if (anchor.mode === "wide" || anchor.mode === "any") dims.push({ w: 3, h: 1 });
         if (anchor.mode === "tall" || anchor.mode === "any") dims.push({ w: 1, h: 3 });

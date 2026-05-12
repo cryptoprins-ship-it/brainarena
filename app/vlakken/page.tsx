@@ -670,10 +670,14 @@ function ErrorTooltip({
         left: `${left * cellPct}%`,
         marginTop: 4,
       };
+  // The tooltip sits inside a pointer-events:none overlay layer so its body
+  // does NOT swallow taps on the cells beneath it — otherwise the player
+  // couldn't restart a drag from any cell the tooltip is covering after a
+  // warning. Only the close button needs to receive clicks.
   return (
     <div
       role="status"
-      className="pointer-events-auto absolute z-20 max-w-[14rem] rounded-md border border-red-500/70 bg-[#1a1010] px-3 py-2 text-xs text-red-200 shadow-lg"
+      className="pointer-events-none absolute z-20 max-w-[14rem] rounded-md border border-red-500/70 bg-[#1a1010] px-3 py-2 text-xs text-red-200 shadow-lg"
       style={positionStyle}
     >
       <div className="flex items-start gap-2">
@@ -682,7 +686,7 @@ function ErrorTooltip({
           type="button"
           onClick={onClose}
           aria-label="Dismiss"
-          className="-mr-1 -mt-1 cursor-pointer p-1 text-red-400 hover:text-red-200"
+          className="pointer-events-auto -mr-1 -mt-1 cursor-pointer p-1 text-red-400 hover:text-red-200"
         >
           ×
         </button>

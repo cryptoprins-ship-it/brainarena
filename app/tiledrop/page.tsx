@@ -149,6 +149,20 @@ export default function TileDropPage() {
   }, [dropMs]);
 
   const lockPiece = useCallback((p: { p: Piece; x: number; y: number }) => {
+    // Standard Tetris top-out: if any filled cell of the piece would land
+    // above row 0, the board is full for this shape. The vanilla `spawn`
+    // check at y=-1 misses this for 1-row pieces (the I-piece) because
+    // `fits` skips negative-row cells, so an I could "play" forever on a
+    // full board without ever triggering game-over.
+    for (let r = 0; r < p.p.shape.length; r++) {
+      for (let c = 0; c < p.p.shape[r].length; c++) {
+        if (p.p.shape[r][c] && p.y + r < 0) {
+          setOver(true);
+          setPiece(null);
+          return;
+        }
+      }
+    }
     const merged = merge(boardRef.current, p.p, p.x, p.y);
     const { board: cleared, lines: cleared_lines } = clearLines(merged);
     boardRef.current = cleared;

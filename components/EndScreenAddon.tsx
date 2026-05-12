@@ -86,7 +86,18 @@ export default function EndScreenAddon({ game, score, time, meta, rank }: Props)
       <div className="flex flex-wrap gap-2">
         <Link href={`/${game}`} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Play again</Link>
         <Link href={`/${NEXT_GAME[game]}`} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">Try another game →</Link>
+        <Link href="/leaderboard" className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">View leaderboard →</Link>
       </div>
+
+      <p className="pt-1 text-xs text-gray-500">
+        Missing a game?{" "}
+        <a
+          href={`mailto:hello@brainarena.fun?subject=${encodeURIComponent("Game suggestion")}&body=${encodeURIComponent("I'd love to see this game on BrainArena: ")}`}
+          className="underline hover:text-indigo-300"
+        >
+          Let us know →
+        </a>
+      </p>
     </div>
   );
 }
