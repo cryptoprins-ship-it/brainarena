@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { livePlayerCount, type GameKey } from "@/lib/scores";
+import { type GameKey } from "@/lib/scores";
 import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib/achievements";
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
@@ -209,16 +209,12 @@ const GAMES: {
 ];
 
 export default function HomeClient() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const howTo = useMemo(() => getHowToPlay(locale), [locale]);
-  const [players, setPlayers] = useState<number | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
 
   useEffect(() => {
-    setPlayers(livePlayerCount());
     setStats(loadStats());
-    const id = window.setInterval(() => setPlayers(livePlayerCount()), 6000);
-    return () => window.clearInterval(id);
   }, []);
 
   const recentMedals = useMemo<Achievement[]>(() => {
@@ -270,24 +266,24 @@ export default function HomeClient() {
 
       {showWelcome ? (
         <section className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
-          <span className="font-bold">Welcome back!</span>{" "}
-          <span className="text-amber-200">🔥 {stats!.streakDays} day streak</span>{" "}
-          {playedToday ? "— locked in for today." : "— play any game today to keep it alive."}
+          <span className="font-bold">{t("home_welcome_back")}</span>{" "}
+          <span className="text-amber-200">{t("home_day_streak", { days: stats!.streakDays })}</span>{" "}
+          {playedToday ? t("home_locked_today") : t("home_keep_alive")}
         </section>
       ) : null}
 
       {stats && stats.totalGames > 0 ? (
         <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Mini label="Games today" value={Object.values(stats.gamesPerType).reduce((a, b) => a + b, 0) - (stats.totalGames - (playedToday ? 1 : 0))} />
-          <Mini label="Total games" value={stats.totalGames} />
-          <Mini label="Best streak" value={`${stats.bestStreak} d`} />
-          <Mini label="Medals" value={recentMedals.length === 0 ? Object.keys(stats.unlocked).length : Object.keys(stats.unlocked).length} />
+          <Mini label={t("home_games_today")} value={Object.values(stats.gamesPerType).reduce((a, b) => a + b, 0) - (stats.totalGames - (playedToday ? 1 : 0))} />
+          <Mini label={t("home_total_games")} value={stats.totalGames} />
+          <Mini label={t("home_best_streak")} value={`${stats.bestStreak} ${t("home_days_short")}`} />
+          <Mini label={t("home_medals")} value={Object.keys(stats.unlocked).length} />
         </section>
       ) : null}
 
       {recentMedals.length > 0 ? (
         <section className="mt-4 flex items-center gap-3 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
-          <span className="text-xs uppercase tracking-wider text-gray-500">Latest medals</span>
+          <span className="text-xs uppercase tracking-wider text-gray-500">{t("home_latest_medals")}</span>
           <div className="flex flex-wrap items-center gap-2">
             {recentMedals.map((m) => (
               <span key={m.id} className="inline-flex items-center gap-1 rounded-full bg-[#0a0a0a] border border-indigo-500/30 px-2 py-1 text-xs">
@@ -296,24 +292,20 @@ export default function HomeClient() {
               </span>
             ))}
           </div>
-          <Link href="/achievements" className="ml-auto text-xs text-indigo-300 hover:text-indigo-200">All →</Link>
+          <Link href="/achievements" className="ml-auto text-xs text-indigo-300 hover:text-indigo-200">{t("home_view_all")}</Link>
         </section>
       ) : null}
 
       <section className="mt-8 rounded-2xl border border-[#2a2a2a] bg-gradient-to-br from-indigo-500/15 to-transparent p-6 md:p-8">
-        <p className="text-xs uppercase tracking-widest text-indigo-300">Daily Challenge</p>
+        <p className="text-xs uppercase tracking-widest text-indigo-300">{t("home_daily_challenge")}</p>
         <h1 className="mt-2 text-3xl font-black md:text-5xl">
-          New puzzles every day. <span className="text-indigo-400">Beat them all.</span>
+          {t("home_hero_title_a")} <span className="text-indigo-400">{t("home_hero_title_b")}</span>
         </h1>
         <p className="mt-3 max-w-2xl text-sm text-gray-300 md:text-base">
-          Free puzzle and word games. Same daily challenge for everyone — race the world.
-        </p>
-        <p className="mt-4 text-sm text-gray-400">
-          <span className="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500 mr-2 align-middle" />
-          {players ? `${players.toLocaleString()} players today` : "Loading…"}
+          {t("home_hero_subtitle")}
         </p>
         <p className="mt-3 text-xs text-gray-500">
-          🎮 Daily Games <span className="mx-2">|</span> 🏆 Global Leaderboard <span className="mx-2">|</span> ✅ Free Forever
+          {t("home_feature_games")} <span className="mx-2">|</span> {t("home_feature_leaderboard")} <span className="mx-2">|</span> {t("home_feature_free")}
         </p>
       </section>
 
@@ -348,14 +340,14 @@ export default function HomeClient() {
 
       <section className="mt-8 grid gap-4 md:grid-cols-2">
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Today</p>
-          <h3 className="mt-1 text-xl font-bold">Daily puzzles</h3>
-          <p className="mt-2 text-sm text-gray-400">Synced worldwide. Beat your streak.</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">{t("home_today")}</p>
+          <h3 className="mt-1 text-xl font-bold">{t("home_daily_puzzles")}</h3>
+          <p className="mt-2 text-sm text-gray-400">{t("home_daily_puzzles_desc")}</p>
         </div>
         <Link href="/leaderboard" className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 hover:border-indigo-400/40">
-          <p className="text-xs uppercase tracking-widest text-gray-500">Compete</p>
-          <h3 className="mt-1 text-xl font-bold">Global Leaderboard →</h3>
-          <p className="mt-2 text-sm text-gray-400">Can you beat #1 today?</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">{t("home_compete")}</p>
+          <h3 className="mt-1 text-xl font-bold">{t("home_global_leaderboard")}</h3>
+          <p className="mt-2 text-sm text-gray-400">{t("home_beat_no1")}</p>
         </Link>
       </section>
 
