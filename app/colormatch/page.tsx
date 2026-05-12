@@ -7,6 +7,7 @@ import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import CrossPromoCard from "@/components/CrossPromoCard";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const ROUNDS = 10;
@@ -181,15 +182,7 @@ export default function ColorMatchPage() {
           meta={{ correct, rating: ratingFor(correct) }}
         />
 
-        <a
-          href="https://renisual.com/render"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-6 block rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-sm hover:border-indigo-400"
-        >
-          <p className="font-bold text-indigo-200">Test your color knowledge — used by facade professionals.</p>
-          <p className="mt-1 text-xs text-gray-400">Visualise any RAL color on a real building → renisual.com/render</p>
-        </a>
+        <CrossPromoCard game="colormatch" />
 
         <p className="mt-4 text-center text-[11px] text-gray-600">
           Powered by{" "}

@@ -5,6 +5,7 @@ import { getName, setName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import CrossPromoCard from "@/components/CrossPromoCard";
 
 const W = 10;
 const H = 20;
@@ -455,12 +456,15 @@ export default function TileDropPage() {
       </div>
 
       {over ? (
-        <EndScreenAddon
-          game="tiledrop"
-          score={score}
-          rank={submitted?.rank}
-          meta={{ lines, level }}
-        />
+        <>
+          <EndScreenAddon
+            game="tiledrop"
+            score={score}
+            rank={submitted?.rank}
+            meta={{ lines, level }}
+          />
+          <CrossPromoCard game="tiledrop" />
+        </>
       ) : null}
 
       {over ? (

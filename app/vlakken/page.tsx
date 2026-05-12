@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import CrossPromoCard from "@/components/CrossPromoCard";
 import { useLocale } from "@/lib/i18n";
 import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/games/vlakken";
 import { dayIndex } from "@/lib/games/kronen";
@@ -526,6 +527,7 @@ export default function VlakkenPage() {
             time={elapsed}
             meta={{ difficulty, won: true, hintsUsed: HINTS_FOR[difficulty] - hintsLeft }}
           />
+          <CrossPromoCard game="vlakken" />
         </>
       ) : null}
     </div>
