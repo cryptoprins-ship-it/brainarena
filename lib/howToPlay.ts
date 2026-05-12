@@ -93,7 +93,7 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   vlakken: {
-    label: "Vlakken",
+    label: "Patches",
     href: "/vlakken",
     summary: "Fill the grid by completing the shape around each numbered anchor.",
     rules: [
@@ -105,7 +105,7 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   verbind: {
-    label: "Verbind",
+    label: "Connect",
     href: "/verbind",
     summary: "Connect the numbers in order with one path that passes through every cell.",
     rules: [
@@ -117,7 +117,7 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   zonmaan: {
-    label: "Zon & Maan",
+    label: "Sun & Moon",
     href: "/zonmaan",
     summary: "Fill every cell with ☀ or 🌙, following the row/column and edge rules.",
     rules: [
@@ -130,7 +130,7 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   kronen: {
-    label: "Kronen",
+    label: "Crowns",
     href: "/kronen",
     summary: "Place exactly one crown in each row, column, and color region.",
     rules: [
@@ -472,7 +472,7 @@ const DE: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   connections: {
-    label: "Connections",
+    label: "Verbindungen",
     href: "/connections",
     summary: "Finde vier Gruppen zu je vier — ein tägliches Rätsel.",
     rules: [
@@ -631,7 +631,7 @@ const FR: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   connections: {
-    label: "Connections",
+    label: "Connexions",
     href: "/connections",
     summary: "Trouve quatre groupes de quatre — une énigme par jour.",
     rules: [
@@ -901,7 +901,7 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   verbind: {
-    label: "Liga",
+    label: "Conectar",
     href: "/verbind",
     summary: "Liga os números por ordem com um caminho que passe por cada célula.",
     rules: [
@@ -1110,7 +1110,7 @@ const HI: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   connections: {
-    label: "Connections",
+    label: "कनेक्शन्स",
     href: "/connections",
     summary: "चार-चार के चार समूह खोजें — रोज़ एक पहेली।",
     rules: [
