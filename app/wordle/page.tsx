@@ -9,6 +9,12 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import { dayIndex } from "@/lib/games/kronen";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import {
+  getCachedDictionary,
+  isBoggleSupported,
+  loadDictionary,
+  type BoggleLocale,
+} from "@/lib/dictionary";
 
 const ROWS = 6;
 const COLS = 5;
@@ -61,12 +67,13 @@ function emojiGrid(rows: Tile["state"][][]): string {
 }
 
 export default function WordlePage() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const [unlimited, setUnlimited] = useState(false);
   const [target, setTarget] = useState<string>("");
   const [guesses, setGuesses] = useState<string[]>([]);
   const [current, setCurrent] = useState("");
   const [shake, setShake] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [done, setDone] = useState<"win" | "lose" | null>(null);
   const [revealRow, setRevealRow] = useState(-1);
   const [elapsed, setElapsed] = useState(0);
@@ -89,6 +96,19 @@ export default function WordlePage() {
     dayIdx,
     locale
   );
+
+  // Locale we'll use for dictionary-backed guess validation. hi/ja have no
+  // wordlist file shipped — skip validation there rather than blocking the
+  // game.
+  const dictLocale: BoggleLocale | null = isBoggleSupported(locale) ? locale : null;
+
+  // Warm the dictionary in the background so the first guess doesn't race
+  // the network. Failures are silently ignored — validation just falls
+  // through to "anything goes" until/unless the file loads.
+  useEffect(() => {
+    if (!dictLocale) return;
+    loadDictionary(dictLocale).catch(() => {});
+  }, [dictLocale]);
 
   // Reset on locale or mode change.
   useEffect(() => {
@@ -121,6 +141,20 @@ export default function WordlePage() {
     if (current.length !== COLS) {
       setShake(true); window.setTimeout(() => setShake(false), 400);
       return;
+    }
+    // Reject guesses that aren't real words. We only enforce this when the
+    // dictionary has actually loaded for this locale — otherwise the player
+    // would be silently blocked on a slow network. The target itself is
+    // always allowed through, in case a curated daily word happens to be
+    // missing from the dict.
+    if (dictLocale) {
+      const dict = getCachedDictionary(dictLocale);
+      if (dict && current !== target && !dict.has(current)) {
+        setShake(true); window.setTimeout(() => setShake(false), 400);
+        setToast(t("boggle_invalid_word"));
+        window.setTimeout(() => setToast((m) => (m === t("boggle_invalid_word") ? null : m)), 1500);
+        return;
+      }
     }
     if (!startedAt.current) startedAt.current = Date.now();
     const next = [...guesses, current];
@@ -161,7 +195,7 @@ export default function WordlePage() {
       window.setTimeout(() => setShowModal(true), 1500);
     }
     setCurrent("");
-  }, [current, done, guesses, locale, record, streak, target, unlimited]);
+  }, [current, dictLocale, done, guesses, locale, record, streak, t, target, unlimited]);
 
   const onKey = useCallback((k: string) => {
     if (done) return;
@@ -261,6 +295,16 @@ export default function WordlePage() {
           Unlimited
         </label>
       </div>
+
+      {toast ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="pointer-events-none fixed left-1/2 top-20 z-40 -translate-x-1/2 rounded-md bg-white px-4 py-2 text-sm font-bold text-black shadow-lg"
+        >
+          {toast}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid place-items-center gap-1">
         {rows.map((row, r) => (
