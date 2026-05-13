@@ -8,6 +8,10 @@ import NameGate from "@/components/NameGate";
 import CookieBanner from "@/components/CookieBanner";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
 import JsonLd from "@/components/JsonLd";
+import {
+  canonicalUrlFor,
+  generateHreflangAlternates,
+} from "@/lib/seo/hreflang";
 import "./globals.css";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
@@ -30,20 +34,6 @@ const notoJp = Noto_Sans_JP({
   display: "swap",
 });
 
-// hreflang map. x-default points at English so search engines treat the
-// canonical English page as the fallback for any unmatched locale.
-const HREFLANG_MAP = {
-  en: BASE,
-  nl: BASE,
-  de: BASE,
-  fr: BASE,
-  es: BASE,
-  hi: BASE,
-  "pt-BR": BASE,
-  ja: BASE,
-  "x-default": BASE,
-};
-
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
@@ -52,9 +42,12 @@ export const metadata: Metadata = {
   },
   description:
     "Play free Wordle, Boggle, Sudoku, logic puzzles and typing games. Compete globally in 8 languages.",
+  // Default metadata applies to the flat (English-canonical) home at /.
+  // Per-route layouts and /[locale]/* pages override these via their own
+  // generateMetadata / metadata exports.
   alternates: {
-    canonical: BASE,
-    languages: HREFLANG_MAP,
+    canonical: canonicalUrlFor("/", "en"),
+    languages: generateHreflangAlternates("/"),
   },
   openGraph: {
     title: "BrainArena — Free Daily Puzzles & Word Games",

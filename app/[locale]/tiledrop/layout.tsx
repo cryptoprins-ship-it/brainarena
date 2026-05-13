@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/tiledrop",
+    title: "TileDrop — Free Online Tile Puzzle Game",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Play TileDrop free online — the addictive falling-tile puzzle game. Stack the tiles, clear the lines, and compete globally for the highest score.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleTileDropLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="tiledrop" />
       {children}
     </>
   );

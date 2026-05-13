@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/connections",
+    title: "Daily Connections — Group 16 Words",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Free daily Connections-style word puzzle: group 16 words into 4 hidden categories. Yellow easy, green medium, blue hard, purple tricky. Global leaderboard.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleConnectionsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="connections" />
       {children}
     </>
   );

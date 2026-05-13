@@ -12,7 +12,22 @@ const DEFAULT_LOCALE: Locale = "en";
 // hreflang for a non-existent URL would point Google at a 404 and the
 // whole hreflang cluster gets dropped.
 const LOCALIZED_PATHS: ReadonlySet<string> = new Set<string>([
+  "/",
+  "/wordle",
+  "/boggle",
   "/sudoku",
+  "/typing",
+  "/tiledrop",
+  "/colormatch",
+  "/letterstack",
+  "/vlakken",
+  "/verbind",
+  "/zonmaan",
+  "/kronen",
+  "/minesweeper",
+  "/connections",
+  "/how-to-play",
+  "/about",
 ]);
 
 function normalizePath(pathname: string): string {
@@ -24,6 +39,13 @@ function normalizePath(pathname: string): string {
 }
 
 function urlFor(locale: Locale, pathname: string): string {
+  // The home is BASE (no trailing slash) for English, BASE/<locale>
+  // for other locales. Without this special-case, English home would
+  // be "https://brainarena.fun/" — valid but inconsistent with the
+  // canonical that's been indexed (no trailing slash).
+  if (pathname === "/") {
+    return locale === DEFAULT_LOCALE ? BASE : `${BASE}/${locale}`;
+  }
   if (locale === DEFAULT_LOCALE) return `${BASE}${pathname}`;
   return `${BASE}/${locale}${pathname}`;
 }

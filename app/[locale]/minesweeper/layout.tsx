@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/minesweeper",
+    title: "Free Daily Minesweeper Online",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Play free daily Minesweeper online. Same board for everyone, three difficulties on a 9×9, 12×12 or 14×14 grid — race the clock on the global leaderboard.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleMinesweeperLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="minesweeper" />
       {children}
     </>
   );

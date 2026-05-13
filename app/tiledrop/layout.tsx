@@ -1,11 +1,18 @@
 import type { Metadata } from "next";
 import GameJsonLd from "@/components/GameJsonLd";
+import {
+  canonicalUrlFor,
+  generateHreflangAlternates,
+} from "@/lib/seo/hreflang";
 
 export const metadata: Metadata = {
   title: "TileDrop — Free Online Tile Puzzle Game",
   description:
     "Play TileDrop free online — the addictive falling-tile puzzle game. Stack the tiles, clear the lines, and compete globally for the highest score.",
-  alternates: { canonical: "/tiledrop" },
+  alternates: {
+    canonical: canonicalUrlFor("/tiledrop", "en"),
+    languages: generateHreflangAlternates("/tiledrop"),
+  },
 };
 
 export default function TileDropLayout({ children }: { children: React.ReactNode }) {
