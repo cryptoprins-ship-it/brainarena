@@ -1,51 +1,22 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import {
+  SUPPORTED,
+  REVIEW_PENDING,
+  LABEL,
+  FLAG,
+  type Locale,
+} from "./locales";
 
-// 8 locales as of 2026-04-30: NL/EN are native quality, DE/FR/ES/PT-BR are
-// machine-translated and flagged for native review (TBD: Fiverr proofread),
-// HI/JA carry the highest machine-translation risk and are gated behind a
-// "Coming soon" UX in the language switcher until they receive a native
-// review.
-export type Locale =
-  | "en" | "nl" | "de" | "fr" | "es"
-  | "hi" | "pt-BR" | "ja";
+// Locale constants moved to ./locales so server components can import
+// them without crossing the "use client" boundary (which strips the
+// values to client-reference proxies). Re-exported here so existing
+// callers — components, hooks, tests — keep their imports unchanged.
+export { SUPPORTED, REVIEW_PENDING, LABEL, FLAG };
+export type { Locale };
 
 const STORAGE_KEY = "brainarena-locale";
-export const SUPPORTED: Locale[] = ["en", "nl", "de", "fr", "es", "hi", "pt-BR", "ja"];
-
-// Locales gated by the "review pending" UX. Selectable in dev / preview
-// builds; in production the LanguageSwitcher decorates them with a badge
-// and (configurably) blocks selection. Toggle here once a native review is
-// signed off.
-export const REVIEW_PENDING: ReadonlySet<Locale> = new Set<Locale>(["hi", "ja"]);
-
-// Native names — what speakers of that language actually call it. Used in
-// the dropdown switcher.
-export const LABEL: Record<Locale, string> = {
-  en: "English",
-  nl: "Nederlands",
-  de: "Deutsch",
-  fr: "Français",
-  es: "Español",
-  hi: "हिन्दी",
-  "pt-BR": "Português",
-  ja: "日本語",
-};
-
-// Legacy emoji table — left for any places that still import FLAG by name.
-// Inline SVGs in components/Flag.tsx are preferred (Windows renders most
-// regional-indicator emoji as letter codes).
-export const FLAG: Record<Locale, string> = {
-  en: "🇬🇧",
-  nl: "🇳🇱",
-  de: "🇩🇪",
-  fr: "🇫🇷",
-  es: "🇪🇸",
-  hi: "🇮🇳",
-  "pt-BR": "🇧🇷",
-  ja: "🇯🇵",
-};
 
 // ---------------------------------------------------------------------------
 // Translation table — central place for shared UI strings used by the new
@@ -1103,6 +1074,16 @@ function detectFromBrowser(): Locale {
   return (SUPPORTED as string[]).includes(primary) ? (primary as Locale) : "en";
 }
 
+// /nl/sudoku → "nl", /pt-BR/sudoku → "pt-BR", /sudoku → null.
+// Returning null lets later detection steps (localStorage, browser)
+// take over for the flat (English-canonical) routes.
+function detectFromPath(): Locale | null {
+  if (typeof window === "undefined") return null;
+  const seg = window.location.pathname.split("/")[1] ?? "";
+  if (!seg) return null;
+  return (SUPPORTED as string[]).includes(seg) ? (seg as Locale) : null;
+}
+
 function setLocale(l: Locale) {
   current = l;
   if (typeof window !== "undefined") {
@@ -1116,10 +1097,17 @@ export function useLocale() {
   const [locale, set] = useState<Locale>(current);
 
   useEffect(() => {
+    // Priority order: URL path > stored preference > browser language.
+    // The URL wins so that landing on /nl/sudoku from a Google result
+    // actually renders Dutch UI even if the visitor previously picked
+    // another language. Without this, the SSR'd <title> would say
+    // "Sudoku" (NL hreflang cluster) while the visible UI showed
+    // English — a content mismatch that crawlers penalise.
+    const fromPath = detectFromPath();
     const stored = typeof window !== "undefined"
       ? normalizeStored(localStorage.getItem(STORAGE_KEY))
       : null;
-    const initial: Locale = stored ?? detectFromBrowser();
+    const initial: Locale = fromPath ?? stored ?? detectFromBrowser();
     if (initial !== current) {
       current = initial;
       document.documentElement.setAttribute("lang", initial);
