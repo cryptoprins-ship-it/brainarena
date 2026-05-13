@@ -15,6 +15,16 @@ import {
   loadDictionary,
   type BoggleLocale,
 } from "@/lib/dictionary";
+import {
+  formatCountdown,
+  gameNumber,
+  loadBoard,
+  loadStats,
+  msUntilNextUtcMidnight,
+  recordResult,
+  saveBoard,
+  type Stats,
+} from "@/lib/games/wordleState";
 
 const ROWS = 6;
 const COLS = 5;
@@ -66,6 +76,15 @@ function emojiGrid(rows: Tile["state"][][]): string {
     .join("\n");
 }
 
+function Stat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md bg-[#0a0a0a] py-2">
+      <div className="text-xl font-black tabular-nums">{value}</div>
+      <div className="text-[10px] uppercase tracking-wider text-gray-400">{label}</div>
+    </div>
+  );
+}
+
 export default function WordlePage() {
   const { locale, t } = useLocale();
   const [unlimited, setUnlimited] = useState(false);
@@ -87,6 +106,8 @@ export default function WordlePage() {
   // saveName fallback agree (record itself is single-shot — we'd race
   // ourselves if we re-asked the counter).
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
 
   const dayIdx = useMemo(() => dayIndex(), []);
   // Per-locale variant: each language has its own daily word, so attempts
@@ -110,22 +131,45 @@ export default function WordlePage() {
     loadDictionary(dictLocale).catch(() => {});
   }, [dictLocale]);
 
-  // Reset on locale or mode change.
+  // Reset on locale or mode change. In Daily mode, prefer any persisted
+  // board for today over starting fresh — that's what protects against
+  // refresh wiping progress AND prevents replaying a won daily.
   useEffect(() => {
-    const w = unlimited ? randomWord(locale) : dailyWord(locale);
-    setTarget(w);
-    setGuesses([]);
+    const fresh = unlimited ? randomWord(locale) : dailyWord(locale);
+    let initialTarget = fresh;
+    let initialGuesses: string[] = [];
+    let initialDone: "win" | "lose" | null = null;
+    let initialElapsed = 0;
+
+    if (!unlimited) {
+      const saved = loadBoard(dayIdx, locale);
+      // Only honour the saved board if the target still matches today's
+      // daily word — defends against the (unlikely) case that the curated
+      // pool changed between sessions.
+      if (saved && saved.target === fresh) {
+        initialTarget = saved.target;
+        initialGuesses = saved.guesses;
+        initialDone = saved.done;
+        initialElapsed = saved.elapsed;
+      }
+    }
+
+    setTarget(initialTarget);
+    setGuesses(initialGuesses);
     setCurrent("");
-    setDone(null);
+    setDone(initialDone);
     setRevealRow(-1);
-    setElapsed(0);
+    setElapsed(initialElapsed);
     startedAt.current = null;
-    setShowModal(false);
+    // Open the modal immediately if we restored a finished daily — players
+    // coming back later get to see their result instead of an empty board.
+    setShowModal(!unlimited && initialDone !== null);
     setSubmitted(null);
     setEligibleToSubmit(false);
     setStreak(getStreak("wordle"));
     setNameState(getName());
-  }, [locale, unlimited]);
+    setStats(loadStats(locale));
+  }, [dayIdx, locale, unlimited]);
 
   // Timer.
   useEffect(() => {
@@ -135,6 +179,16 @@ export default function WordlePage() {
     }, 1000);
     return () => window.clearInterval(id);
   }, [done]);
+
+  // Countdown to next UTC midnight — only ticks while the end-of-game modal
+  // is open in Daily mode, since that's the only place it's shown.
+  useEffect(() => {
+    if (!showModal || unlimited) return;
+    const tick = () => setCountdown(formatCountdown(msUntilNextUtcMidnight()));
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, [showModal, unlimited]);
 
   const submitGuess = useCallback(() => {
     if (done) return;
@@ -162,12 +216,29 @@ export default function WordlePage() {
     setRevealRow(next.length - 1);
     const elapsedSec = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : 0;
 
-    if (current === target) {
+    const winning = current === target;
+    const losing = !winning && next.length >= ROWS;
+    const result: "win" | "lose" | null = winning ? "win" : losing ? "lose" : null;
+
+    // Persist after every guess in Daily mode — refresh now restores the
+    // board, and a finished daily can't be re-played to overwrite the
+    // result.
+    if (!unlimited) {
+      saveBoard(dayIdx, locale, {
+        guesses: next,
+        done: result,
+        target,
+        elapsed: elapsedSec,
+      });
+    }
+
+    if (winning) {
       setDone("win");
       const newStreak = unlimited ? getStreak("wordle") : bumpStreak("wordle");
       setStreak(newStreak);
       window.setTimeout(() => setShowModal(true), 1500);
       if (!unlimited) {
+        setStats(recordResult({ locale, dayIdx, won: true, guessCount: next.length }));
         const { shouldSubmit } = record();
         setEligibleToSubmit(shouldSubmit);
         if (shouldSubmit) {
@@ -182,10 +253,11 @@ export default function WordlePage() {
           }).then((r) => r && setSubmitted(r));
         }
       }
-    } else if (next.length >= ROWS) {
+    } else if (losing) {
       setDone("lose");
       if (!unlimited) {
         breakStreak("wordle");
+        setStats(recordResult({ locale, dayIdx, won: false, guessCount: next.length }));
         // A loss still counts as an attempt — without this, players
         // could deliberately tank the first plays to "save" leaderboard
         // submissions for after they've memorised the word.
@@ -195,7 +267,7 @@ export default function WordlePage() {
       window.setTimeout(() => setShowModal(true), 1500);
     }
     setCurrent("");
-  }, [current, dictLocale, done, guesses, locale, record, streak, t, target, unlimited]);
+  }, [current, dayIdx, dictLocale, done, guesses, locale, record, streak, t, target, unlimited]);
 
   const onKey = useCallback((k: string) => {
     if (done) return;
@@ -246,15 +318,37 @@ export default function WordlePage() {
 
   const share = useCallback(async () => {
     const stateGrid = guesses.map((g) => score(target, g));
-    const head = `BrainArena Wordle ${locale.toUpperCase()} ${done === "win" ? guesses.length : "X"}/${ROWS} · ${elapsed}s`;
-    const text = `${head}\n${emojiGrid(stateGrid)}\nbrainarena.fun`;
-    try {
-      await navigator.clipboard.writeText(text);
-      alert("Copied to clipboard!");
-    } catch {
-      prompt("Copy your result:", text);
+    const head = `BrainArena Wordle #${gameNumber(dayIdx)} ${locale.toUpperCase()} ${done === "win" ? guesses.length : "X"}/${ROWS} · ${elapsed}s`;
+    const url = "https://brainarena.fun/wordle";
+    const text = `${head}\n${emojiGrid(stateGrid)}\n${url}`;
+
+    // Prefer the native share sheet on mobile — it's the share path users
+    // actually expect and it routes to messaging apps directly. Fall back
+    // to clipboard everywhere else; final fallback is a copy-prompt so
+    // even locked-down browsers (no clipboard permission) have a way out.
+    const nav = typeof navigator !== "undefined" ? navigator : null;
+    const canNativeShare =
+      !!nav?.share &&
+      (typeof nav.canShare !== "function" || nav.canShare({ text, url }));
+    if (canNativeShare) {
+      try {
+        await nav!.share({ text, url });
+        return;
+      } catch (err) {
+        // AbortError = user dismissed the sheet; don't fall back to
+        // clipboard or they'll get a "Copied!" toast after cancelling.
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        // Anything else: continue to clipboard fallback.
+      }
     }
-  }, [done, elapsed, guesses, locale, target]);
+    try {
+      await nav!.clipboard.writeText(text);
+      setToast("Copied!");
+      window.setTimeout(() => setToast((m) => (m === "Copied!" ? null : m)), 1500);
+    } catch {
+      window.prompt("Copy your result:", text);
+    }
+  }, [dayIdx, done, elapsed, guesses, locale, target]);
 
   const saveName = useCallback(() => {
     setName(name);
@@ -360,12 +454,53 @@ export default function WordlePage() {
             {done === "win" ? (
               <p className="mt-2 text-sm text-gray-300">
                 Solved in {guesses.length} guess{guesses.length === 1 ? "" : "es"}<br />
-                Time: <span className="tabular-nums">{elapsed}s</span><br />
-                Current streak: <span className="font-bold text-indigo-300">{streak} day{streak === 1 ? "" : "s"}</span>
+                Time: <span className="tabular-nums">{elapsed}s</span>
               </p>
             ) : (
               <p className="mt-2 text-sm text-gray-300">The word was <span className="font-bold uppercase text-emerald-400">{target}</span></p>
             )}
+
+            {stats ? (
+              <>
+                <div className="mt-5 grid grid-cols-4 gap-2 text-center">
+                  <Stat label="Played" value={stats.played} />
+                  <Stat label="Win %" value={stats.played ? Math.round((stats.won / stats.played) * 100) : 0} />
+                  <Stat label="Streak" value={stats.currentStreak} />
+                  <Stat label="Max" value={stats.maxStreak} />
+                </div>
+
+                <div className="mt-5 text-left">
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Guess distribution</p>
+                  <div className="mt-2 space-y-1">
+                    {stats.distribution.map((count, i) => {
+                      const max = Math.max(1, ...stats.distribution);
+                      const pct = Math.max(8, Math.round((count / max) * 100));
+                      const isCurrent = done === "win" && guesses.length === i + 1;
+                      return (
+                        <div key={i} className="flex items-center gap-2 text-xs">
+                          <span className="w-3 text-gray-400">{i + 1}</span>
+                          <div className="flex-1">
+                            <div
+                              className={`flex h-5 items-center justify-end rounded px-1.5 font-bold text-white ${isCurrent ? "bg-[#538d4e]" : "bg-[#3a3a3c]"}`}
+                              style={{ width: `${pct}%` }}
+                            >
+                              {count}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : null}
+
+            {!unlimited ? (
+              <div className="mt-5 flex items-baseline justify-center gap-2 border-t border-[#2a2a2a] pt-4">
+                <span className="text-xs uppercase tracking-wider text-gray-400">Next Wordle</span>
+                <span className="font-mono text-xl font-bold tabular-nums text-indigo-300">{countdown || "—"}</span>
+              </div>
+            ) : null}
 
             {done === "win" && !submitted && eligibleToSubmit ? (
               <div className="mt-4 flex gap-2">
