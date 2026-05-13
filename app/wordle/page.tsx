@@ -9,12 +9,7 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import { dayIndex } from "@/lib/games/kronen";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
-import {
-  getCachedDictionary,
-  isBoggleSupported,
-  loadDictionary,
-  type BoggleLocale,
-} from "@/lib/dictionary";
+import { getCachedGuesses, loadGuesses } from "@/lib/wordle/guesses";
 import {
   formatCountdown,
   gameNumber,
@@ -31,11 +26,15 @@ const COLS = 5;
 
 type Tile = { letter: string; state: "empty" | "tbd" | "correct" | "present" | "absent" };
 
+// Per-locale on-screen keyboards. Extra letters (ñ for es, ß for de,
+// ç for fr/pt-BR) are present where the wordlist actually contains them
+// — see scripts/generate-wordlists.mjs for the alphabet each locale
+// keeps post-fold.
 const QWERTY: Record<Locale, string[][]> = {
   en: [["q","w","e","r","t","y","u","i","o","p"], ["a","s","d","f","g","h","j","k","l"], ["enter","z","x","c","v","b","n","m","back"]],
   nl: [["q","w","e","r","t","y","u","i","o","p"], ["a","s","d","f","g","h","j","k","l"], ["enter","z","x","c","v","b","n","m","back"]],
-  de: [["q","w","e","r","t","z","u","i","o","p"], ["a","s","d","f","g","h","j","k","l"], ["enter","y","x","c","v","b","n","m","back"]],
-  fr: [["a","z","e","r","t","y","u","i","o","p"], ["q","s","d","f","g","h","j","k","l","m"], ["enter","w","x","c","v","b","n","back"]],
+  de: [["q","w","e","r","t","z","u","i","o","p"], ["a","s","d","f","g","h","j","k","l","ß"], ["enter","y","x","c","v","b","n","m","back"]],
+  fr: [["a","z","e","r","t","y","u","i","o","p"], ["q","s","d","f","g","h","j","k","l","m"], ["enter","w","x","c","v","b","n","ç","back"]],
   es: [["q","w","e","r","t","y","u","i","o","p"], ["a","s","d","f","g","h","j","k","l","ñ"], ["enter","z","x","c","v","b","n","m","back"]],
   "pt-BR": [["q","w","e","r","t","y","u","i","o","p"], ["a","s","d","f","g","h","j","k","l","ç"], ["enter","z","x","c","v","b","n","m","back"]],
   hi: [["q","w","e","r","t","y","u","i","o","p"], ["a","s","d","f","g","h","j","k","l"], ["enter","z","x","c","v","b","n","m","back"]],
@@ -118,18 +117,12 @@ export default function WordlePage() {
     locale
   );
 
-  // Locale we'll use for dictionary-backed guess validation. hi/ja have no
-  // wordlist file shipped — skip validation there rather than blocking the
-  // game.
-  const dictLocale: BoggleLocale | null = isBoggleSupported(locale) ? locale : null;
-
-  // Warm the dictionary in the background so the first guess doesn't race
-  // the network. Failures are silently ignored — validation just falls
-  // through to "anything goes" until/unless the file loads.
+  // Warm the per-locale guesses set in the background so the first
+  // submission doesn't race the network. Failures are silently ignored —
+  // validation falls through to "anything goes" until the bundle loads.
   useEffect(() => {
-    if (!dictLocale) return;
-    loadDictionary(dictLocale).catch(() => {});
-  }, [dictLocale]);
+    loadGuesses(locale).catch(() => {});
+  }, [locale]);
 
   // Reset on locale or mode change. In Daily mode, prefer any persisted
   // board for today over starting fresh — that's what protects against
@@ -196,19 +189,17 @@ export default function WordlePage() {
       setShake(true); window.setTimeout(() => setShake(false), 400);
       return;
     }
-    // Reject guesses that aren't real words. We only enforce this when the
-    // dictionary has actually loaded for this locale — otherwise the player
-    // would be silently blocked on a slow network. The target itself is
-    // always allowed through, in case a curated daily word happens to be
-    // missing from the dict.
-    if (dictLocale) {
-      const dict = getCachedDictionary(dictLocale);
-      if (dict && current !== target && !dict.has(current)) {
-        setShake(true); window.setTimeout(() => setShake(false), 400);
-        setToast(t("boggle_invalid_word"));
-        window.setTimeout(() => setToast((m) => (m === t("boggle_invalid_word") ? null : m)), 1500);
-        return;
-      }
+    // Reject guesses that aren't real words. We only enforce this when
+    // the per-locale guesses set has actually loaded — otherwise the
+    // player would be silently blocked on a slow network. The target
+    // itself is always allowed through, defending against the edge case
+    // where a curated daily happens to be missing from the guesses set.
+    const guessSet = getCachedGuesses(locale);
+    if (guessSet && current !== target && !guessSet.has(current)) {
+      setShake(true); window.setTimeout(() => setShake(false), 400);
+      setToast(t("boggle_invalid_word"));
+      window.setTimeout(() => setToast((m) => (m === t("boggle_invalid_word") ? null : m)), 1500);
+      return;
     }
     if (!startedAt.current) startedAt.current = Date.now();
     const next = [...guesses, current];
@@ -267,13 +258,16 @@ export default function WordlePage() {
       window.setTimeout(() => setShowModal(true), 1500);
     }
     setCurrent("");
-  }, [current, dayIdx, dictLocale, done, guesses, locale, record, streak, t, target, unlimited]);
+  }, [current, dayIdx, done, guesses, locale, record, streak, t, target, unlimited]);
 
   const onKey = useCallback((k: string) => {
     if (done) return;
     if (k === "enter") return submitGuess();
     if (k === "back") return setCurrent((c) => c.slice(0, -1));
-    if (/^[a-zñ]$/.test(k) && current.length < COLS) setCurrent((c) => c + k);
+    // a-z plus the per-locale extra letters kept by the normaliser
+    // (ñ es / ß de / ç fr / ç pt-BR). Letters not in the active locale's
+    // wordlist simply won't match — they don't need a separate gate.
+    if (/^[a-zñßç]$/.test(k) && current.length < COLS) setCurrent((c) => c + k);
   }, [current.length, done, submitGuess]);
 
   // Hardware keyboard.
@@ -282,7 +276,7 @@ export default function WordlePage() {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "Enter") { e.preventDefault(); onKey("enter"); }
       else if (e.key === "Backspace") { e.preventDefault(); onKey("back"); }
-      else if (/^[a-zA-Zñ]$/.test(e.key)) onKey(e.key.toLowerCase());
+      else if (/^[a-zA-ZñßÑẞçÇ]$/.test(e.key)) onKey(e.key.toLowerCase());
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
