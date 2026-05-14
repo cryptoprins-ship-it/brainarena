@@ -8,6 +8,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
+import { useLocale } from "@/lib/i18n";
 
 const W = 10;
 const H = 20;
@@ -84,6 +85,7 @@ function clearLines(board: Cell[][]): { board: Cell[][]; lines: number } {
 const LINE_POINTS = [0, 100, 300, 500, 800];
 
 export default function TileDropPage() {
+  const { t } = useLocale();
   const [board, setBoard] = useState<Cell[][]>(newBoard);
   const [bag, setBag] = useState<Piece[]>(randomBag);
   const [piece, setPiece] = useState<{ p: Piece; x: number; y: number } | null>(null);
@@ -386,16 +388,16 @@ export default function TileDropPage() {
         <div>
           <h1 className="text-2xl font-black">TileDrop</h1>
           <p className="text-xs text-gray-400">
-            Desktop: ←→ rotate ↑ drop space · Mobile: buttons below + swipe ↓ to drop ·{" "}
+            {t("td_controls")} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
-              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
             </span>
           </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
-          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">Lv {level}</span>
-          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">Lines {lines}</span>
+          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">{t("td_level", { n: level })}</span>
+          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">{t("td_lines", { n: lines })}</span>
         </div>
       </div>
 
@@ -414,7 +416,7 @@ export default function TileDropPage() {
 
         <aside className="space-y-3">
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
-            <p className="text-xs uppercase tracking-wider text-gray-500">Next</p>
+            <p className="text-xs uppercase tracking-wider text-gray-500">{t("next_number")}</p>
             <Mini shape={next?.shape ?? []} color={next?.color ?? "#fff"} />
           </div>
           <button
@@ -422,14 +424,14 @@ export default function TileDropPage() {
             onClick={swapHold}
             className="w-full rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-left transition hover:border-indigo-400/40 active:scale-[0.99]"
           >
-            <p className="text-xs uppercase tracking-wider text-gray-500">Hold (tap / C)</p>
-            {hold ? <Mini shape={hold.shape} color={hold.color} /> : <p className="mt-2 text-xs text-gray-600">empty</p>}
+            <p className="text-xs uppercase tracking-wider text-gray-500">{t("td_hold")}</p>
+            {hold ? <Mini shape={hold.shape} color={hold.color} /> : <p className="mt-2 text-xs text-gray-600">{t("label_empty")}</p>}
           </button>
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-xs text-gray-400">
-            High score<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
+            {t("td_high_score")}<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
           </div>
           <button onClick={() => setPaused((p) => !p)} className="w-full rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">
-            {paused ? "Resume" : "Pause"}
+            {paused ? t("td_resume") : t("td_pause")}
           </button>
         </aside>
       </div>
@@ -442,7 +444,7 @@ export default function TileDropPage() {
       <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-3 gap-2 border-t border-[#2a2a2a] bg-[#0a0a0a]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
         <button
           type="button"
-          aria-label="Move left"
+          aria-label={t("td_move_left")}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(-1)); }}
           onPointerUp={stopRepeat}
           onPointerLeave={stopRepeat}
@@ -453,7 +455,7 @@ export default function TileDropPage() {
         </button>
         <button
           type="button"
-          aria-label="Rotate"
+          aria-label={t("td_rotate")}
           onClick={rotateNow}
           className="h-14 rounded-xl border border-indigo-500/40 bg-indigo-600/20 text-3xl leading-none active:bg-indigo-600/40 select-none touch-none"
         >
@@ -461,7 +463,7 @@ export default function TileDropPage() {
         </button>
         <button
           type="button"
-          aria-label="Move right"
+          aria-label={t("td_move_right")}
           onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(1)); }}
           onPointerUp={stopRepeat}
           onPointerLeave={stopRepeat}
@@ -486,28 +488,28 @@ export default function TileDropPage() {
 
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Game Over · {score} pts</h2>
+          <h2 className="text-xl font-black">{t("td_game_over", { score })}</h2>
           {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
                 onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("name_gate_placeholder")}
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
               />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
             </div>
           ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+            <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
           ) : null}
           {!eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">
-              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
           <button onClick={reset} className="mt-3 rounded-lg bg-[#0a0a0a] border border-[#2a2a2a] px-4 py-2 text-sm">
-            Play again
+            {t("win_play_again")}
           </button>
         </div>
       ) : null}

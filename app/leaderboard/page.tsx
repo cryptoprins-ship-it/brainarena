@@ -7,29 +7,30 @@ import type {
   ScoreEntry,
   ChampionStanding,
 } from "@/lib/leaderboard/standings";
+import { useLocale } from "@/lib/i18n";
+import { getHowToPlay } from "@/lib/howToPlay";
 
-const GAMES: { key: Game; label: string }[] = [
-  { key: "wordle", label: "Wordle" },
-  { key: "boggle", label: "Boggle" },
-  { key: "sudoku", label: "Sudoku" },
-  { key: "typing", label: "Typing" },
-  { key: "tiledrop", label: "TileDrop" },
-  { key: "colormatch", label: "ColorMatch" },
-  { key: "letterstack", label: "LetterStack" },
-  { key: "vlakken", label: "Vlakken" },
-  { key: "verbind", label: "Verbind" },
-  { key: "zonmaan", label: "Zon & Maan" },
-  { key: "kronen", label: "Kronen" },
-  { key: "minesweeper", label: "Minesweeper" },
-  { key: "connections", label: "Connections" },
+// Tab order only — display labels come from lib/howToPlay.ts so they
+// re-localise with the language switcher.
+const GAME_ORDER: Game[] = [
+  "wordle", "boggle", "sudoku", "typing", "tiledrop", "colormatch",
+  "letterstack", "vlakken", "verbind", "zonmaan", "kronen",
+  "minesweeper", "connections",
 ];
 
-const PERIODS: { key: Period; label: string }[] = [
-  { key: "today", label: "Today" },
-  { key: "week", label: "This Week" },
-  { key: "month", label: "This Month" },
-  { key: "alltime", label: "All Time" },
-];
+const PERIOD_ORDER: Period[] = ["today", "week", "month", "alltime"];
+
+// Period → translation key for its tab label. `today` reuses the
+// existing home_today key.
+function periodTKey(p: Period) {
+  return p === "today"
+    ? "home_today"
+    : p === "week"
+    ? "lb_period_week"
+    : p === "month"
+    ? "lb_period_month"
+    : "lb_period_alltime";
+}
 
 function monthLabel(): string {
   return new Date().toLocaleDateString(undefined, {
@@ -58,6 +59,7 @@ function scoreCell(game: Game, e: ScoreEntry): string {
 // awarded from; per-game monthly winners are just #1 of each game's
 // "This Month" board.
 function ChampionPanel() {
+  const { t } = useLocale();
   const [standings, setStandings] = useState<ChampionStanding[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,31 +89,26 @@ function ChampionPanel() {
     <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-lg font-black text-amber-200">
-          🏆 All-Round Champion — {monthLabel()}
+          🏆 {t("lb_champion_title")} — {monthLabel()}
         </h2>
       </div>
-      <p className="mt-1 text-xs text-gray-400">
-        Points across all 13 games this month (top-10 placements score
-        25-18-15-12-10-8-6-4-2-1).
-      </p>
+      <p className="mt-1 text-xs text-gray-400">{t("lb_champion_desc")}</p>
 
       {loading ? (
-        <p className="mt-3 text-sm text-gray-500">Loading…</p>
+        <p className="mt-3 text-sm text-gray-500">{t("home_loading")}</p>
       ) : standings.length === 0 ? (
-        <p className="mt-3 text-sm text-gray-500">
-          No ranked games yet this month — be the first to place.
-        </p>
+        <p className="mt-3 text-sm text-gray-500">{t("lb_champion_empty")}</p>
       ) : (
         <>
           {champ ? (
             <p className="mt-3 text-sm">
-              Leading:{" "}
+              {t("lb_champion_leading")}{" "}
               <span className="font-bold text-amber-100">{champ.name}</span>{" "}
-              with <span className="font-mono">{champ.points} pts</span>
+              {t("lb_with")} <span className="font-mono">{champ.points} {t("lb_pts")}</span>
               {champ.wins > 0 ? (
                 <span className="text-gray-400">
                   {" "}
-                  ({champ.wins} game{champ.wins === 1 ? "" : "s"} won)
+                  ({t("lb_games_won", { wins: champ.wins })})
                 </span>
               ) : null}
             </p>
@@ -129,11 +126,9 @@ function ChampionPanel() {
                   <span className="font-medium">{s.name}</span>
                 </span>
                 <span className="flex items-center gap-3 text-xs text-gray-400">
-                  <span>
-                    {s.gamesPlaced} game{s.gamesPlaced === 1 ? "" : "s"}
-                  </span>
+                  <span>{t("lb_games_count", { n: s.gamesPlaced })}</span>
                   <span className="font-mono text-sm text-amber-200">
-                    {s.points} pts
+                    {s.points} {t("lb_pts")}
                   </span>
                 </span>
               </li>
@@ -146,6 +141,8 @@ function ChampionPanel() {
 }
 
 export default function LeaderboardPage() {
+  const { locale, t } = useLocale();
+  const howTo = getHowToPlay(locale);
   const [game, setGame] = useState<Game>("wordle");
   const [period, setPeriod] = useState<Period>("today");
   const [scores, setScores] = useState<ScoreEntry[]>([]);
@@ -175,8 +172,8 @@ export default function LeaderboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-black md:text-4xl">Global Leaderboard</h1>
-      <p className="mt-2 text-sm text-gray-400">Top scores from BrainArena players worldwide.</p>
+      <h1 className="text-3xl font-black md:text-4xl">{t("lb_title")}</h1>
+      <p className="mt-2 text-sm text-gray-400">{t("lb_subtitle")}</p>
 
       {/* Monthly all-round championship — only shown on the monthly view,
           which is the period it's scoped to. */}
@@ -185,41 +182,41 @@ export default function LeaderboardPage() {
       {top ? (
         <div className="mt-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-sm">
           <span className="font-bold">
-            #1 {period === "month" ? "this month" : period === "week" ? "this week" : period === "alltime" ? "all time" : "today"}: {top.name}
+            #1 ({t(periodTKey(period))}): {top.name}
           </span>{" "}
-          with <span className="font-mono">{scoreCell(game, top)}</span> {flagOf(top.country)} —{" "}
-          <span className="text-indigo-300">Can you beat #1?</span>
+          {t("lb_with")} <span className="font-mono">{scoreCell(game, top)}</span> {flagOf(top.country)} —{" "}
+          <span className="text-indigo-300">{t("lb_beat_no1")}</span>
         </div>
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        {GAMES.map((g) => (
+        {GAME_ORDER.map((g) => (
           <button
-            key={g.key}
-            onClick={() => setGame(g.key)}
+            key={g}
+            onClick={() => setGame(g)}
             className={`rounded-lg px-3 py-1.5 text-sm border transition ${
-              game === g.key
+              game === g
                 ? "border-indigo-400 bg-indigo-500/20 text-indigo-100"
                 : "border-[#2a2a2a] bg-[#1a1a1a] text-gray-300 hover:border-[#3a3a3c]"
             }`}
           >
-            {g.label}
+            {howTo[g].label}
           </button>
         ))}
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
-        {PERIODS.map((p) => (
+        {PERIOD_ORDER.map((p) => (
           <button
-            key={p.key}
-            onClick={() => setPeriod(p.key)}
+            key={p}
+            onClick={() => setPeriod(p)}
             className={`rounded-md px-3 py-1 text-xs uppercase tracking-wider border ${
-              period === p.key
+              period === p
                 ? "border-white/40 bg-white/10 text-white"
                 : "border-[#2a2a2a] bg-[#1a1a1a] text-gray-400"
             }`}
           >
-            {p.label}
+            {t(periodTKey(p))}
           </button>
         ))}
       </div>
@@ -229,17 +226,17 @@ export default function LeaderboardPage() {
           <thead className="bg-[#0a0a0a] text-xs uppercase tracking-wider text-gray-500">
             <tr>
               <th className="px-4 py-2 text-left">#</th>
-              <th className="px-4 py-2 text-left">Name</th>
-              <th className="px-4 py-2 text-right">Score</th>
-              <th className="px-4 py-2 text-center">Country</th>
-              <th className="px-4 py-2 text-right">Date</th>
+              <th className="px-4 py-2 text-left">{t("lb_col_name")}</th>
+              <th className="px-4 py-2 text-right">{t("lb_col_score")}</th>
+              <th className="px-4 py-2 text-center">{t("lb_col_country")}</th>
+              <th className="px-4 py-2 text-right">{t("lb_col_date")}</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading…</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">{t("home_loading")}</td></tr>
             ) : scores.length === 0 ? (
-              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">No scores yet — be the first!</td></tr>
+              <tr><td colSpan={5} className="px-4 py-8 text-center text-gray-500">{t("lb_no_scores")}</td></tr>
             ) : (
               scores.map((e, i) => (
                 <tr key={`${e.date}-${i}`} className={i === 0 ? "bg-indigo-500/10" : "hover:bg-[#222]"}>

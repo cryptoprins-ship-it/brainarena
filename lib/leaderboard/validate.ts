@@ -48,12 +48,21 @@ const TIME_DECAY_GAMES = new Set<ValidatableGame>([
   "vlakken", "verbind", "zonmaan", "kronen", "minesweeper",
 ]);
 
-// Minimum plausible solve time (seconds). Deliberately far below any real
-// human pace — the point is only to kill `time: 0` (which would yield the
-// maximum possible score), not to police fast solvers.
-const MIN_SOLVE_TIME: Partial<Record<ValidatableGame, number>> = {
-  vlakken: 4, verbind: 4, zonmaan: 4, kronen: 4, minesweeper: 4, sudoku: 10,
-};
+// For the time-decay puzzles `time` is floored to this, NOT rejected
+// below it. A quick replay of a small daily puzzle genuinely finishes
+// in 0-3 seconds — and that's exactly when a player sets a personal
+// best — so rejecting fast solves threw away legitimate runs. Flooring
+// still neutralises the `time: 0` → 100000 trick (the cheat just lands
+// at 99999, like any near-instant submit) without ever losing a real
+// score.
+const MIN_DECAY_TIME = 1;
+
+// Sudoku is ranked by time ascending, so a fast time can't just be
+// floored — a `time: 0` cheat would top the board. It needs a genuine
+// rejection threshold, set well below any humanly possible 9×9 solve
+// (the fastest competitive solves are ~30s+; <10s is physically
+// impossible — you can't even input 40+ digits that fast).
+const MIN_SUDOKU_TIME = 10;
 
 // Hard score ceilings for games we can't yet recompute. Generous — these
 // only catch absurd values, not skilled play.
@@ -80,17 +89,18 @@ export function validateScore(input: ValidateInput): ValidateResult {
   const time = input.time != null ? Math.floor(input.time) : undefined;
 
   // --- Logic puzzles: score is a pure function of time. Recompute it.
+  // Fast solves are floored, not rejected (see MIN_DECAY_TIME).
   if (TIME_DECAY_GAMES.has(game)) {
     if (time == null) return { ok: false, reason: "missing_time" };
-    if (time < (MIN_SOLVE_TIME[game] ?? 1)) return { ok: false, reason: "implausible_time" };
     if (time > 86_400) return { ok: false, reason: "implausible_time" };
-    return { ok: true, score: Math.max(1, 100_000 - time), time };
+    const floored = Math.max(MIN_DECAY_TIME, time);
+    return { ok: true, score: Math.max(1, 100_000 - floored), time: floored };
   }
 
   // --- Sudoku: score is always 1, the board is ranked by time.
   if (game === "sudoku") {
     if (time == null) return { ok: false, reason: "missing_time" };
-    if (time < (MIN_SOLVE_TIME.sudoku ?? 10)) return { ok: false, reason: "implausible_time" };
+    if (time < MIN_SUDOKU_TIME) return { ok: false, reason: "implausible_time" };
     if (time > 86_400) return { ok: false, reason: "implausible_time" };
     return { ok: true, score: 1, time };
   }

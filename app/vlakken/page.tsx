@@ -573,18 +573,18 @@ export default function VlakkenPage() {
                 <input
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("name_gate_placeholder")}
                   className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
                 />
                 <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
               </div>
             ) : null}
             {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+              <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
             ) : null}
             {!eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">
-                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {difficulty} puzzle. Tomorrow resets the counter.
+                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
           </div>

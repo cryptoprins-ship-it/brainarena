@@ -8,11 +8,13 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { useLocale } from "@/lib/i18n";
 
 const DIFFS: Difficulty[] = ["easy", "medium", "hard"];
 const N = 9;
 
 export default function SudokuPage() {
+  const { t } = useLocale();
   const [diff, setDiff] = useState<Difficulty>("easy");
   const [board, setBoard] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<number[][]>([]);
@@ -177,9 +179,9 @@ export default function SudokuPage() {
         <div>
           <h1 className="text-2xl font-black">Sudoku</h1>
           <p className="text-xs text-gray-400">
-            Daily · ⏱ <span className="tabular-nums">{time}s</span> · 💡 {hintsLeft} hints ·{" "}
+            {t("sudoku_status", { time, hints: hintsLeft })} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
-              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
             </span>
           </p>
         </div>
@@ -188,9 +190,9 @@ export default function SudokuPage() {
             <button
               key={d}
               onClick={() => setDiff(d)}
-              className={`rounded-md px-3 py-1.5 capitalize ${diff === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
+              className={`rounded-md px-3 py-1.5 ${diff === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
             >
-              {d}
+              {t(d)}
             </button>
           ))}
         </div>
@@ -241,14 +243,14 @@ export default function SudokuPage() {
           onClick={() => selected && setVal(selected.r, selected.c, 0)}
           className="flex-1 rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]"
         >
-          Erase
+          {t("clear")}
         </button>
         <button
           onClick={giveHint}
           disabled={hintsLeft <= 0}
           className="flex-1 rounded-md bg-indigo-600 py-2 text-sm font-bold disabled:opacity-50"
         >
-          Hint ({hintsLeft})
+          {t("hint")} ({hintsLeft})
         </button>
       </div>
 
@@ -264,24 +266,24 @@ export default function SudokuPage() {
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-          <h2 className="text-xl font-black">🎉 Solved in <span className="tabular-nums">{time}s</span>!</h2>
+          <h2 className="text-xl font-black">{t("sudoku_solved_in", { time })}</h2>
           {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
                 onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("name_gate_placeholder")}
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
               />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
             </div>
           ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">You ranked #{submitted.rank} on the {diff} board.</p>
+            <p className="mt-2 text-sm text-emerald-300">{t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}</p>
           ) : null}
           {done && !eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">
-              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {diff} puzzle. Tomorrow resets the counter.
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
         </div>
