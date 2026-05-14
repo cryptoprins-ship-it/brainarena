@@ -333,13 +333,13 @@ export default function WordlePage() {
         <div>
           <h1 className="text-2xl font-black">Wordle</h1>
           <p className="text-xs text-gray-400">
-            {unlimited ? "Unlimited" : "Daily"} · {locale.toUpperCase()} ·{" "}
+            {unlimited ? t("mode_unlimited") : t("mode_daily")} · {locale.toUpperCase()} ·{" "}
             <span className="tabular-nums">{elapsed}s</span> · 🔥 {streak}
             {!unlimited ? (
               <>
                 {" · "}
                 <span className={remaining === 0 ? "text-amber-300" : "text-gray-400"}>
-                  {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+                  {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
                 </span>
               </>
             ) : null}
@@ -347,7 +347,7 @@ export default function WordlePage() {
         </div>
         <label className="flex items-center gap-2 text-xs text-gray-300">
           <input type="checkbox" checked={unlimited} onChange={(e) => setUnlimited(e.target.checked)} className="accent-indigo-500" />
-          Unlimited
+          {t("mode_unlimited")}
         </label>
       </div>
 
@@ -412,27 +412,27 @@ export default function WordlePage() {
       {showModal ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={() => setShowModal(false)}>
           <div className="w-full max-w-sm rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-6 text-center" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-2xl font-black">{done === "win" ? "🎉 Solved!" : "😵 Out of guesses"}</h2>
+            <h2 className="text-2xl font-black">{done === "win" ? t("wordle_win_title") : t("wordle_lose_title")}</h2>
             {done === "win" ? (
               <p className="mt-2 text-sm text-gray-300">
-                Solved in {guesses.length} guess{guesses.length === 1 ? "" : "es"}<br />
-                Time: <span className="tabular-nums">{elapsed}s</span>
+                {t("wordle_solved_in", { n: guesses.length })}<br />
+                {t("wordle_time")} <span className="tabular-nums">{elapsed}s</span>
               </p>
             ) : (
-              <p className="mt-2 text-sm text-gray-300">The word was <span className="font-bold uppercase text-emerald-400">{target}</span></p>
+              <p className="mt-2 text-sm text-gray-300">{t("wordle_word_was")} <span className="font-bold uppercase text-emerald-400">{target}</span></p>
             )}
 
             {stats ? (
               <>
                 <div className="mt-5 grid grid-cols-4 gap-2 text-center">
-                  <Stat label="Played" value={stats.played} />
-                  <Stat label="Win %" value={stats.played ? Math.round((stats.won / stats.played) * 100) : 0} />
-                  <Stat label="Streak" value={stats.currentStreak} />
-                  <Stat label="Max" value={stats.maxStreak} />
+                  <Stat label={t("wordle_stat_played")} value={stats.played} />
+                  <Stat label={t("wordle_stat_winpct")} value={stats.played ? Math.round((stats.won / stats.played) * 100) : 0} />
+                  <Stat label={t("end_streak_label")} value={stats.currentStreak} />
+                  <Stat label={t("wordle_stat_max")} value={stats.maxStreak} />
                 </div>
 
                 <div className="mt-5 text-left">
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">Guess distribution</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("wordle_distribution")}</p>
                   <div className="mt-2 space-y-1">
                     {stats.distribution.map((count, i) => {
                       const max = Math.max(1, ...stats.distribution);
@@ -459,7 +459,7 @@ export default function WordlePage() {
 
             {!unlimited ? (
               <div className="mt-5 flex items-baseline justify-center gap-2 border-t border-[#2a2a2a] pt-4">
-                <span className="text-xs uppercase tracking-wider text-gray-400">Next Wordle</span>
+                <span className="text-xs uppercase tracking-wider text-gray-400">{t("wordle_next")}</span>
                 <span className="font-mono text-xl font-bold tabular-nums text-indigo-300">{countdown || "—"}</span>
               </div>
             ) : null}
@@ -469,19 +469,19 @@ export default function WordlePage() {
                 <input
                   value={name}
                   onChange={(e) => setNameState(e.target.value)}
-                  placeholder="Your name"
+                  placeholder={t("name_gate_placeholder")}
                   className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
                 />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
               </div>
             ) : null}
             {done && !unlimited && !eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">
-                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts for today&apos;s puzzle. Tomorrow resets the counter.
+                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
             {submitted ? (
-              <p className="mt-3 text-sm text-emerald-300">You ranked #{submitted.rank} on the leaderboard!</p>
+              <p className="mt-3 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
             ) : null}
 
             <div className="mt-4 flex gap-2">
@@ -494,7 +494,7 @@ export default function WordlePage() {
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] py-2 text-sm font-bold hover:border-indigo-400/40"
               />
               <button onClick={() => { setShowModal(false); setUnlimited(true); }} className="flex-1 rounded-lg bg-indigo-600 py-2 text-sm font-bold">
-                Play again
+                {t("win_play_again")}
               </button>
             </div>
           </div>

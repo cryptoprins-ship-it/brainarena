@@ -275,9 +275,9 @@ export default function BogglePage() {
         <div>
           <h1 className="text-2xl font-black">Boggle</h1>
           <p className="text-xs text-gray-400">
-            Daily 4×4 · find words 3+ letters · {DURATION}s ·{" "}
+            {t("boggle_status", { seconds: DURATION })} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
-              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
             </span>
           </p>
         </div>
@@ -318,10 +318,10 @@ export default function BogglePage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-3">
-            <span className="text-sm text-gray-400">Word: <span className="font-mono uppercase text-white">{word || "—"}</span></span>
+            <span className="text-sm text-gray-400">{t("boggle_word")} <span className="font-mono uppercase text-white">{word || "—"}</span></span>
             <div className="flex gap-2">
               {!running && !done ? (
-                <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Start</button>
+                <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("boggle_start")}</button>
               ) : null}
               {running && !done ? (
                 <button
@@ -329,14 +329,14 @@ export default function BogglePage() {
                   disabled={path.length < 3}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold disabled:opacity-40"
                 >
-                  Submit
+                  {t("submit")}
                 </button>
               ) : null}
             </div>
           </div>
           <div className="mt-2 flex h-5 items-center justify-between text-[11px]">
             <span className="text-gray-500">
-              Keyboard: type letters · Enter submits · Backspace undoes · Esc clears
+              {t("boggle_kbd_hint")}
             </span>
             {invalidMsg ? (
               <span className="font-bold text-red-300">{invalidMsg}</span>
@@ -347,7 +347,7 @@ export default function BogglePage() {
         </div>
 
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400">Found ({found.length})</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400">{t("boggle_found", { n: found.length })}</h2>
           <ul className="mt-2 grid grid-cols-2 gap-x-3 text-sm">
             {found.map((w) => (
               <li key={w} className="flex justify-between">
@@ -355,7 +355,7 @@ export default function BogglePage() {
                 <span className="text-gray-500">+{pointsFor(w.length)}</span>
               </li>
             ))}
-            {found.length === 0 ? <li className="text-gray-600">Drag to build words.</li> : null}
+            {found.length === 0 ? <li className="text-gray-600">{t("boggle_drag_hint")}</li> : null}
           </ul>
         </div>
       </div>
@@ -373,25 +373,25 @@ export default function BogglePage() {
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Time! Final score: <span className="text-indigo-300">{score}</span></h2>
-          <p className="mt-1 text-sm text-gray-400">{found.length} words found.</p>
+          <h2 className="text-xl font-black">{t("boggle_final_score", { score })}</h2>
+          <p className="mt-1 text-sm text-gray-400">{t("boggle_words_found", { n: found.length })}</p>
           {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
                 onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("name_gate_placeholder")}
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
               />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
             </div>
           ) : null}
           {submitted ? (
-            <p className="mt-3 text-sm text-emerald-300">You ranked #{submitted.rank} globally.</p>
+            <p className="mt-3 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
           ) : null}
           {done && !eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">
-              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s grid. Tomorrow resets the counter.
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
         </div>
