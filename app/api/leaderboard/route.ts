@@ -5,6 +5,7 @@ import { z } from "zod";
 import { apiLimit, scoreLimit, clientKeyFromRequest, rateLimitResponse } from "@/lib/ratelimit";
 import { verifyOrigin } from "@/lib/verifyOrigin";
 import { logger } from "@/lib/logger";
+import { validateScore } from "@/lib/leaderboard/validate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -135,10 +136,32 @@ export async function POST(req: Request) {
   const data = parsed.data;
   const game = data.game;
 
+  // Zod proved the payload is well-formed; validateScore proves it's
+  // *plausible* — and, where the canonical score is a known function of
+  // verifiable evidence, recomputes it server-side. We persist the
+  // returned score/time, never the client's originals.
+  const verdict = validateScore({
+    game,
+    score: data.score,
+    time: data.time,
+    language: data.language,
+    meta: data.meta,
+  });
+  if (!verdict.ok) {
+    logger.warn(
+      { game, reason: verdict.reason, ip, clientScore: data.score, clientTime: data.time },
+      "leaderboard_score_rejected",
+    );
+    return NextResponse.json(
+      { error: "rejected", reason: verdict.reason },
+      { status: 422 },
+    );
+  }
+
   const entry: ScoreEntry = {
     name: data.name || "Anonymous",
-    score: Math.floor(data.score),
-    time: data.time != null ? Math.floor(data.time) : undefined,
+    score: verdict.score,
+    time: verdict.time,
     language: data.language,
     country: data.country,
     meta: data.meta,
