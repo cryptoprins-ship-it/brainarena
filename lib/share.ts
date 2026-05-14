@@ -145,38 +145,109 @@ function timePuzzle(name: string, p: SharePayload): string {
 }
 
 // Full shareable text: per-game body + the game URL on its own line.
-// Spoiler-free by construction — no formatter emits the answer.
+// Spoiler-free by construction — no formatter emits the answer. Used by
+// the native share sheet and clipboard copy.
 export function buildShareText(game: GameKey, payload: SharePayload): string {
-  const body = FORMATTERS[game]?.(payload) ?? `BrainArena ${GAME_NAMES[game]}`;
-  return `${body}\n${gameUrl(game)}`;
+  return `${shareBody(game, payload)}\n${gameUrl(game)}`;
 }
 
-export type ShareOutcome = "shared" | "copied" | "prompted" | "dismissed" | "failed";
+function shareBody(game: GameKey, payload: SharePayload): string {
+  return FORMATTERS[game]?.(payload) ?? `BrainArena ${GAME_NAMES[game]}`;
+}
 
-// Web Share API (native sheet on mobile) → clipboard → prompt. Returns
-// which path resolved so the caller can show the right toast. An
-// AbortError from a dismissed share sheet resolves as "dismissed" so the
-// caller doesn't fall through to a misleading "Copied!".
-export async function shareResult(game: GameKey, payload: SharePayload): Promise<ShareOutcome> {
+// Text + URL as separate fields — platform share-intent URLs take them
+// in distinct query params.
+export type ShareParts = { text: string; url: string };
+export function buildShareParts(game: GameKey, payload: SharePayload): ShareParts {
+  return { text: shareBody(game, payload), url: gameUrl(game) };
+}
+
+// Explicit per-platform share links. The native share sheet (mobile,
+// some desktop) already lists every app the user has installed — this
+// is the fallback set for everywhere it isn't available, so "share" is
+// never reduced to clipboard-only. All are public web intent endpoints,
+// opened in a new tab; nothing here needs an SDK or app key.
+export type ShareTarget = { id: string; label: string; href: (parts: ShareParts) => string };
+
+export const SHARE_TARGETS: ShareTarget[] = [
+  {
+    id: "x",
+    label: "X",
+    href: ({ text, url }) =>
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
+  },
+  {
+    id: "whatsapp",
+    label: "WhatsApp",
+    href: ({ text, url }) =>
+      `https://wa.me/?text=${encodeURIComponent(`${text}\n${url}`)}`,
+  },
+  {
+    id: "telegram",
+    label: "Telegram",
+    href: ({ text, url }) =>
+      `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`,
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    href: ({ url }) =>
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`,
+  },
+  {
+    id: "reddit",
+    label: "Reddit",
+    href: ({ text, url }) =>
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(text)}`,
+  },
+  {
+    id: "email",
+    label: "Email",
+    href: ({ text, url }) =>
+      `mailto:?subject=${encodeURIComponent("BrainArena")}&body=${encodeURIComponent(`${text}\n${url}`)}`,
+  },
+];
+
+// Whether the browser exposes the native share sheet. When true, the
+// sheet itself lists every app the user actually has installed — that's
+// the real "share to whatever's present".
+export function hasNativeShare(): boolean {
+  return typeof navigator !== "undefined" && typeof navigator.share === "function";
+}
+
+export type NativeShareOutcome = "shared" | "dismissed" | "unavailable" | "failed";
+
+// Invoke the OS share sheet. "dismissed" if the user cancels (so the
+// caller doesn't fall through to a misleading "copied" toast),
+// "unavailable" if there's no Web Share API, "failed" on anything else.
+export async function nativeShare(
+  game: GameKey,
+  payload: SharePayload,
+): Promise<NativeShareOutcome> {
+  if (!hasNativeShare()) return "unavailable";
   const text = buildShareText(game, payload);
   const url = gameUrl(game);
-  const nav = typeof navigator !== "undefined" ? navigator : null;
-  if (!nav) return "failed";
-
-  const canNativeShare =
-    !!nav.share &&
-    (typeof nav.canShare !== "function" || nav.canShare({ text, url }));
-  if (canNativeShare) {
-    try {
-      await nav.share({ text, url });
-      return "shared";
-    } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return "dismissed";
-      // fall through to clipboard
-    }
-  }
   try {
-    await nav.clipboard.writeText(text);
+    await navigator.share({ text, url });
+    return "shared";
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") return "dismissed";
+    return "failed";
+  }
+}
+
+export type CopyOutcome = "copied" | "prompted" | "failed";
+
+// Clipboard copy, with a prompt() last resort for browsers that block
+// clipboard access. Kept as one option in the share menu — not the
+// whole share story.
+export async function copyShareText(
+  game: GameKey,
+  payload: SharePayload,
+): Promise<CopyOutcome> {
+  const text = buildShareText(game, payload);
+  try {
+    await navigator.clipboard.writeText(text);
     return "copied";
   } catch {
     if (typeof window !== "undefined") {
