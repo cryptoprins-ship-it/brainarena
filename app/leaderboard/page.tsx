@@ -1,31 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type Game =
-  | "wordle"
-  | "boggle"
-  | "sudoku"
-  | "typing"
-  | "tiledrop"
-  | "colormatch"
-  | "letterstack"
-  | "vlakken"
-  | "verbind"
-  | "zonmaan"
-  | "kronen"
-  | "minesweeper"
-  | "connections";
-type Period = "today" | "week" | "alltime";
-
-type Entry = {
-  name: string;
-  score: number;
-  time?: number;
-  language?: string;
-  country?: string;
-  date: string;
-};
+import type {
+  Game,
+  Period,
+  ScoreEntry,
+  ChampionStanding,
+} from "@/lib/leaderboard/standings";
 
 const GAMES: { key: Game; label: string }[] = [
   { key: "wordle", label: "Wordle" },
@@ -46,8 +27,17 @@ const GAMES: { key: Game; label: string }[] = [
 const PERIODS: { key: Period; label: string }[] = [
   { key: "today", label: "Today" },
   { key: "week", label: "This Week" },
+  { key: "month", label: "This Month" },
   { key: "alltime", label: "All Time" },
 ];
+
+function monthLabel(): string {
+  return new Date().toLocaleDateString(undefined, {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
 
 function flagOf(country?: string) {
   if (!country) return "🌍";
@@ -57,18 +47,108 @@ function flagOf(country?: string) {
   return String.fromCodePoint(A + cc.charCodeAt(0) - 65, A + cc.charCodeAt(1) - 65);
 }
 
-function scoreCell(game: Game, e: Entry): string {
-  if (game === "sudoku" || game === "typing") {
-    if (game === "sudoku" && e.time != null) return `${e.time}s`;
-    if (game === "typing") return `${e.score} WPM`;
-  }
+function scoreCell(game: Game, e: ScoreEntry): string {
+  if (game === "sudoku" && e.time != null) return `${e.time}s`;
+  if (game === "typing") return `${e.score} WPM`;
   return String(e.score);
+}
+
+// Monthly all-round championship — aggregates per-game placement into a
+// single cross-game ranking. This is the board the all-round prize is
+// awarded from; per-game monthly winners are just #1 of each game's
+// "This Month" board.
+function ChampionPanel() {
+  const [standings, setStandings] = useState<ChampionStanding[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch("/api/leaderboard/champion?period=month")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!active) return;
+        setStandings(Array.isArray(data?.standings) ? data.standings : []);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!active) return;
+        setStandings([]);
+        setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const champ = standings[0];
+
+  return (
+    <div className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <h2 className="text-lg font-black text-amber-200">
+          🏆 All-Round Champion — {monthLabel()}
+        </h2>
+      </div>
+      <p className="mt-1 text-xs text-gray-400">
+        Points across all 13 games this month (top-10 placements score
+        25-18-15-12-10-8-6-4-2-1).
+      </p>
+
+      {loading ? (
+        <p className="mt-3 text-sm text-gray-500">Loading…</p>
+      ) : standings.length === 0 ? (
+        <p className="mt-3 text-sm text-gray-500">
+          No ranked games yet this month — be the first to place.
+        </p>
+      ) : (
+        <>
+          {champ ? (
+            <p className="mt-3 text-sm">
+              Leading:{" "}
+              <span className="font-bold text-amber-100">{champ.name}</span>{" "}
+              with <span className="font-mono">{champ.points} pts</span>
+              {champ.wins > 0 ? (
+                <span className="text-gray-400">
+                  {" "}
+                  ({champ.wins} game{champ.wins === 1 ? "" : "s"} won)
+                </span>
+              ) : null}
+            </p>
+          ) : null}
+          <ol className="mt-3 space-y-1 text-sm">
+            {standings.slice(0, 10).map((s, i) => (
+              <li
+                key={`${s.name}-${i}`}
+                className={`flex items-center justify-between rounded-md px-3 py-1.5 ${
+                  i === 0 ? "bg-amber-500/15" : "bg-[#1a1a1a]"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className="w-5 tabular-nums text-gray-500">{i + 1}</span>
+                  <span className="font-medium">{s.name}</span>
+                </span>
+                <span className="flex items-center gap-3 text-xs text-gray-400">
+                  <span>
+                    {s.gamesPlaced} game{s.gamesPlaced === 1 ? "" : "s"}
+                  </span>
+                  <span className="font-mono text-sm text-amber-200">
+                    {s.points} pts
+                  </span>
+                </span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </div>
+  );
 }
 
 export default function LeaderboardPage() {
   const [game, setGame] = useState<Game>("wordle");
   const [period, setPeriod] = useState<Period>("today");
-  const [scores, setScores] = useState<Entry[]>([]);
+  const [scores, setScores] = useState<ScoreEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -86,7 +166,9 @@ export default function LeaderboardPage() {
         setScores([]);
         setLoading(false);
       });
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, [game, period]);
 
   const top = scores[0];
@@ -96,10 +178,16 @@ export default function LeaderboardPage() {
       <h1 className="text-3xl font-black md:text-4xl">Global Leaderboard</h1>
       <p className="mt-2 text-sm text-gray-400">Top scores from BrainArena players worldwide.</p>
 
+      {/* Monthly all-round championship — only shown on the monthly view,
+          which is the period it's scoped to. */}
+      {period === "month" ? <ChampionPanel /> : null}
+
       {top ? (
         <div className="mt-4 rounded-2xl border border-indigo-500/30 bg-indigo-500/10 p-4 text-sm">
-          <span className="font-bold">#1 today: {top.name}</span> with{" "}
-          <span className="font-mono">{scoreCell(game, top)}</span> {flagOf(top.country)} —{" "}
+          <span className="font-bold">
+            #1 {period === "month" ? "this month" : period === "week" ? "this week" : period === "alltime" ? "all time" : "today"}: {top.name}
+          </span>{" "}
+          with <span className="font-mono">{scoreCell(game, top)}</span> {flagOf(top.country)} —{" "}
           <span className="text-indigo-300">Can you beat #1?</span>
         </div>
       ) : null}

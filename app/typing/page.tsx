@@ -182,6 +182,7 @@ export default function TypingPage() {
           score={stats.wpm}
           time={stats.elapsed}
           rank={submitted?.rank}
+          locale={locale}
           meta={{ accuracy: stats.accuracy }}
         />
       ) : null}

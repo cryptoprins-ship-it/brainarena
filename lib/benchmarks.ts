@@ -163,12 +163,13 @@ export function percentileFor(s: Score): number {
       return 30;
     }
     case "connections": {
-      // Score is (4 - mistakes) * 1000, so 4000 = perfect, 0 = failed.
+      // Score is groups solved (0-4) — same value the leaderboard ranks
+      // on. 4 = all groups, 0 = solved none before running out.
       const v = s.score;
-      if (v >= 4000) return 95;
-      if (v >= 3000) return 80;
-      if (v >= 2000) return 55;
-      if (v >= 1000) return 30;
+      if (v >= 4) return 95;
+      if (v >= 3) return 80;
+      if (v >= 2) return 55;
+      if (v >= 1) return 30;
       return 10;
     }
   }

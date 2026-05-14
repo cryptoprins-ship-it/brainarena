@@ -350,8 +350,8 @@ export default function ConnectionsPage() {
           </div>
           <EndScreenAddon
             game="connections"
-            score={Math.max(1, (MAX_MISTAKES - mistakes) * 1000)}
-            time={elapsed}
+            score={playerScore ?? 0}
+            time={finalElapsed ?? elapsed}
             meta={{ mistakes, won }}
           />
         </>

@@ -60,7 +60,15 @@ export default function LanguageSwitcher() {
         <ul
           role="listbox"
           aria-label="Languages"
-          className="absolute right-0 z-50 mt-2 w-56 max-w-[calc(100vw-1rem)] rounded-lg border border-[#2a2a2a] bg-[#111] shadow-xl shadow-black/60 py-1 max-h-[80vh] overflow-y-auto max-sm:fixed max-sm:top-14 max-sm:right-2 max-sm:left-auto max-sm:mt-0"
+          // Mobile-first positioning. On phones the menu is `fixed` to the
+          // viewport (right-pinned, 8px gap, width-capped) so it can never
+          // be dragged off-screen by the navbar — even if the navbar row
+          // overflows horizontally. From `sm` up it becomes a normal
+          // `absolute` dropdown anchored under the button. Written
+          // mobile-first on purpose: a `max-sm:` override of a bare
+          // `absolute` has an ambiguous cascade in Tailwind v4, which is
+          // what let the menu fall out of the window on Android/iOS.
+          className="fixed right-2 top-14 z-50 max-h-[80vh] w-56 max-w-[calc(100vw-1rem)] overflow-y-auto rounded-lg border border-[#2a2a2a] bg-[#111] py-1 shadow-xl shadow-black/60 sm:absolute sm:right-0 sm:top-auto sm:mt-2"
         >
           {SUPPORTED.map((l) => {
             const pending = REVIEW_PENDING.has(l);

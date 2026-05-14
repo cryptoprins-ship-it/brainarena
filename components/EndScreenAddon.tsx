@@ -6,6 +6,7 @@ import type { GameKey } from "@/lib/scores";
 import { recordGame, type Achievement } from "@/lib/achievements";
 import { getComparisonMessage, percentileFor, rankBracketMessage } from "@/lib/benchmarks";
 import { pushAchievementToast } from "./AchievementToast";
+import ShareButton from "./ShareButton";
 
 type Props = {
   game: GameKey;
@@ -13,6 +14,9 @@ type Props = {
   time?: number;
   meta?: Record<string, unknown>;
   rank?: number;
+  // The locale the game was played in — forwarded to the share text for
+  // per-locale games (Wordle, Boggle, Typing, Letter Stack).
+  locale?: string;
 };
 
 const NEXT_GAME: Record<GameKey, GameKey> = {
@@ -31,7 +35,7 @@ const NEXT_GAME: Record<GameKey, GameKey> = {
   connections: "wordle",
 };
 
-export default function EndScreenAddon({ game, score, time, meta, rank }: Props) {
+export default function EndScreenAddon({ game, score, time, meta, rank, locale }: Props) {
   const [percentile] = useState(() => percentileFor({ game, score, time, meta }));
   const [comparison] = useState(() => getComparisonMessage(game, percentile));
   const [streakMessage, setStreakMessage] = useState<string | null>(null);
@@ -85,6 +89,7 @@ export default function EndScreenAddon({ game, score, time, meta, rank }: Props)
 
       <div className="flex flex-wrap gap-2">
         <Link href={`/${game}`} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Play again</Link>
+        <ShareButton game={game} score={score} time={time} meta={meta} rank={rank} locale={locale} />
         <Link href={`/${NEXT_GAME[game]}`} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">Try another game →</Link>
         <Link href="/leaderboard" className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">View leaderboard →</Link>
       </div>

@@ -1,0 +1,37 @@
+{
+  "locale": "nl",
+  "generated_at_utc_date": "2026-05-13",
+  "sources": {
+    "frequency": {
+      "name": "hermitdave/FrequencyWords (OpenSubtitles 2018)",
+      "url": "https://raw.githubusercontent.com/hermitdave/FrequencyWords/master/content/2018/nl/nl_50k.txt",
+      "license": "CC BY-SA 4.0",
+      "content_sha256": "099bd0c27b514d54284360ad9ce2b4ef7b6903b22e848b67ab10f6aa2adb4baa"
+    },
+    "hunspell_dictionary": {
+      "name": "wooorm/dictionaries/nl",
+      "url": "https://raw.githubusercontent.com/wooorm/dictionaries/main/dictionaries/nl/index.dic",
+      "license": "MIT",
+      "content_sha256": "be192fdc36efd39dde0fb9a5a113143e0a906782e81ed68a74a710edced378d0"
+    }
+  },
+  "normalisation": {
+    "lowercase": true,
+    "reject_if_outside_alphabet": "^[a-z]+$",
+    "length_in_code_points": 5,
+    "keeps_accents": false
+  },
+  "counts": {
+    "source_lines": 50000,
+    "distinct_5letter": 5002,
+    "guesses": 5002,
+    "solutions": 1861,
+    "slur_filtered": 0,
+    "proper_noun_filtered": 3141
+  },
+  "shuffle_seed": 1313627953,
+  "output_sha256": {
+    "solutions": "996a4f184382c3d44c9b2e7956b34132825bfb01c6ffe37beca4f6c1024f9e23",
+    "guesses": "c56204005f1a71de365f41b6d82a68a92ac923c220da8b7212dc047067abe157"
+  }
+}
