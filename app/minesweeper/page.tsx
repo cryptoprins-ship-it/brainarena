@@ -14,6 +14,7 @@ import {
 } from "@/lib/games/minesweeper";
 import { dayIndex } from "@/lib/games/kronen";
 import { getName, setName, submitScore } from "@/lib/scores";
+import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 type Difficulty = "easy" | "medium" | "hard";
@@ -138,7 +139,7 @@ export default function MinesweeperPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(BEST_KEY(difficulty));
+    const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
@@ -172,10 +173,10 @@ export default function MinesweeperPage() {
           : elapsed;
         setElapsed(tt);
         setState("won");
-        if (typeof window !== "undefined") {
-          const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+        {
+          const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
           if (!prevBest || tt < prevBest) {
-            localStorage.setItem(BEST_KEY(difficulty), String(tt));
+            safeSetItem(BEST_KEY(difficulty), String(tt));
             setBestSeconds(tt);
             setNewBest(true);
           }
@@ -223,10 +224,10 @@ export default function MinesweeperPage() {
           : elapsed;
         setElapsed(tt);
         setState("won");
-        if (typeof window !== "undefined") {
-          const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+        {
+          const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
           if (!prevBest || tt < prevBest) {
-            localStorage.setItem(BEST_KEY(difficulty), String(tt));
+            safeSetItem(BEST_KEY(difficulty), String(tt));
             setBestSeconds(tt);
             setNewBest(true);
           }

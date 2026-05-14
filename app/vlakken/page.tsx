@@ -11,6 +11,7 @@ import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/game
 import { dayIndex } from "@/lib/games/kronen";
 import { getName, setName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 const SIZE_FOR: Record<Difficulty, number> = { easy: 7, medium: 8, hard: 10 };
@@ -119,7 +120,7 @@ export default function VlakkenPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(BEST_KEY(difficulty));
+    const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
@@ -142,9 +143,9 @@ export default function VlakkenPage() {
   }, []);
 
   function persistBest(time: number) {
-    const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+    const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
     if (!prevBest || time < prevBest) {
-      localStorage.setItem(BEST_KEY(difficulty), String(time));
+      safeSetItem(BEST_KEY(difficulty), String(time));
       setBestSeconds(time);
     }
   }

@@ -10,6 +10,7 @@ import { generateZonMaan, edgeKey, type ZonMaanPuzzle } from "@/lib/games/zonmaa
 import { dayIndex } from "@/lib/games/kronen";
 import { getName, setName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 type CellState = -1 | 0 | 1; // -1 empty, 0 moon, 1 sun
@@ -122,7 +123,7 @@ export default function ZonMaanPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(BEST_KEY(difficulty));
+    const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
@@ -151,13 +152,11 @@ export default function ZonMaanPage() {
       : elapsed;
     setElapsed(tt);
     setDone(true);
-    if (typeof window !== "undefined") {
-      const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
-      if (!prevBest || tt < prevBest) {
-        localStorage.setItem(BEST_KEY(difficulty), String(tt));
-        setBestSeconds(tt);
-        setNewBest(true);
-      }
+    const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
+    if (!prevBest || tt < prevBest) {
+      safeSetItem(BEST_KEY(difficulty), String(tt));
+      setBestSeconds(tt);
+      setNewBest(true);
     }
   }, [cells, puzzle, done, difficulty, elapsed]);
 

@@ -8,6 +8,7 @@ import { useLocale } from "@/lib/i18n";
 import { generateKronen, dayIndex, type KronenPuzzle } from "@/lib/games/kronen";
 import { getName, setName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 type CellMark = 0 | 1 | 2; // 0 empty, 1 X, 2 crown
@@ -115,7 +116,7 @@ export default function KronenPage() {
   // Best-time per difficulty.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(BEST_KEY(difficulty));
+    const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
@@ -186,9 +187,9 @@ export default function KronenPage() {
           const t = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
           setElapsed(t);
           // Persist best time.
-          const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+          const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
           if (!prevBest || t < prevBest) {
-            localStorage.setItem(BEST_KEY(difficulty), String(t));
+            safeSetItem(BEST_KEY(difficulty), String(t));
             setBestSeconds(t);
           }
         }
@@ -234,9 +235,9 @@ export default function KronenPage() {
         setDone(true);
         const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
         setElapsed(tt);
-        const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+        const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
         if (!prevBest || tt < prevBest) {
-          localStorage.setItem(BEST_KEY(difficulty), String(tt));
+          safeSetItem(BEST_KEY(difficulty), String(tt));
           setBestSeconds(tt);
         }
       }

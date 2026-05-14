@@ -9,6 +9,7 @@ import { generateVerbind, type VerbindPuzzle } from "@/lib/games/verbind";
 import { dayIndex } from "@/lib/games/kronen";
 import { getName, setName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 const SIZE_FOR: Record<Difficulty, number> = { easy: 5, medium: 6, hard: 7 };
@@ -95,7 +96,7 @@ export default function VerbindPage() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(BEST_KEY(difficulty));
+    const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
@@ -128,9 +129,9 @@ export default function VerbindPage() {
   );
 
   function persistBest(t: number) {
-    const prevBest = Number(localStorage.getItem(BEST_KEY(difficulty)) ?? "");
+    const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
     if (!prevBest || t < prevBest) {
-      localStorage.setItem(BEST_KEY(difficulty), String(t));
+      safeSetItem(BEST_KEY(difficulty), String(t));
       setBestSeconds(t);
     }
   }
