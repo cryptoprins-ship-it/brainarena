@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
 import {
   chordTargets,
@@ -426,6 +427,7 @@ export default function MinesweeperPage() {
           elapsed={elapsed}
           flagsPlaced={flagged.size}
           mineCount={mineCount}
+          difficulty={difficulty}
           bestSeconds={bestSeconds}
           isNewBest={newBest}
           onPlayAgain={onReset}
@@ -440,6 +442,7 @@ function WinModal({
   elapsed,
   flagsPlaced,
   mineCount,
+  difficulty,
   bestSeconds,
   isNewBest,
   onPlayAgain,
@@ -448,18 +451,13 @@ function WinModal({
   elapsed: number;
   flagsPlaced: number;
   mineCount: number;
+  difficulty: string;
   bestSeconds: number | null;
   isNewBest: boolean;
   onPlayAgain: () => void;
   onNewPuzzle: () => void;
 }) {
   const { t } = useLocale();
-  const onShare = useCallback(() => {
-    const txt = `Minesweeper — ${formatDuration(elapsed)} — BrainArena`;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(txt).catch(() => { /* ignore */ });
-    }
-  }, [elapsed]);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
@@ -497,13 +495,14 @@ function WinModal({
           >
             {t("win_new_puzzle")}
           </button>
-          <button
-            type="button"
-            onClick={onShare}
+          <ShareButton
+            game="minesweeper"
+            score={Math.max(1, 100000 - elapsed)}
+            time={elapsed}
+            meta={{ difficulty, won: true, flagsPlaced, mineCount }}
+            label={t("win_share")}
             className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm"
-          >
-            {t("win_share")}
-          </button>
+          />
         </div>
       </div>
     </div>

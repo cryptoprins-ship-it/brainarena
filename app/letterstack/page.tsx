@@ -267,6 +267,7 @@ export default function LetterStackPage() {
           game="letterstack"
           score={score}
           rank={submitted?.rank}
+          locale={locale}
           meta={{ missed }}
         />
       ) : null}

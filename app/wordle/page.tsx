@@ -12,7 +12,6 @@ import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { getCachedGuesses, loadGuesses } from "@/lib/wordle/guesses";
 import {
   formatCountdown,
-  gameNumber,
   loadBoard,
   loadStats,
   msUntilNextUtcMidnight,
@@ -20,6 +19,7 @@ import {
   saveBoard,
   type Stats,
 } from "@/lib/games/wordleState";
+import ShareButton from "@/components/ShareButton";
 
 const ROWS = 6;
 const COLS = 5;
@@ -68,12 +68,6 @@ const STATE_BG: Record<Tile["state"], string> = {
 const STATE_RANK: Record<Tile["state"], number> = {
   empty: 0, tbd: 1, absent: 2, present: 3, correct: 4,
 };
-
-function emojiGrid(rows: Tile["state"][][]): string {
-  return rows
-    .map((r) => r.map((s) => (s === "correct" ? "🟩" : s === "present" ? "🟨" : "⬛")).join(""))
-    .join("\n");
-}
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
@@ -310,39 +304,12 @@ export default function WordlePage() {
     return m;
   }, [guesses, target]);
 
-  const share = useCallback(async () => {
-    const stateGrid = guesses.map((g) => score(target, g));
-    const head = `BrainArena Wordle #${gameNumber(dayIdx)} ${locale.toUpperCase()} ${done === "win" ? guesses.length : "X"}/${ROWS} · ${elapsed}s`;
-    const url = "https://brainarena.fun/wordle";
-    const text = `${head}\n${emojiGrid(stateGrid)}\n${url}`;
-
-    // Prefer the native share sheet on mobile — it's the share path users
-    // actually expect and it routes to messaging apps directly. Fall back
-    // to clipboard everywhere else; final fallback is a copy-prompt so
-    // even locked-down browsers (no clipboard permission) have a way out.
-    const nav = typeof navigator !== "undefined" ? navigator : null;
-    const canNativeShare =
-      !!nav?.share &&
-      (typeof nav.canShare !== "function" || nav.canShare({ text, url }));
-    if (canNativeShare) {
-      try {
-        await nav!.share({ text, url });
-        return;
-      } catch (err) {
-        // AbortError = user dismissed the sheet; don't fall back to
-        // clipboard or they'll get a "Copied!" toast after cancelling.
-        if (err instanceof DOMException && err.name === "AbortError") return;
-        // Anything else: continue to clipboard fallback.
-      }
-    }
-    try {
-      await nav!.clipboard.writeText(text);
-      setToast("Copied!");
-      window.setTimeout(() => setToast((m) => (m === "Copied!" ? null : m)), 1500);
-    } catch {
-      window.prompt("Copy your result:", text);
-    }
-  }, [dayIdx, done, elapsed, guesses, locale, target]);
+  // Per-guess tile-state grid — feeds the shared share text's emoji grid
+  // (and doubles as verifiable proof for server-side score validation).
+  const stateGrid = useMemo(
+    () => guesses.map((g) => score(target, g)),
+    [guesses, target],
+  );
 
   const saveName = useCallback(() => {
     setName(name);
@@ -437,7 +404,8 @@ export default function WordlePage() {
           score={done === "win" ? ROWS - guesses.length + 1 : 0}
           time={elapsed}
           rank={submitted?.rank}
-          meta={{ guesses: guesses.length, won: done === "win", target }}
+          locale={locale}
+          meta={{ guesses: guesses.length, won: done === "win", target, states: stateGrid }}
         />
       ) : null}
 
@@ -517,9 +485,14 @@ export default function WordlePage() {
             ) : null}
 
             <div className="mt-4 flex gap-2">
-              <button onClick={share} className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] py-2 text-sm font-bold hover:border-indigo-400/40">
-                Share
-              </button>
+              <ShareButton
+                game="wordle"
+                score={done === "win" ? ROWS - guesses.length + 1 : 0}
+                time={elapsed}
+                locale={locale}
+                meta={{ guesses: guesses.length, won: done === "win", states: stateGrid }}
+                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] py-2 text-sm font-bold hover:border-indigo-400/40"
+              />
               <button onClick={() => { setShowModal(false); setUnlimited(true); }} className="flex-1 rounded-lg bg-indigo-600 py-2 text-sm font-bold">
                 Play again
               </button>

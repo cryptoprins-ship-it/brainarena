@@ -366,6 +366,7 @@ export default function BogglePage() {
           score={score}
           time={DURATION}
           rank={submitted?.rank}
+          locale={locale}
           meta={{ found: found.length }}
         />
       ) : null}

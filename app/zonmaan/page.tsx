@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
 import { generateZonMaan, edgeKey, type ZonMaanPuzzle } from "@/lib/games/zonmaan";
 import { dayIndex } from "@/lib/games/kronen";
@@ -392,6 +393,7 @@ export default function ZonMaanPage() {
           <WinModal
             elapsed={elapsed}
             hintsUsed={HINTS_FOR[difficulty] - hintsLeft}
+            difficulty={difficulty}
             bestSeconds={bestSeconds}
             isNewBest={newBest}
             onPlayAgain={onReset}
@@ -437,6 +439,7 @@ export default function ZonMaanPage() {
 function WinModal({
   elapsed,
   hintsUsed,
+  difficulty,
   bestSeconds,
   isNewBest,
   onPlayAgain,
@@ -444,6 +447,7 @@ function WinModal({
 }: {
   elapsed: number;
   hintsUsed: number;
+  difficulty: string;
   bestSeconds: number | null;
   isNewBest: boolean;
   onPlayAgain: () => void;
@@ -451,12 +455,6 @@ function WinModal({
 }) {
   const { t } = useLocale();
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
-  const onShare = useCallback(() => {
-    const txt = `Zon & Maan 6×6 — ${fmt(elapsed)} — BrainArena`;
-    if (typeof navigator !== "undefined" && navigator.clipboard) {
-      navigator.clipboard.writeText(txt).catch(() => {});
-    }
-  }, [elapsed]);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
@@ -492,12 +490,14 @@ function WinModal({
           >
             {t("win_new_puzzle")}
           </button>
-          <button
-            onClick={onShare}
+          <ShareButton
+            game="zonmaan"
+            score={Math.max(1, 100000 - elapsed)}
+            time={elapsed}
+            meta={{ difficulty, won: true, hintsUsed }}
+            label={t("win_share")}
             className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm"
-          >
-            {t("win_share")}
-          </button>
+          />
         </div>
       </div>
     </div>
