@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useLocale } from "@/lib/i18n";
 
 // Cookie / consent banner. Three categories:
 //   - necessary: always on (game state, language, leaderboard submissions
@@ -65,6 +66,7 @@ declare global {
 }
 
 export default function CookieBanner() {
+  const { t } = useLocale();
   const [consent, setConsent] = useState<ConsentState | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
@@ -136,73 +138,69 @@ export default function CookieBanner() {
       {hydrated && open ? (
         <div
           role="dialog"
-          aria-label="Cookie settings"
+          aria-label={t("cookie_settings")}
           aria-modal="false"
           className="fixed inset-x-0 bottom-0 z-[60] flex justify-center px-3 pb-3 pt-2"
         >
           <div className="w-full max-w-3xl rounded-2xl border border-[#2a2a2a] bg-[#0f0f0f]/95 p-5 text-sm text-gray-200 shadow-2xl backdrop-blur">
             {!customise ? (
               <>
-                <p className="font-bold text-white">We use cookies</p>
-                <p className="mt-1 text-gray-300">
-                  BrainArena stores game progress on your device. We optionally use
-                  analytics and advertising cookies to keep the site free.
-                  You decide what loads.
-                </p>
+                <p className="font-bold text-white">{t("cookie_title")}</p>
+                <p className="mt-1 text-gray-300">{t("cookie_body")}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={acceptAll}
                     className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold hover:bg-indigo-500"
                   >
-                    Accept all
+                    {t("cookie_accept_all")}
                   </button>
                   <button
                     type="button"
                     onClick={rejectAll}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Reject all
+                    {t("cookie_reject_all")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomise(true)}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Customise
+                    {t("cookie_customise")}
                   </button>
                   <a
                     href="/privacy"
                     className="ml-auto self-center text-xs text-gray-400 underline hover:text-indigo-300"
                   >
-                    Privacy policy
+                    {t("cookie_privacy")}
                   </a>
                 </div>
               </>
             ) : (
               <>
-                <p className="font-bold text-white">Cookie settings</p>
-                <p className="mt-1 text-xs text-gray-400">
-                  Toggle each category. Necessary storage is always on — it's just
-                  your local game progress.
-                </p>
+                <p className="font-bold text-white">{t("cookie_settings")}</p>
+                <p className="mt-1 text-xs text-gray-400">{t("cookie_settings_desc")}</p>
                 <div className="mt-3 space-y-2">
                   <Row
-                    title="Necessary"
-                    desc="Game state, language preference, leaderboard submissions you initiate. Stored on your device, never sent to ad networks."
+                    title={t("cookie_cat_necessary")}
+                    desc={t("cookie_desc_necessary")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked
                     locked
                     onChange={() => {}}
                   />
                   <Row
-                    title="Analytics"
-                    desc="Anonymous traffic counts. Helps us understand which games are popular. Off by default."
+                    title={t("cookie_cat_analytics")}
+                    desc={t("cookie_desc_analytics")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked={draftAnalytics}
                     onChange={setDraftAnalytics}
                   />
                   <Row
-                    title="Advertising"
-                    desc="Google AdSense delivers and personalises ads. Sets cookies that may identify your device across sites. Off by default — site is free either way; ads keep it free for everyone."
+                    title={t("cookie_cat_advertising")}
+                    desc={t("cookie_desc_advertising")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked={draftAdvertising}
                     onChange={setDraftAdvertising}
                   />
@@ -213,14 +211,14 @@ export default function CookieBanner() {
                     onClick={saveCustom}
                     className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold hover:bg-indigo-500"
                   >
-                    Save choices
+                    {t("cookie_save")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomise(false)}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Back
+                    {t("cookie_back")}
                   </button>
                 </div>
               </>
@@ -237,12 +235,14 @@ function Row({
   desc,
   checked,
   locked,
+  alwaysOnLabel,
   onChange,
 }: {
   title: string;
   desc: string;
   checked: boolean;
   locked?: boolean;
+  alwaysOnLabel: string;
   onChange: (v: boolean) => void;
 }) {
   return (
@@ -257,7 +257,7 @@ function Row({
       <span className="flex-1">
         <span className="font-bold text-white">{title}</span>
         {locked ? (
-          <span className="ml-2 rounded bg-[#1f1f1f] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">Always on</span>
+          <span className="ml-2 rounded bg-[#1f1f1f] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">{alwaysOnLabel}</span>
         ) : null}
         <span className="mt-1 block text-xs text-gray-400">{desc}</span>
       </span>
