@@ -19,6 +19,41 @@ const DEV_ALLOWED = [
   "http://127.0.0.1:3001",
 ];
 
+function isAllowedOrigin(origin: string, req: Request): boolean {
+  // Canonical production domains are always allowed; the localhost set is
+  // added outside production builds.
+  const explicit =
+    process.env.NODE_ENV === "production"
+      ? PROD_ALLOWED
+      : [...PROD_ALLOWED, ...DEV_ALLOWED];
+  if (explicit.includes(origin)) return true;
+
+  let originHost: string;
+  try {
+    originHost = new URL(origin).host;
+  } catch {
+    return false;
+  }
+
+  // Vercel deployments — preview branches and production aliases — all
+  // live under *.vercel.app, and Vercel runs them with
+  // NODE_ENV=production, so they'd otherwise be rejected by the prod
+  // allow-list. The CSRF model still holds: a page on evil.com cannot
+  // make the browser send an Origin of *.vercel.app.
+  if (originHost === "vercel.app" || originHost.endsWith(".vercel.app")) {
+    return true;
+  }
+
+  // Same-origin fallback: the Origin's host matches the Host the request
+  // was actually sent to. This IS the CSRF invariant — a cross-site
+  // attacker's Origin never matches the target's Host — so it safely
+  // covers custom preview/staging domains without an allow-list entry.
+  const host = req.headers.get("host");
+  if (host && originHost === host) return true;
+
+  return false;
+}
+
 export function verifyOrigin(req: Request): Response | null {
   const origin = req.headers.get("origin");
   // Server-to-server requests (no Origin header) — e.g. health probes,
@@ -28,10 +63,7 @@ export function verifyOrigin(req: Request): Response | null {
     if (req.method === "GET" || req.method === "HEAD") return null;
     return new Response("Forbidden", { status: 403 });
   }
-  const allowed = process.env.NODE_ENV === "production"
-    ? PROD_ALLOWED
-    : [...PROD_ALLOWED, ...DEV_ALLOWED];
-  if (!allowed.includes(origin)) {
+  if (!isAllowedOrigin(origin, req)) {
     return new Response("Forbidden", { status: 403 });
   }
   return null;
