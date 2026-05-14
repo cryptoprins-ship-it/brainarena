@@ -7,21 +7,15 @@ import type {
   ScoreEntry,
   ChampionStanding,
 } from "@/lib/leaderboard/standings";
+import { useLocale } from "@/lib/i18n";
+import { getHowToPlay } from "@/lib/howToPlay";
 
-const GAMES: { key: Game; label: string }[] = [
-  { key: "wordle", label: "Wordle" },
-  { key: "boggle", label: "Boggle" },
-  { key: "sudoku", label: "Sudoku" },
-  { key: "typing", label: "Typing" },
-  { key: "tiledrop", label: "TileDrop" },
-  { key: "colormatch", label: "ColorMatch" },
-  { key: "letterstack", label: "LetterStack" },
-  { key: "vlakken", label: "Vlakken" },
-  { key: "verbind", label: "Verbind" },
-  { key: "zonmaan", label: "Zon & Maan" },
-  { key: "kronen", label: "Kronen" },
-  { key: "minesweeper", label: "Minesweeper" },
-  { key: "connections", label: "Connections" },
+// Tab order only — display labels come from lib/howToPlay.ts so they
+// re-localise with the language switcher.
+const GAME_ORDER: Game[] = [
+  "wordle", "boggle", "sudoku", "typing", "tiledrop", "colormatch",
+  "letterstack", "vlakken", "verbind", "zonmaan", "kronen",
+  "minesweeper", "connections",
 ];
 
 const PERIODS: { key: Period; label: string }[] = [
@@ -146,6 +140,8 @@ function ChampionPanel() {
 }
 
 export default function LeaderboardPage() {
+  const { locale } = useLocale();
+  const howTo = getHowToPlay(locale);
   const [game, setGame] = useState<Game>("wordle");
   const [period, setPeriod] = useState<Period>("today");
   const [scores, setScores] = useState<ScoreEntry[]>([]);
@@ -193,17 +189,17 @@ export default function LeaderboardPage() {
       ) : null}
 
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        {GAMES.map((g) => (
+        {GAME_ORDER.map((g) => (
           <button
-            key={g.key}
-            onClick={() => setGame(g.key)}
+            key={g}
+            onClick={() => setGame(g)}
             className={`rounded-lg px-3 py-1.5 text-sm border transition ${
-              game === g.key
+              game === g
                 ? "border-indigo-400 bg-indigo-500/20 text-indigo-100"
                 : "border-[#2a2a2a] bg-[#1a1a1a] text-gray-300 hover:border-[#3a3a3c]"
             }`}
           >
-            {g.label}
+            {howTo[g].label}
           </button>
         ))}
       </div>
