@@ -44,9 +44,9 @@ export default function ShareButton({
   rank,
   locale,
   className,
-  label = "Share",
+  label,
 }: Props) {
-  const { locale: uiLocale } = useLocale();
+  const { locale: uiLocale, t } = useLocale();
   const [toast, setToast] = useState<string | null>(null);
   const [menu, setMenu] = useState<{ left: number; bottom: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement | null>(null);
@@ -112,9 +112,9 @@ export default function ShareButton({
   async function onCopy() {
     setMenu(null);
     const outcome = await copyShareText(game, payload);
-    if (outcome === "copied") flashToast("Copied!");
-    else if (outcome === "prompted") flashToast("Copy from the dialog");
-    else flashToast("Couldn't copy — try again");
+    if (outcome === "copied") flashToast(t("share_copied"));
+    else if (outcome === "prompted") flashToast(t("share_copy_dialog"));
+    else flashToast(t("share_copy_failed"));
   }
 
   return (
@@ -130,14 +130,14 @@ export default function ShareButton({
           "rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm font-bold hover:border-indigo-400/40"
         }
       >
-        {label}
+        {label ?? t("win_share")}
       </button>
 
       {menu ? (
         <div
           ref={menuRef}
           role="menu"
-          aria-label="Share to"
+          aria-label={t("share_to_aria")}
           style={{ left: menu.left, bottom: menu.bottom, width: MENU_WIDTH }}
           className="fixed z-[60] max-h-[60vh] overflow-y-auto rounded-lg border border-[#2a2a2a] bg-[#111] py-1 shadow-xl shadow-black/60"
         >
@@ -160,7 +160,7 @@ export default function ShareButton({
             onClick={onCopy}
             className="block w-full border-t border-[#2a2a2a] px-3 py-2 text-left text-sm text-gray-200 hover:bg-[#1a1a1a]"
           >
-            Copy text
+            {t("share_copy_text")}
           </button>
         </div>
       ) : null}

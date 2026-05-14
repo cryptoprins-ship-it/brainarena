@@ -19,7 +19,7 @@ const GAME_ORDER: GameKey[] = [
 ];
 
 export default function NavBar() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const howTo = getHowToPlay(locale);
   const [medals, setMedals] = useState(0);
   useEffect(() => { setMedals(medalCount(loadStats())); }, []);
@@ -41,12 +41,12 @@ export default function NavBar() {
               {howTo[g].label}
             </Link>
           ))}
-          <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">Leaderboard</Link>
+          <Link href="/leaderboard" className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">{t("nav_leaderboard")}</Link>
           <Link
             href="/achievements"
             className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]"
           >
-            🏆 Achievements
+            🏆 {t("nav_achievements")}
             {medals > 0 ? (
               <span className="ml-1 rounded-full bg-indigo-600 px-1.5 py-0.5 text-[10px] font-bold leading-none">
                 🥇 {medals}
