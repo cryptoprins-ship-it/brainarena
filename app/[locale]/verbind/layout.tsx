@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/verbind",
+    title: "Verbind — Connect-the-Numbers Path Puzzle",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Trace one continuous path through every cell, in numerical order, on a daily grid. Easy / Medium / Hard.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleVerbindLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="verbind" />
       {children}
     </>
   );

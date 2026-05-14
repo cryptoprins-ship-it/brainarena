@@ -7,7 +7,22 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
 // stay in lockstep with LOCALIZED_PATHS in lib/seo/hreflang.ts: a path
 // appears here only after its /<locale>/<path> subtree exists.
 const LOCALIZED_SITEMAP_PATHS: ReadonlySet<string> = new Set<string>([
+  "/",
+  "/wordle",
+  "/boggle",
   "/sudoku",
+  "/typing",
+  "/tiledrop",
+  "/colormatch",
+  "/letterstack",
+  "/vlakken",
+  "/verbind",
+  "/zonmaan",
+  "/kronen",
+  "/minesweeper",
+  "/connections",
+  "/how-to-play",
+  "/about",
 ]);
 
 export default function sitemap(): MetadataRoute.Sitemap {

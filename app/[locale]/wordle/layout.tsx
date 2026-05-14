@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/wordle",
+    title: "Play Wordle Free — Dutch, German, French, Spanish",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Free daily Wordle in 5 languages — English, Dutch, German, French, Spanish. Same answer for everyone, share your streak.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleWordleLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="wordle" />
       {children}
     </>
   );

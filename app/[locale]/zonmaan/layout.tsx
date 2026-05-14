@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/zonmaan",
+    title: "Zon & Maan — Sun & Moon Logic Grid",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Fill a daily grid with suns and moons. No three in a row, balanced rows and columns, plus = / × edge constraints. Easy / Medium / Hard.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleZonMaanLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="zonmaan" />
       {children}
     </>
   );

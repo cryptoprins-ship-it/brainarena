@@ -6,20 +6,20 @@ export const generateMetadata = (props: {
 }) =>
   buildLocaleMetadata({
     params: props.params,
-    path: "/sudoku",
-    title: "Free Daily Sudoku Puzzle",
+    path: "/colormatch",
+    title: "ColorMatch — RAL Color Code Quiz Game",
     description:
-      "Play a free daily Sudoku puzzle online. Easy, medium and hard daily challenges — same puzzle for everyone, race the clock on the global leaderboard.",
+      "Identify RAL colors used by professional painters and facade specialists. 10 rounds, multiple choice, 5-second rounds. Used by Renisual professionals.",
   });
 
-export default function LocaleSudokuLayout({
+export default function LocaleColorMatchLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <>
-      <GameJsonLd slug="sudoku" />
+      <GameJsonLd slug="colormatch" />
       {children}
     </>
   );
