@@ -9,6 +9,7 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { useLocale } from "@/lib/i18n";
 
 const ROUNDS = 10;
 const ROUND_MS = 5000;
@@ -50,14 +51,18 @@ function buildQuestions(seed: number): Question[] {
   });
 }
 
-function ratingFor(correct: number): string {
-  if (correct === 10) return "RAL Master!";
-  if (correct >= 7) return "Professional";
-  if (correct >= 4) return "Painter";
-  return "Beginner";
+// Returns a TranslationKey for the skill tier — callers run it through
+// t() to display, and it's also stored in score meta as a stable
+// (locale-independent) telemetry tag.
+function ratingFor(correct: number) {
+  if (correct === 10) return "cm_rating_master" as const;
+  if (correct >= 7) return "cm_rating_pro" as const;
+  if (correct >= 4) return "cm_rating_painter" as const;
+  return "cm_rating_beginner" as const;
 }
 
 export default function ColorMatchPage() {
+  const { t } = useLocale();
   const todayIdx = useMemo(() => dayIndex(), []);
   const questions = useMemo(() => buildQuestions(todayIdx), [todayIdx]);
   const [round, setRound] = useState(0);
@@ -150,8 +155,8 @@ export default function ColorMatchPage() {
     return (
       <div className="mx-auto w-full max-w-md px-4 py-8">
         <StreakBanner />
-        <h1 className="text-3xl font-black">Final score: {score}</h1>
-        <p className="mt-1 text-sm text-gray-300">{correct}/{ROUNDS} correct · <span className="text-indigo-300">{ratingFor(correct)}</span></p>
+        <h1 className="text-3xl font-black">{t("cm_final_score", { score })}</h1>
+        <p className="mt-1 text-sm text-gray-300">{t("cm_correct", { n: correct, total: ROUNDS })} · <span className="text-indigo-300">{t(ratingFor(correct))}</span></p>
 
         <div className="mt-4 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
           {!submitted && eligibleToSubmit ? (
@@ -159,18 +164,18 @@ export default function ColorMatchPage() {
               <input
                 value={name}
                 onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("name_gate_placeholder")}
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
               />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
             </div>
           ) : null}
           {submitted ? (
-            <p className="text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+            <p className="text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
           ) : null}
           {!submitted && !eligibleToSubmit ? (
             <p className="text-xs text-amber-300">
-              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
         </div>
@@ -204,9 +209,9 @@ export default function ColorMatchPage() {
         <div>
           <h1 className="text-2xl font-black">ColorMatch</h1>
           <p className="text-xs text-gray-400">
-            Round {round + 1}/{ROUNDS} · ★ {score} ·{" "}
+            {t("cm_round", { n: round + 1, total: ROUNDS })} · ★ {score} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
-              {Math.min(dailyAttempts + 1, MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+              {Math.min(dailyAttempts + 1, MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
             </span>
           </p>
         </div>
@@ -222,7 +227,7 @@ export default function ColorMatchPage() {
         style={{ background: target.hex }}
       />
 
-      <p className="mt-3 text-center text-xs uppercase tracking-widest text-gray-500">Which RAL is this?</p>
+      <p className="mt-3 text-center text-xs uppercase tracking-widest text-gray-500">{t("cm_which_ral")}</p>
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         {q.choices.map((idx) => {

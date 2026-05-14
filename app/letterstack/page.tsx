@@ -16,7 +16,7 @@ const POINTS = (len: number) => len < 3 ? 0 : len === 3 ? 10 : len === 4 ? 25 : 
 type FallingLetter = { id: number; ch: string; x: number; t: number };
 
 export default function LetterStackPage() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const [stack, setStack] = useState<string[]>([]);
   const [falling, setFalling] = useState<FallingLetter[]>([]);
   const [score, setScore] = useState(0);
@@ -197,15 +197,15 @@ export default function LetterStackPage() {
         <div>
           <h1 className="text-2xl font-black">LetterStack</h1>
           <p className="text-xs text-gray-400">
-            Press letter keys to catch · Enter to submit · {locale.toUpperCase()} ·{" "}
+            {t("ls_controls")} · {locale.toUpperCase()} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
-              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} ranked
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
             </span>
           </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
-          <span className="rounded-md bg-red-500/20 px-3 py-1 text-red-200">missed {missed}</span>
+          <span className="rounded-md bg-red-500/20 px-3 py-1 text-red-200">{t("ls_missed", { n: missed })}</span>
         </div>
       </div>
 
@@ -224,13 +224,13 @@ export default function LetterStackPage() {
             </div>
           );
         })}
-        {slowMs > 0 ? <div className="absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200">⏸️ Slow</div> : null}
+        {slowMs > 0 ? <div className="absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200">⏸️ {t("ls_slow")}</div> : null}
       </div>
 
       <div key={shakeKey} className={`mt-4 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 ${shakeKey ? "shake" : ""}`}>
-        <p className="text-xs uppercase tracking-wider text-gray-500">Stack ({stack.length}/{STACK_LIMIT})</p>
+        <p className="text-xs uppercase tracking-wider text-gray-500">{t("ls_stack", { n: stack.length, max: STACK_LIMIT })}</p>
         <div className="mt-1 flex flex-wrap gap-1">
-          {stack.length === 0 ? <span className="text-xs text-gray-600">empty</span> : stack.map((c, i) => (
+          {stack.length === 0 ? <span className="text-xs text-gray-600">{t("label_empty")}</span> : stack.map((c, i) => (
             <span key={i} className="rounded bg-[#0a0a0a] px-2 py-1 text-sm font-bold uppercase">{c}</span>
           ))}
         </div>
@@ -241,19 +241,19 @@ export default function LetterStackPage() {
           value={input}
           onChange={(e) => setInput(e.target.value.replace(/[^a-zA-Z]/g, "").toLowerCase().slice(0, 16))}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submitWord(); } }}
-          placeholder="Type a word & Enter"
+          placeholder={t("ls_input_placeholder")}
           className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-base"
         />
-        <button onClick={submitWord} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Submit</button>
+        <button onClick={submitWord} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("submit")}</button>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <button onClick={useBomb} disabled={!bombAvailable} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 disabled:opacity-40">💣 Bomb {bombAvailable ? "(ready)" : ""}</button>
-        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⏸️ Slow {slowMs > 0 ? `${(slowMs/1000).toFixed(0)}s` : ""}</span>
-        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⭐ Wild {wildAvailable ? "(ready)" : ""}</span>
+        <button onClick={useBomb} disabled={!bombAvailable} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 disabled:opacity-40">💣 {t("ls_bomb")} {bombAvailable ? t("ls_ready") : ""}</button>
+        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⏸️ {t("ls_slow")} {slowMs > 0 ? `${(slowMs/1000).toFixed(0)}s` : ""}</span>
+        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⭐ {t("ls_wild")} {wildAvailable ? t("ls_ready") : ""}</span>
       </div>
 
-      <p className="mt-3 text-xs text-gray-500">Letters use power-ups every 500 points.</p>
+      <p className="mt-3 text-xs text-gray-500">{t("ls_powerup_hint")}</p>
 
       {/* Mobile letter buttons */}
       <div className="mt-4 grid grid-cols-9 gap-1 md:hidden">
@@ -274,24 +274,24 @@ export default function LetterStackPage() {
 
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Stack overflowed · {score} pts</h2>
+          <h2 className="text-xl font-black">{t("ls_game_over", { score })}</h2>
           {!submitted && eligibleToSubmit ? (
             <div className="mt-3 flex gap-2">
               <input
                 value={name}
                 onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
+                placeholder={t("name_gate_placeholder")}
                 className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
               />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
+              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
             </div>
           ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+            <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
           ) : null}
           {!eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">
-              Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts today. Tomorrow resets the counter.
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
         </div>
