@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import type { ScoreEntry } from "@/lib/leaderboard/standings";
 
@@ -72,20 +72,49 @@ export default function WordleEndLeaderboard({
     // appended for this player.
   }, [locale, submittedRank]);
 
-  // Locate the player's row in the filtered+sorted list. Match on
+  // Locate the player's row in the fetched list. Match on
   // name+attempts+time; ties on (name, score, time) are rare enough on
   // a daily board that the first hit is the right one. The server
   // substitutes "Anonymous" for empty submissions, so mirror that
   // mapping when the local player has no saved name.
   const effectiveName = playerName || "Anonymous";
-  const playerIndex = scores.findIndex(
+  const fetchedIndex = scores.findIndex(
     (e) =>
       e.name === effectiveName &&
       attemptsOf(e) === playerGuesses &&
       (e.time ?? -1) === playerTime,
   );
 
-  const top = scores.slice(0, TOP_N);
+  // The leaderboard JSON is on Vercel's per-container ephemeral disk:
+  // a POST and a GET can land on different serverless instances, so the
+  // entry the player just submitted may not come back in our fetch even
+  // though the rank response said it landed. Synthesize the player's row
+  // when it's missing so they always see themselves on the board. Memo
+  // keeps the entry's identity (and React key) stable across renders.
+  const playerEntry = useMemo<ScoreEntry>(
+    () => ({
+      name: effectiveName,
+      score: ROWS - playerGuesses + 1,
+      time: playerTime,
+      language: locale,
+      date: "local-player",
+      meta: { guesses: playerGuesses },
+    }),
+    [effectiveName, playerGuesses, playerTime, locale],
+  );
+  const merged =
+    fetchedIndex >= 0
+      ? scores
+      : [...scores, playerEntry].sort(
+          (a, b) =>
+            b.score - a.score || (a.time ?? Infinity) - (b.time ?? Infinity),
+        );
+  const playerIndex =
+    fetchedIndex >= 0
+      ? fetchedIndex
+      : merged.indexOf(playerEntry);
+
+  const top = merged.slice(0, TOP_N);
   // If the player ranked below the visible top, append their row with
   // a separator so they always see where they stand.
   const showPlayerBelow = playerIndex >= TOP_N;
@@ -116,12 +145,6 @@ export default function WordleEndLeaderboard({
                   {t("home_loading")}
                 </td>
               </tr>
-            ) : scores.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-2 py-4 text-center text-gray-500">
-                  {t("wordle_lb_empty")}
-                </td>
-              </tr>
             ) : (
               <>
                 {top.map((e, i) => (
@@ -144,7 +167,7 @@ export default function WordleEndLeaderboard({
                       </td>
                     </tr>
                     <Row
-                      entry={scores[playerIndex]}
+                      entry={merged[playerIndex]}
                       rank={playerIndex + 1}
                       isPlayer
                       youLabel={t("wordle_lb_you")}
