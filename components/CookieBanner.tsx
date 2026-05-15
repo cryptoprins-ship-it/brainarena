@@ -23,14 +23,41 @@ export type ConsentState = {
 };
 
 const STORAGE_KEY = "brainarena-consent-v1";
+const COOKIE_KEY = "brainarena-consent";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 const CONSENT_VERSION = 1;
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "";
 
-function readConsent(): ConsentState | null {
-  if (typeof window === "undefined") return null;
+// Read the consent cookie. Returns the raw string value or null. Cookies
+// survive Brave's aggressive Shields and Safari's intelligent tracking
+// prevention better than localStorage, which both will wipe between
+// sessions — that's why we don't rely on localStorage alone.
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const prefix = `${name}=`;
+  for (const part of document.cookie.split("; ")) {
+    if (part.startsWith(prefix)) {
+      try {
+        return decodeURIComponent(part.slice(prefix.length));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function writeCookie(name: string, value: string, maxAgeSeconds: number) {
+  if (typeof document === "undefined") return;
+  document.cookie =
+    `${name}=${encodeURIComponent(value)}` +
+    `; Max-Age=${maxAgeSeconds}` +
+    `; Path=/` +
+    `; SameSite=Lax`;
+}
+
+function parseConsent(raw: string): ConsentState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<ConsentState> & { v?: number };
     if (parsed.v !== CONSENT_VERSION) return null;
     return {
@@ -44,14 +71,37 @@ function readConsent(): ConsentState | null {
   }
 }
 
-function writeConsent(c: ConsentState) {
+function readConsent(): ConsentState | null {
+  if (typeof window === "undefined") return null;
+  // Prefer the cookie — it's the durable copy on browsers that wipe
+  // localStorage between sessions. Fall back to localStorage so users
+  // who consented before this cookie path existed aren't re-prompted.
+  const fromCookie = readCookie(COOKIE_KEY);
+  if (fromCookie) {
+    const parsed = parseConsent(fromCookie);
+    if (parsed) return parsed;
+  }
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...c, v: CONSENT_VERSION })
-    );
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return parseConsent(raw);
   } catch {
-    // localStorage quota / private mode — fail silent, banner re-shows next visit.
+    return null;
+  }
+}
+
+function writeConsent(c: ConsentState) {
+  const payload = JSON.stringify({ ...c, v: CONSENT_VERSION });
+  // Write both: cookie is the source of truth across Brave/Safari
+  // sessions, localStorage keeps the existing behaviour for everyone
+  // else (and is the channel the rest of the app can synchronously
+  // inspect without parsing document.cookie).
+  writeCookie(COOKIE_KEY, payload, COOKIE_MAX_AGE);
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+  } catch {
+    // localStorage quota / private mode — cookie still carries the
+    // decision into the next session.
   }
   // Notify any listeners (e.g. settings page) that consent changed.
   window.dispatchEvent(new CustomEvent("brainarena:consent", { detail: c }));
