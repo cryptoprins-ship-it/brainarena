@@ -9,6 +9,7 @@ import type {
 } from "@/lib/leaderboard/standings";
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
+import { getName, setName } from "@/lib/scores";
 
 // Tab order only — display labels come from lib/howToPlay.ts so they
 // re-localise with the language switcher.
@@ -140,6 +141,85 @@ function ChampionPanel() {
   );
 }
 
+// Lets a player change the leaderboard name that's pinned in localStorage.
+// Without this UI a typo or shared device leaves the wrong name attached to
+// every future submission — the regular NameGate only opens on first play.
+function PlayerNameEditor() {
+  const [name, setNameState] = useState<string>("");
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState("");
+
+  useEffect(() => {
+    setNameState(getName());
+  }, []);
+
+  function startEdit() {
+    setDraft(name);
+    setEditing(true);
+  }
+
+  function save() {
+    const trimmed = draft.trim().slice(0, 24);
+    if (!trimmed) return;
+    setName(trimmed);
+    setNameState(trimmed);
+    setEditing(false);
+  }
+
+  function cancel() {
+    setEditing(false);
+    setDraft("");
+  }
+
+  return (
+    <div className="mt-4 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3 text-sm">
+      {editing ? (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            maxLength={24}
+            autoFocus
+            placeholder="Your name"
+            className="flex-1 min-w-0 rounded border border-[#3a3a3a] bg-[#0a0a0a] px-3 py-1.5 focus:outline-none focus:border-indigo-400"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") save();
+              else if (e.key === "Escape") cancel();
+            }}
+          />
+          <button
+            onClick={save}
+            disabled={!draft.trim()}
+            className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
+          >
+            Save
+          </button>
+          <button
+            onClick={cancel}
+            className="rounded border border-[#3a3a3a] px-3 py-1.5 text-xs text-gray-300 hover:border-[#4a4a4a]"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center justify-between gap-2">
+          <span>
+            <span className="text-gray-400">Playing as: </span>
+            <span className="font-bold">{name || "Anonymous"}</span>
+          </span>
+          <button
+            onClick={startEdit}
+            className="rounded border border-[#3a3a3a] px-3 py-1 text-xs text-gray-300 hover:border-indigo-400 hover:text-indigo-200"
+          >
+            {name ? "Change" : "Set name"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function LeaderboardPage() {
   const { locale, t } = useLocale();
   const howTo = getHowToPlay(locale);
@@ -174,6 +254,8 @@ export default function LeaderboardPage() {
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
       <h1 className="text-3xl font-black md:text-4xl">{t("lb_title")}</h1>
       <p className="mt-2 text-sm text-gray-400">{t("lb_subtitle")}</p>
+
+      <PlayerNameEditor />
 
       {/* Monthly all-round championship — only shown on the monthly view,
           which is the period it's scoped to. */}
