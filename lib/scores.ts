@@ -118,6 +118,39 @@ export function ensurePlayerName(): Promise<string> {
   return pendingNamePrompt;
 }
 
+// Locale → home country fallback for `detectCountry`. Mirrors the
+// supported i18n locales — anything outside this map (or `en`, which
+// covers too many countries to pick a default for) returns undefined
+// and renders as the 🌍 globe in the leaderboard.
+const LOCALE_HOME_COUNTRY: Record<string, string> = {
+  nl: "NL",
+  de: "DE",
+  fr: "FR",
+  es: "ES",
+  "pt-BR": "BR",
+  ja: "JP",
+  hi: "IN",
+};
+
+function detectCountry(locale?: string): string | undefined {
+  // Browser regional tag wins — a Dutch speaker living in Belgium gets
+  // "nl-BE" → "BE" instead of being mislabeled as "NL". navigator.languages
+  // (plural) holds the full preference list; scan for the first tag with
+  // a 2-letter region subtag.
+  if (typeof navigator !== "undefined") {
+    const tags: string[] = Array.isArray(navigator.languages)
+      ? [...navigator.languages]
+      : [];
+    if (navigator.language) tags.unshift(navigator.language);
+    for (const tag of tags) {
+      const m = /^[A-Za-z]{2,3}-([A-Za-z]{2})(?:-|$)/.exec(tag);
+      if (m) return m[1].toUpperCase();
+    }
+  }
+  if (locale && LOCALE_HOME_COUNTRY[locale]) return LOCALE_HOME_COUNTRY[locale];
+  return undefined;
+}
+
 export async function submitScore(body: SubmitBody): Promise<{ rank: number } | null> {
   // Gate on having a real player name. If the call site passed an empty
   // string or the legacy "Anonymous" placeholder, prompt the player via
@@ -129,6 +162,15 @@ export async function submitScore(body: SubmitBody): Promise<{ rank: number } | 
     const name = await ensurePlayerName();
     if (!name) return null; // player dismissed the prompt — skip submission
     finalBody = { ...body, name };
+  }
+  // Derive a country code if the call site didn't supply one — without
+  // it every leaderboard row shows the 🌍 fallback instead of the
+  // player's flag. Browser-reported locale wins (e.g. nl-NL → NL), and
+  // we fall back to the app locale's home country so a player whose
+  // browser only sends "nl" without a region still gets a flag.
+  if (!finalBody.country) {
+    const country = detectCountry(finalBody.language);
+    if (country) finalBody = { ...finalBody, country };
   }
   try {
     const res = await fetch("/api/leaderboard", {
