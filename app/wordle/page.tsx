@@ -420,7 +420,7 @@ export default function WordlePage() {
               <p className="mt-2 text-sm text-gray-300">{t("wordle_word_was")} <span className="font-bold uppercase text-emerald-400">{target}</span></p>
             )}
 
-            {stats ? (
+            {stats && !unlimited ? (
               <>
                 <div className="mt-5 grid grid-cols-4 gap-2 text-center">
                   <Stat label={t("wordle_stat_played")} value={stats.played} />
