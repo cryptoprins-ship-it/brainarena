@@ -285,6 +285,17 @@ export default function VlakkenPage() {
     (idx: number, e: React.PointerEvent<HTMLButtonElement>) => {
       if (done) return;
       e.preventDefault();
+      // Clear any sticky error from a previous failed attempt the moment
+      // the player starts a new drag — the tooltip + its dismiss button
+      // hovering over the grid made re-dragging feel blocked, even though
+      // the cells underneath were technically still interactive. The
+      // 5s auto-dismiss timer also gets cancelled so it can't reopen
+      // the tooltip mid-drag.
+      setError(null);
+      if (errorTimerRef.current) {
+        window.clearTimeout(errorTimerRef.current);
+        errorTimerRef.current = null;
+      }
       setDrag({ startCell: idx, currentCell: idx, pointerId: e.pointerId });
     },
     [done]
