@@ -385,7 +385,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     cookie_back: "Back",
   },
   nl: {
-    game_vlakken: "Patches",
+    game_vlakken: "Vlakken",
     game_vlakken_desc: "Vul het rooster door de vormen rond de getallen te voltooien",
     game_verbind: "Verbind",
     game_verbind_desc: "Verbind de getallen op volgorde via één pad door alle cellen",
