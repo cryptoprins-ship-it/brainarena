@@ -7984,14 +7984,12 @@ ahurit
 ahurites
 aiche
 aiches
-aida
 aidai
 aidaient
 aidais
 aidait
 aidames
 aidant
-aidas
 aidasse
 aidassent
 aidasses
@@ -8374,8 +8372,6 @@ aimassions
 aimat
 aimates
 aime
-aimee
-aimees
 aiment
 aimer
 aimera
@@ -8422,7 +8418,6 @@ airassiez
 airassions
 airat
 airates
-airbus
 aire
 airedale
 airedales
@@ -8442,7 +8437,6 @@ aireriez
 airerions
 airerons
 aireront
-aires
 airez
 airiez
 airions
@@ -9130,7 +9124,6 @@ alertez
 alertiez
 alertions
 alertons
-ales
 alesa
 alesage
 alesages
@@ -10145,7 +10138,6 @@ alpaguions
 alpaguons
 alpax
 alpe
-alpes
 alpestre
 alpestres
 alpha
@@ -13653,7 +13645,6 @@ anoure
 anoures
 anoxemie
 anoxemies
-ans
 anse
 ansee
 ansees
@@ -16814,7 +16805,6 @@ areostyle
 areostyles
 arequier
 arequiers
-ares
 arete
 aretes
 aretiere
@@ -16867,8 +16857,6 @@ argentiez
 argentifere
 argentiferes
 argentin
-argentine
-argentines
 argentins
 argentions
 argentique
@@ -22229,7 +22217,6 @@ avalisions
 avalisons
 avaliste
 avalistes
-avalons
 avals
 avanca
 avancai
@@ -22876,7 +22863,6 @@ avoisinez
 avoisiniez
 avoisinions
 avoisinons
-avons
 avorta
 avortai
 avortaient
@@ -22965,14 +22951,12 @@ avulsion
 avulsions
 avunculaire
 avunculaires
-axa
 axai
 axaient
 axais
 axait
 axames
 axant
-axas
 axasse
 axassent
 axasses
@@ -24364,7 +24348,6 @@ baleiniers
 baleiniez
 baleinions
 baleinons
-bales
 balevre
 balevres
 balisa
@@ -26087,10 +26070,8 @@ baserons
 baseront
 bases
 basez
-basic
 basicite
 basicites
-basics
 baside
 basides
 basiez
@@ -26280,7 +26261,6 @@ bastos
 bastringue
 bastringues
 bat
-bata
 bataclan
 bataclans
 batai
@@ -26337,7 +26317,6 @@ batardes
 batardise
 batardises
 batards
-batas
 batasse
 batassent
 batasses
@@ -26674,7 +26653,6 @@ baugeriez
 baugerions
 baugerons
 baugeront
-bauges
 baugez
 baugiez
 baugions
@@ -27952,7 +27930,6 @@ berrichon
 berrichonne
 berrichonnes
 berrichons
-bers
 bersaglier
 bersagliers
 berthon
@@ -28719,8 +28696,6 @@ bienveillantes
 bienveillants
 bienvenir
 bienvenu
-bienvenue
-bienvenues
 bienvenus
 biere
 bieres
@@ -29242,7 +29217,6 @@ binational
 binationale
 binationales
 binationaux
-bine
 binee
 binees
 binent
@@ -29259,7 +29233,6 @@ bineriez
 binerions
 binerons
 bineront
-bines
 binette
 binettes
 bineuse
@@ -30346,8 +30319,6 @@ blanchaille
 blanchailles
 blanchatre
 blanchatres
-blanche
-blanches
 blanchet
 blanchets
 blancheur
@@ -32076,7 +32047,6 @@ borneriez
 bornerions
 bornerons
 borneront
-bornes
 bornez
 borniez
 bornions
@@ -35027,7 +34997,6 @@ breleriez
 brelerions
 brelerons
 breleront
-breles
 brelez
 breliez
 brelions
@@ -38885,7 +38854,6 @@ calage
 calages
 calai
 calaient
-calais
 calaison
 calaisons
 calait
@@ -39857,9 +39825,7 @@ cambouis
 cambra
 cambrage
 cambrages
-cambrai
 cambraient
-cambrais
 cambrait
 cambrames
 cambrant
@@ -40579,7 +40545,6 @@ canneriez
 cannerions
 cannerons
 canneront
-cannes
 cannetille
 cannetilles
 canneur
@@ -41045,7 +41010,6 @@ capelleront
 capelles
 capelons
 capeons
-capes
 capesien
 capesienne
 capesiennes
@@ -41639,8 +41603,6 @@ capuchons
 capucin
 capucinade
 capucinades
-capucine
-capucines
 capucins
 capulet
 capulets
@@ -43541,7 +43503,6 @@ castreriez
 castrerions
 castrerons
 castreront
-castres
 castrez
 castriez
 castrions
@@ -44022,7 +43983,6 @@ causiez
 causions
 causons
 causse
-causses
 causticite
 causticites
 caustique
@@ -45271,7 +45231,6 @@ chabichous
 chabla
 chablai
 chablaient
-chablais
 chablait
 chablames
 chablant
@@ -47153,8 +47112,6 @@ chatains
 chateau
 chateaubriand
 chateaubriands
-chateaubriant
-chateaubriants
 chateaux
 chatelain
 chatelaine
@@ -49953,7 +49910,6 @@ chthonien
 chthonienne
 chthoniennes
 chthoniens
-chu
 chuchota
 chuchotai
 chuchotaient
@@ -50035,7 +49991,6 @@ chuintez
 chuintiez
 chuintions
 chuintons
-chus
 chut
 chuta
 chutai
@@ -50358,7 +50313,6 @@ cineraires
 cinerama
 cinerite
 cinerites
-cines
 cinetheodolite
 cinetheodolites
 cinetique
@@ -51100,9 +51054,7 @@ claies
 clair
 clairance
 clairances
-claire
 clairement
-claires
 clairet
 clairets
 clairette
@@ -52406,7 +52358,6 @@ clivassiez
 clivassions
 clivat
 clivates
-clive
 clivee
 clivees
 clivent
@@ -52423,7 +52374,6 @@ cliveriez
 cliverions
 cliverons
 cliveront
-clives
 clivez
 cliviez
 clivions
@@ -52834,7 +52784,6 @@ clunisienne
 clunisiennes
 clunisiens
 cluse
-cluses
 clystere
 clysteres
 cnemide
@@ -53014,7 +52963,6 @@ cobelligerant
 cobelligerante
 cobelligerantes
 cobelligerants
-cobol
 cobra
 cobras
 coca
@@ -54399,7 +54347,6 @@ cologarithmes
 colombage
 colombages
 colombe
-colombes
 colombier
 colombiers
 colombin
@@ -65573,7 +65520,6 @@ coutiez
 coutil
 coutils
 coutions
-coutons
 coutre
 coutres
 couts
@@ -67245,7 +67191,6 @@ creusassiez
 creusassions
 creusat
 creusates
-creuse
 creusee
 creusees
 creusement
@@ -67264,7 +67209,6 @@ creuseriez
 creuserions
 creuserons
 creuseront
-creuses
 creuset
 creusets
 creusez
@@ -68397,7 +68341,6 @@ cryptogrammes
 cryptographie
 cryptographies
 cryptons
-cuba
 cubage
 cubages
 cubai
@@ -68410,7 +68353,6 @@ cubais
 cubait
 cubames
 cubant
-cubas
 cubasse
 cubassent
 cubasses
@@ -69784,7 +69726,6 @@ dallais
 dallait
 dallames
 dallant
-dallas
 dallasse
 dallassent
 dallasses
@@ -69995,7 +69936,6 @@ damnions
 damnons
 damoiseau
 damoiseaux
-damons
 dan
 danaide
 danaides
@@ -70329,10 +70269,8 @@ daubiez
 daubions
 daubons
 dauphin
-dauphine
 dauphinelle
 dauphinelles
-dauphines
 dauphinois
 dauphinoise
 dauphinoises
@@ -87611,7 +87549,6 @@ denigrons
 deniiez
 deniions
 denions
-denis
 denitra
 denitrai
 denitraient
@@ -97072,9 +97009,6 @@ desirassiez
 desirassions
 desirat
 desirates
-desire
-desiree
-desirees
 desirent
 desirer
 desirera
@@ -97089,7 +97023,6 @@ desireriez
 desirerions
 desirerons
 desireront
-desires
 desireuse
 desireuses
 desireux
@@ -103032,7 +102965,6 @@ dimorphe
 dimorphes
 dimorphisme
 dimorphismes
-dina
 dinai
 dinaient
 dinais
@@ -103042,10 +102974,8 @@ dinanderie
 dinanderies
 dinandier
 dinandiers
-dinant
 dinar
 dinars
-dinas
 dinasse
 dinassent
 dinasses
@@ -104117,7 +104047,6 @@ disloquez
 disloquiez
 disloquions
 disloquons
-disons
 disparais
 disparaissaient
 disparaissais
@@ -105929,7 +105858,6 @@ dolat
 dolates
 dolce
 dolcissimo
-dole
 doleances
 doleau
 doleaux
@@ -105952,7 +105880,6 @@ doleriez
 dolerions
 dolerons
 doleront
-doles
 dolez
 dolic
 dolichocephale
@@ -106223,14 +106150,12 @@ donjuanesque
 donjuanesques
 donjuanisme
 donjuanismes
-donna
 donnai
 donnaient
 donnais
 donnait
 donnames
 donnant
-donnas
 donnasse
 donnassent
 donnasses
@@ -106573,13 +106498,11 @@ dotions
 dotons
 dots
 doua
-douai
 douaient
 douaire
 douaires
 douairiere
 douairieres
-douais
 douait
 douames
 douane
@@ -107948,7 +107871,6 @@ dures
 durete
 duretes
 durez
-duriez
 durillon
 durillons
 durion
@@ -107963,7 +107885,6 @@ dussent
 dusses
 dussiez
 dussions
-dut
 dutes
 duumvir
 duumvirat
@@ -111265,7 +111186,6 @@ ecossassiez
 ecossassions
 ecossat
 ecossates
-ecosse
 ecossee
 ecossees
 ecossent
@@ -111282,7 +111202,6 @@ ecosseriez
 ecosserions
 ecosserons
 ecosseront
-ecosses
 ecossez
 ecossiez
 ecossions
@@ -114878,9 +114797,7 @@ elisaient
 elisais
 elisait
 elisant
-elise
 elisent
-elises
 elisez
 elisiez
 elision
@@ -135708,7 +135625,6 @@ etamperiez
 etamperions
 etamperons
 etamperont
-etampes
 etampeur
 etampeurs
 etampez
@@ -141798,7 +141714,6 @@ fados
 fafiot
 fafiots
 fagne
-fagnes
 fagot
 fagota
 fagotage
@@ -142041,7 +141956,6 @@ faineantons
 faineants
 faines
 faire
-fais
 faisabilite
 faisabilites
 faisable
@@ -144262,7 +144176,6 @@ fermassent
 fermasses
 fermassiez
 fermassions
-fermat
 fermates
 fermaux
 ferme
@@ -147470,8 +147383,6 @@ floreal
 florence
 florences
 florentin
-florentine
-florentines
 florentins
 flores
 floricole
@@ -148725,7 +148636,6 @@ foreur
 foreurs
 foreuse
 foreuses
-forez
 forfaire
 forfais
 forfaisaient
@@ -149249,8 +149159,6 @@ fortraites
 fortraits
 fortraiture
 fortraitures
-fortran
-fortrans
 forts
 fortuit
 fortuite
@@ -149526,7 +149434,6 @@ fougerait
 fougeras
 fougere
 fougerent
-fougeres
 fougerez
 fougeriez
 fougerions
@@ -155297,7 +155204,6 @@ gayal
 gayals
 gays
 gaz
-gaza
 gazage
 gazages
 gazai
@@ -155309,7 +155215,6 @@ gazant
 gazante
 gazantes
 gazants
-gazas
 gazasse
 gazassent
 gazasses
@@ -155800,7 +155705,6 @@ gemissions
 gemissons
 gemit
 gemites
-gemma
 gemmage
 gemmages
 gemmai
@@ -155810,7 +155714,6 @@ gemmais
 gemmait
 gemmames
 gemmant
-gemmas
 gemmasse
 gemmassent
 gemmasses
@@ -155866,7 +155769,6 @@ genant
 genante
 genantes
 genants
-genas
 genasse
 genassent
 genasses
@@ -156048,7 +155950,6 @@ generons
 generont
 generosite
 generosites
-genes
 genese
 geneses
 genesiaque
@@ -156411,8 +156312,6 @@ germa
 germai
 germaient
 germain
-germaine
-germaines
 germains
 germais
 germait
@@ -156817,7 +156716,6 @@ giletieres
 giletiers
 gilets
 gille
-gilles
 gimblette
 gimblettes
 gin
@@ -156876,8 +156774,6 @@ girolle
 girolles
 giron
 girond
-gironde
-girondes
 girondin
 girondine
 girondines
@@ -156967,7 +156863,6 @@ gisez
 gisiez
 gisions
 gisons
-git
 gita
 gitai
 gitaient
@@ -157280,7 +157175,6 @@ glandeuses
 glandez
 glandiez
 glandions
-glandons
 glandouilla
 glandouillai
 glandouillaient
@@ -158858,7 +158752,6 @@ gouffres
 gouge
 gougere
 gougeres
-gouges
 gougnafier
 gougnafiers
 gouine
@@ -159886,11 +159779,9 @@ grappillons
 grappin
 grappins
 gras
-grasse
 grassement
 grasserie
 grasseries
-grasses
 grasset
 grassets
 grasseya
@@ -160595,7 +160486,6 @@ greneles
 grenelez
 greneliez
 grenelions
-grenelle
 grenellent
 grenellera
 grenellerai
@@ -160608,7 +160498,6 @@ grenelleriez
 grenellerions
 grenellerons
 grenelleront
-grenelles
 grenelons
 grenent
 grener
@@ -161591,7 +161480,6 @@ grisonnez
 grisonniez
 grisonnions
 grisonnons
-grisons
 grisou
 grisoumetre
 grisoumetres
@@ -163484,8 +163372,6 @@ hallebardiers
 halles
 hallier
 halliers
-halloween
-halloweens
 halls
 hallstattien
 hallstattienne
@@ -165750,7 +165636,6 @@ hibernasses
 hibernassiez
 hibernassions
 hibernat
-hibernates
 hibernation
 hibernations
 hibernaux
@@ -166568,7 +166453,6 @@ honorassiez
 honorassions
 honorat
 honorates
-honore
 honoree
 honorees
 honorent
@@ -166585,7 +166469,6 @@ honoreriez
 honorerions
 honorerons
 honoreront
-honores
 honorez
 honoriez
 honorifique
@@ -167012,7 +166895,6 @@ houiller
 houillere
 houilleres
 houillers
-houilles
 houions
 houka
 houkas
@@ -167516,7 +167398,6 @@ humates
 humble
 humblement
 humbles
-hume
 humecta
 humectage
 humectages
@@ -167577,7 +167458,6 @@ humerions
 humerons
 humeront
 humerus
-humes
 humeur
 humeurs
 humez
@@ -173239,7 +173119,6 @@ indurez
 induriez
 indurions
 indurons
-indus
 indusie
 indusies
 industrialisa
@@ -179050,7 +178929,6 @@ ipeca
 ipecas
 ipomee
 ipomees
-ira
 irai
 iraient
 irais
@@ -179067,7 +178945,6 @@ iraqien
 iraqienne
 iraqiennes
 iraqiens
-iras
 irascibilite
 irascibilites
 irascible
@@ -179077,7 +178954,6 @@ irenique
 ireniques
 irenisme
 irenismes
-ires
 irez
 iridectomie
 iridectomies
@@ -179778,7 +179654,6 @@ itou
 iule
 iules
 ive
-ives
 ivette
 ivettes
 ivoire
@@ -180495,7 +180370,6 @@ jasiez
 jasions
 jasmin
 jasmins
-jasons
 jaspa
 jaspai
 jaspaient
@@ -181766,8 +181640,6 @@ julep
 juleps
 jules
 julien
-julienne
-juliennes
 juliens
 jumbo
 jumbos
@@ -181879,7 +181751,6 @@ juponniez
 juponnions
 juponnons
 jupons
-jura
 jurai
 juraient
 jurais
@@ -181887,7 +181758,6 @@ jurait
 jurames
 jurande
 jurant
-juras
 jurasse
 jurassent
 jurasses
@@ -183618,7 +183488,6 @@ landaulets
 landaus
 lande
 lander
-landes
 landgrave
 landgraves
 landgraviat
@@ -186335,7 +186204,6 @@ lilliputien
 lilliputienne
 lilliputiennes
 lilliputiens
-lima
 limace
 limaces
 limacon
@@ -186389,7 +186257,6 @@ limandions
 limandons
 limans
 limant
-limas
 limasse
 limassent
 limasses
@@ -186533,7 +186400,6 @@ limogeriez
 limogerions
 limogerons
 limogeront
-limoges
 limogez
 limogiez
 limogions
@@ -186944,7 +186810,6 @@ lisaient
 lisais
 lisait
 lisant
-lise
 lisent
 lisera
 liserage
@@ -186986,7 +186851,6 @@ liseriez
 liserions
 liseron
 liserons
-lises
 liseur
 liseurs
 liseuse
@@ -187003,7 +186867,6 @@ lisieres
 lisiers
 lisiez
 lisions
-lisons
 lissa
 lissage
 lissages
@@ -187682,7 +187545,6 @@ lointaines
 lointains
 loir
 loirs
-lois
 loisible
 loisibles
 loisir
@@ -187773,9 +187635,7 @@ longrine
 longrines
 longs
 longtemps
-longue
 longuement
-longues
 longuet
 longuets
 longuette
@@ -187899,8 +187759,6 @@ loriot
 loriots
 loris
 lorrain
-lorraine
-lorraines
 lorrains
 lors
 lorsqu
@@ -188307,7 +188165,6 @@ lourderiez
 lourderions
 lourderons
 lourderont
-lourdes
 lourdeur
 lourdeurs
 lourdez
@@ -188481,7 +188338,6 @@ lovassiez
 lovassions
 lovat
 lovates
-love
 lovee
 lovees
 lovelace
@@ -188500,7 +188356,6 @@ loveriez
 loverions
 loverons
 loveront
-loves
 lovez
 loviez
 lovions
@@ -188676,7 +188531,6 @@ luiriez
 luirions
 luirons
 luiront
-luis
 luisaient
 luisais
 luisait
@@ -189405,7 +189259,6 @@ macerons
 macfarlane
 macfarlanes
 mach
-macha
 machai
 machaient
 machais
@@ -189414,7 +189267,6 @@ machames
 machant
 machaon
 machaons
-machas
 machasse
 machassent
 machasses
@@ -191073,7 +190925,6 @@ maltassiez
 maltassions
 maltat
 maltates
-malte
 maltee
 maltees
 maltent
@@ -191092,7 +190943,6 @@ malteriez
 malterions
 malterons
 malteront
-maltes
 malteur
 malteurs
 maltez
@@ -192041,7 +191891,6 @@ manquez
 manquiez
 manquions
 manquons
-mans
 mansarda
 mansardai
 mansardaient
@@ -192959,7 +192808,6 @@ marguerites
 marguillier
 marguilliers
 mari
-maria
 mariable
 mariables
 mariage
@@ -192972,12 +192820,10 @@ marial
 mariale
 mariales
 marials
-mariames
 mariant
 mariante
 mariantes
 mariants
-marias
 mariasse
 mariassent
 mariasses
@@ -193074,7 +192920,6 @@ marionnette
 marionnettes
 marionnettiste
 marionnettistes
-marions
 maris
 mariste
 maristes
@@ -194679,9 +194524,7 @@ matissaient
 matissais
 matissait
 matissant
-matisse
 matissent
-matisses
 matissez
 matissiez
 matissions
@@ -195742,12 +195585,10 @@ mediterions
 mediterons
 mediteront
 mediterrane
-mediterranee
 mediterraneen
 mediterraneenne
 mediterraneennes
 mediterraneens
-mediterranees
 mediterranes
 medites
 meditez
@@ -196034,8 +195875,6 @@ mehari
 meharis
 mehariste
 meharistes
-meiji
-meijis
 meilleur
 meilleure
 meilleures
@@ -196538,7 +196377,6 @@ mendigots
 mendiiez
 mendiions
 mendions
-mene
 meneau
 meneaux
 menee
@@ -196557,7 +196395,6 @@ meneriez
 menerions
 menerons
 meneront
-menes
 menestrel
 menestrels
 menetrier
@@ -198600,7 +198437,6 @@ mildiousee
 mildiousees
 mildiouses
 mile
-miles
 miliaire
 miliaires
 milice
@@ -198810,7 +198646,6 @@ mimais
 mimait
 mimames
 mimant
-mimas
 mimasse
 mimassent
 mimasses
@@ -198859,7 +198694,6 @@ mimons
 mimosa
 mimosas
 min
-mina
 minable
 minablement
 minables
@@ -198878,7 +198712,6 @@ minantes
 minants
 minaret
 minarets
-minas
 minasse
 minassent
 minasses
@@ -199343,7 +199176,6 @@ miocenes
 mioche
 mioches
 mir
-mira
 mirabelle
 mirabelles
 mirabellier
@@ -199369,7 +199201,6 @@ mirais
 mirait
 mirames
 mirant
-miras
 mirasse
 mirassent
 mirasses
@@ -199546,7 +199377,6 @@ miseriez
 miserions
 miserons
 miseront
-mises
 misez
 misiez
 misions
@@ -199590,7 +199420,6 @@ mistoufle
 mistoufles
 mistral
 mistrals
-mit
 mita
 mitage
 mitages
@@ -199655,7 +199484,6 @@ mithridatassiez
 mithridatassions
 mithridatat
 mithridatates
-mithridate
 mithridatee
 mithridatees
 mithridatent
@@ -199672,7 +199500,6 @@ mithridateriez
 mithridaterions
 mithridaterons
 mithridateront
-mithridates
 mithridatez
 mithridatiez
 mithridations
@@ -200372,7 +200199,6 @@ moines
 moinillon
 moinillons
 moins
-moira
 moirage
 moirages
 moirai
@@ -200381,7 +200207,6 @@ moirais
 moirait
 moirames
 moirant
-moiras
 moirasse
 moirassent
 moirasses
@@ -202955,7 +202780,6 @@ mouliniers
 mouliniez
 moulinions
 moulinons
-moulins
 moulions
 moulons
 moult
@@ -203102,7 +202926,6 @@ mousqueteries
 mousqueton
 mousquetons
 mousquets
-moussa
 moussai
 moussaient
 moussaillon
@@ -203114,7 +202937,6 @@ moussant
 moussante
 moussantes
 moussants
-moussas
 moussasse
 moussassent
 moussasses
@@ -203407,14 +203229,12 @@ muassiez
 muassions
 muat
 muates
-mucha
 muchai
 muchaient
 muchais
 muchait
 muchames
 muchant
-muchas
 muchasse
 muchassent
 muchasses
@@ -206118,8 +205938,6 @@ nepotisme
 nepotismes
 neptunium
 neptuniums
-nereide
-nereides
 nerf
 nerfs
 neritique
@@ -207073,7 +206891,6 @@ nivelleriez
 nivellerions
 nivellerons
 nivelleront
-nivelles
 nivelons
 niveole
 niveoles
@@ -207972,7 +207789,6 @@ noyes
 noyez
 noyiez
 noyions
-noyons
 nua
 nuage
 nuages
@@ -208444,7 +208260,6 @@ oberes
 oberez
 oberiez
 oberions
-oberons
 obese
 obeses
 obesite
@@ -211978,7 +211793,6 @@ ornassiez
 ornassions
 ornat
 ornates
-orne
 ornee
 ornees
 ornemaniste
@@ -212042,7 +211856,6 @@ orneriez
 ornerions
 ornerons
 orneront
-ornes
 ornez
 orniere
 ornieres
@@ -212479,7 +212292,6 @@ ostrogotes
 ostrogothe
 ostrogothes
 ostrogots
-ota
 otage
 otages
 otai
@@ -212492,7 +212304,6 @@ otames
 otant
 otarie
 otaries
-otas
 otasse
 otassent
 otasses
@@ -215255,7 +215066,6 @@ panamericaines
 panamericains
 panamericanisme
 panamericanismes
-panames
 panant
 panarabisme
 panarabismes
@@ -216029,7 +215839,6 @@ paquebot
 paquebots
 paquerette
 paquerettes
-paques
 paquet
 paquetage
 paquetages
@@ -217372,7 +217181,6 @@ paripenne
 paripennee
 paripennees
 paripennes
-paris
 parisette
 parisettes
 parisianisme
@@ -217468,12 +217276,10 @@ parkerisions
 parkerisons
 parking
 parkings
-parkinson
 parkinsonien
 parkinsonienne
 parkinsoniennes
 parkinsoniens
-parkinsons
 parla
 parlai
 parlaient
@@ -217726,7 +217532,6 @@ parquassiez
 parquassions
 parquat
 parquates
-parque
 parquee
 parquees
 parquent
@@ -217743,7 +217548,6 @@ parqueriez
 parquerions
 parquerons
 parqueront
-parques
 parquet
 parqueta
 parquetage
@@ -218225,8 +218029,6 @@ parvintes
 parvis
 pas
 pascal
-pascale
-pascales
 pascaux
 pasquin
 pasquins
@@ -223308,7 +223110,6 @@ petaudiere
 petaudieres
 petauriste
 petauristes
-pete
 petechial
 petechiale
 petechiales
@@ -223331,7 +223132,6 @@ peteriez
 peterions
 peterons
 peteront
-petes
 peteur
 peteurs
 peteuse
@@ -223992,7 +223792,6 @@ philharmonique
 philharmoniques
 philippin
 philippine
-philippines
 philippins
 philippique
 philippiques
@@ -228278,7 +228077,6 @@ ployez
 ployiez
 ployions
 ployons
-plu
 plucha
 pluchai
 pluchaient
@@ -235368,7 +235166,6 @@ privais
 privait
 privames
 privant
-privas
 privasse
 privassent
 privasses
@@ -237815,7 +237612,6 @@ provincialismes
 provinciaux
 provinmes
 provinrent
-provins
 provinsse
 provinssent
 provinsses
@@ -255050,7 +254846,6 @@ regiriez
 regirions
 regirons
 regiront
-regis
 regissaient
 regissais
 regissait
@@ -255877,8 +255672,6 @@ rehydratiez
 rehydrations
 rehydratons
 reichsmark
-reichstag
-reichstags
 reiez
 reifia
 reifiai
@@ -258785,7 +258578,6 @@ remimes
 reminiscence
 reminiscences
 remirent
-remis
 remisa
 remisage
 remisages
@@ -260482,8 +260274,6 @@ rendue
 rendues
 rendus
 rene
-renee
-renees
 renegat
 renegate
 renegates
@@ -261219,7 +261009,6 @@ renions
 renitence
 renitences
 renne
-rennes
 renom
 renomma
 renommai
@@ -270033,7 +269822,6 @@ rhodanien
 rhodanienne
 rhodaniennes
 rhodaniens
-rhodia
 rhodie
 rhodiee
 rhodiees
@@ -271660,7 +271448,6 @@ rodeur
 rodeurs
 rodeuse
 rodeuses
-rodez
 rodiez
 rodions
 rodoir
@@ -271867,8 +271654,6 @@ romand
 romande
 romandes
 romands
-romane
-romanes
 romanesque
 romanesques
 romani
@@ -272372,7 +272157,6 @@ roquions
 roquons
 rorqual
 rorquals
-rosa
 rosace
 rosacee
 rosacees
@@ -272391,7 +272175,6 @@ rosames
 rosaniline
 rosanilines
 rosant
-rosas
 rosasse
 rosassent
 rosasses
@@ -272441,14 +272224,12 @@ rosicrucien
 rosicrucienne
 rosicruciennes
 rosicruciens
-rosie
 rosier
 rosiere
 rosieres
 rosieriste
 rosieristes
 rosiers
-rosies
 rosiez
 rosimes
 rosions
@@ -274194,8 +273975,6 @@ sabelle
 sabelles
 sabellianisme
 sabellianismes
-sabine
-sabines
 sabir
 sabirs
 sabla
@@ -275090,7 +274869,6 @@ sains
 saint
 sainte
 saintement
-saintes
 saintete
 saintetes
 saints
@@ -275180,7 +274958,6 @@ sait
 saite
 saites
 sajou
-sajous
 sake
 sakes
 saki
@@ -276273,7 +276050,6 @@ sarcastique
 sarcastiquement
 sarcastiques
 sarcelle
-sarcelles
 sarcla
 sarclage
 sarclages
@@ -277635,7 +277411,6 @@ scatophile
 scatophiles
 scats
 sceau
-sceaux
 scelerat
 scelerate
 scelerates
@@ -279480,7 +279255,6 @@ sellions
 sellons
 selon
 sels
-seltz
 selve
 selves
 sema
@@ -280777,7 +280551,6 @@ sevrassiez
 sevrassions
 sevrat
 sevrates
-sevre
 sevree
 sevrees
 sevrent
@@ -280794,7 +280567,6 @@ sevreriez
 sevrerions
 sevrerons
 sevreront
-sevres
 sevrez
 sevriez
 sevrions
@@ -281285,8 +281057,6 @@ siegiez
 siegions
 siemens
 sien
-sienne
-siennes
 siens
 siera
 sieraient
@@ -284170,7 +283940,6 @@ sorgueriez
 sorguerions
 sorguerons
 sorgueront
-sorgues
 sorguez
 sorguiez
 sorguions
@@ -289743,7 +289512,6 @@ sudorifique
 sudorifiques
 sudoripare
 sudoripares
-sue
 suede
 suedee
 suedees
@@ -289769,12 +289537,10 @@ sueriez
 suerions
 suerons
 sueront
-sues
 suette
 suettes
 sueur
 sueurs
-suez
 suffete
 suffetes
 suffimes
@@ -292416,7 +292182,6 @@ surinai
 surinaient
 surinais
 surinait
-surinames
 surinant
 surinas
 surinasse
@@ -295219,7 +294984,6 @@ talaient
 talais
 talait
 talames
-talant
 talas
 talasse
 talassent
@@ -295537,7 +295301,6 @@ tamisassiez
 tamisassions
 tamisat
 tamisates
-tamise
 tamisee
 tamisees
 tamisent
@@ -295556,7 +295319,6 @@ tamiseriez
 tamiserions
 tamiserons
 tamiseront
-tamises
 tamiseur
 tamiseurs
 tamiseuse
@@ -296249,7 +296011,6 @@ taquions
 taquoir
 taquoirs
 taquons
-tara
 tarabiscot
 tarabiscota
 tarabiscotage
@@ -296342,7 +296103,6 @@ tararage
 tararages
 tarare
 tarares
-taras
 tarasque
 tarasques
 tarasse
@@ -296687,7 +296447,6 @@ tartarins
 tarte
 tartelette
 tartelettes
-tartempion
 tartes
 tarti
 tartignolle
@@ -298990,7 +298749,6 @@ terreuse
 terreuses
 terreux
 terrez
-terri
 terrible
 terriblement
 terribles
@@ -299064,7 +298822,6 @@ terririez
 terririons
 terrirons
 terriront
-terris
 terrissaient
 terrissais
 terrissait
@@ -301224,7 +300981,6 @@ tomaisons
 tomait
 tomames
 tomant
-tomas
 tomasse
 tomassent
 tomasses
@@ -302249,8 +302005,6 @@ tory
 torysme
 torysmes
 toscan
-toscane
-toscanes
 toscans
 tot
 total
@@ -302719,7 +302473,6 @@ tourments
 tourna
 tournage
 tournages
-tournai
 tournaient
 tournailla
 tournaillai
@@ -302756,7 +302509,6 @@ tournaillez
 tournailliez
 tournaillions
 tournaillons
-tournais
 tournait
 tournames
 tournant
@@ -303035,7 +302787,6 @@ tournure
 tournures
 touron
 tourons
-tours
 tourte
 tourteau
 tourteaux
@@ -303087,7 +302838,6 @@ toussaillez
 toussailliez
 toussaillions
 toussaillons
-toussaint
 toussais
 toussait
 toussames
@@ -310563,7 +310313,6 @@ uruguayenne
 uruguayennes
 uruguayens
 urus
-usa
 usage
 usagee
 usagees
@@ -310579,7 +310328,6 @@ usant
 usante
 usantes
 usants
-usas
 usasse
 usassent
 usasses
@@ -311300,7 +311048,6 @@ valable
 valablement
 valables
 valaient
-valais
 valait
 valant
 valdingua
@@ -311340,7 +311087,6 @@ valdinguions
 valdinguons
 valence
 valences
-valenciennes
 valent
 valentinite
 valentinites
@@ -311874,7 +311620,6 @@ vanneriez
 vannerions
 vannerons
 vanneront
-vannes
 vanneur
 vanneurs
 vanneuse
@@ -312198,7 +311943,6 @@ vars
 varus
 varve
 varves
-vas
 vasard
 vasarde
 vasardes
@@ -312505,8 +312249,6 @@ vecussiez
 vecussions
 vecut
 vecutes
-veda
-vedas
 vedettariat
 vedettariats
 vedette
@@ -313380,7 +313122,6 @@ verdet
 verdets
 verdeur
 verdeurs
-verdi
 verdict
 verdicts
 verdie
@@ -313401,7 +313142,6 @@ verdiriez
 verdirions
 verdirons
 verdiront
-verdis
 verdissage
 verdissages
 verdissaient
@@ -314955,14 +314695,11 @@ viendriez
 viendrions
 viendrons
 viendront
-vienne
 viennent
-viennes
 viens
 vient
 vierge
 vierges
-vies
 vietnamien
 vietnamienne
 vietnamiennes
@@ -315015,9 +314752,7 @@ viking
 vikings
 vil
 vilain
-vilaine
 vilainement
-vilaines
 vilains
 vile
 vilebrequin
@@ -315285,7 +315020,6 @@ vinylites
 vioc
 viocs
 viol
-viola
 violaca
 violacai
 violacaient
@@ -315329,7 +315063,6 @@ violais
 violait
 violames
 violant
-violas
 violasse
 violassent
 violasses
@@ -315407,8 +315140,6 @@ violeront
 violes
 violet
 violets
-violette
-violettes
 violeur
 violeurs
 violeuse
@@ -316969,7 +316700,6 @@ volontes
 volontiers
 vols
 volt
-volta
 voltage
 voltages
 voltai
@@ -316994,7 +316724,6 @@ voltametres
 voltampere
 voltamperes
 voltant
-voltas
 voltasse
 voltassent
 voltasses

@@ -13,13 +13,12 @@ import { getCachedGuesses, loadGuesses } from "@/lib/wordle/guesses";
 import {
   formatCountdown,
   loadBoard,
-  loadStats,
   msUntilNextUtcMidnight,
   recordResult,
   saveBoard,
-  type Stats,
 } from "@/lib/games/wordleState";
 import ShareButton from "@/components/ShareButton";
+import WordleEndLeaderboard from "@/components/WordleEndLeaderboard";
 
 const ROWS = 6;
 const COLS = 5;
@@ -69,15 +68,6 @@ const STATE_RANK: Record<Tile["state"], number> = {
   empty: 0, tbd: 1, absent: 2, present: 3, correct: 4,
 };
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-md bg-[#0a0a0a] py-2">
-      <div className="text-xl font-black tabular-nums">{value}</div>
-      <div className="text-[10px] uppercase tracking-wider text-gray-400">{label}</div>
-    </div>
-  );
-}
-
 export default function WordlePage() {
   const { locale, t } = useLocale();
   const [unlimited, setUnlimited] = useState(false);
@@ -98,7 +88,6 @@ export default function WordlePage() {
   // saveName fallback agree (record itself is single-shot — we'd race
   // ourselves if we re-asked the counter).
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
-  const [stats, setStats] = useState<Stats | null>(null);
   const [countdown, setCountdown] = useState<string>("");
 
   const dayIdx = useMemo(() => dayIndex(), []);
@@ -153,7 +142,6 @@ export default function WordlePage() {
     setSubmitted(null);
     setEligibleToSubmit(false);
     setStreak(getStreak("wordle"));
-    setStats(loadStats(locale));
   }, [dayIdx, locale, unlimited]);
 
   // Timer.
@@ -221,7 +209,7 @@ export default function WordlePage() {
       setStreak(newStreak);
       window.setTimeout(() => setShowModal(true), 1500);
       if (!unlimited) {
-        setStats(recordResult({ locale, dayIdx, won: true, guessCount: next.length }));
+        recordResult({ locale, dayIdx, won: true, guessCount: next.length });
         const { shouldSubmit } = record();
         setEligibleToSubmit(shouldSubmit);
         if (shouldSubmit) {
@@ -240,7 +228,7 @@ export default function WordlePage() {
       setDone("lose");
       if (!unlimited) {
         breakStreak("wordle");
-        setStats(recordResult({ locale, dayIdx, won: false, guessCount: next.length }));
+        recordResult({ locale, dayIdx, won: false, guessCount: next.length });
         // A loss still counts as an attempt — without this, players
         // could deliberately tank the first plays to "save" leaderboard
         // submissions for after they've memorised the word.
@@ -420,39 +408,14 @@ export default function WordlePage() {
               <p className="mt-2 text-sm text-gray-300">{t("wordle_word_was")} <span className="font-bold uppercase text-emerald-400">{target}</span></p>
             )}
 
-            {stats ? (
-              <>
-                <div className="mt-5 grid grid-cols-4 gap-2 text-center">
-                  <Stat label={t("wordle_stat_played")} value={stats.played} />
-                  <Stat label={t("wordle_stat_winpct")} value={stats.played ? Math.round((stats.won / stats.played) * 100) : 0} />
-                  <Stat label={t("end_streak_label")} value={stats.currentStreak} />
-                  <Stat label={t("wordle_stat_max")} value={stats.maxStreak} />
-                </div>
-
-                <div className="mt-5 text-left">
-                  <p className="text-xs font-bold uppercase tracking-wider text-gray-400">{t("wordle_distribution")}</p>
-                  <div className="mt-2 space-y-1">
-                    {stats.distribution.map((count, i) => {
-                      const max = Math.max(1, ...stats.distribution);
-                      const pct = Math.max(8, Math.round((count / max) * 100));
-                      const isCurrent = done === "win" && guesses.length === i + 1;
-                      return (
-                        <div key={i} className="flex items-center gap-2 text-xs">
-                          <span className="w-3 text-gray-400">{i + 1}</span>
-                          <div className="flex-1">
-                            <div
-                              className={`flex h-5 items-center justify-end rounded px-1.5 font-bold text-white ${isCurrent ? "bg-[#538d4e]" : "bg-[#3a3a3c]"}`}
-                              style={{ width: `${pct}%` }}
-                            >
-                              {count}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </>
+            {done === "win" && !unlimited ? (
+              <WordleEndLeaderboard
+                locale={locale}
+                playerName={getName()}
+                playerGuesses={guesses.length}
+                playerTime={elapsed}
+                submittedRank={submitted?.rank}
+              />
             ) : null}
 
             {!unlimited ? (
