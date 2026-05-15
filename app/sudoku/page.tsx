@@ -141,6 +141,19 @@ export default function SudokuPage() {
   // Keyboard input.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't hijack keystrokes when focus is in a text input — most
+      // importantly the post-win name field. Without this, digits typed
+      // into the name field also fill whichever cell was last clicked,
+      // and arrow keys move both the input caret and the selection.
+      const tgt = e.target as Element | null;
+      if (
+        tgt &&
+        (tgt.tagName === "INPUT" ||
+          tgt.tagName === "TEXTAREA" ||
+          (tgt as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
       if (!selected) return;
       if (/^[1-9]$/.test(e.key)) setVal(selected.r, selected.c, Number(e.key));
       if (e.key === "Backspace" || e.key === "0" || e.key === "Delete") setVal(selected.r, selected.c, 0);

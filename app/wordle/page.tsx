@@ -267,6 +267,20 @@ export default function WordlePage() {
   // Hardware keyboard.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't hijack keystrokes while the player is typing in a text
+      // input — most importantly the post-win "Je naam" field. The
+      // handler is on `window`, so Enter and Backspace events bubble
+      // up from the input and used to be preventDefault()'d here, which
+      // meant the player couldn't submit their name or delete a typo.
+      const tgt = e.target as Element | null;
+      if (
+        tgt &&
+        (tgt.tagName === "INPUT" ||
+          tgt.tagName === "TEXTAREA" ||
+          (tgt as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (e.key === "Enter") { e.preventDefault(); onKey("enter"); }
       else if (e.key === "Backspace") { e.preventDefault(); onKey("back"); }
