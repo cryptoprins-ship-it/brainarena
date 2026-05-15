@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, type Locale } from "@/lib/i18n";
 import { dailyWord, randomWord } from "@/lib/dailyWord";
-import { bumpStreak, breakStreak, getStreak, getName, setName, submitScore } from "@/lib/scores";
+import { bumpStreak, breakStreak, getStreak, getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -92,7 +92,6 @@ export default function WordlePage() {
   const startedAt = useRef<number | null>(null);
   const [streak, setStreak] = useState(0);
   const [showModal, setShowModal] = useState(false);
-  const [name, setNameState] = useState("");
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   // Whether the just-finished play still qualifies for the leaderboard.
   // Captured the moment `record()` fires so both auto-submit and the
@@ -154,7 +153,6 @@ export default function WordlePage() {
     setSubmitted(null);
     setEligibleToSubmit(false);
     setStreak(getStreak("wordle"));
-    setNameState(getName());
     setStats(loadStats(locale));
   }, [dayIdx, locale, unlimited]);
 
@@ -325,20 +323,6 @@ export default function WordlePage() {
     [guesses, target],
   );
 
-  const saveName = useCallback(() => {
-    setName(name);
-    if (done === "win" && !submitted && eligibleToSubmit) {
-      submitScore({
-        game: "wordle",
-        name: name || "Anonymous",
-        score: ROWS - guesses.length + 1,
-        time: elapsed,
-        language: locale,
-        meta: { guesses: guesses.length, target },
-      }).then((r) => r && setSubmitted(r));
-    }
-  }, [done, elapsed, eligibleToSubmit, guesses, locale, name, submitted, target]);
-
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <StreakBanner />
@@ -478,24 +462,20 @@ export default function WordlePage() {
               </div>
             ) : null}
 
-            {done === "win" && !submitted && eligibleToSubmit ? (
-              <div className="mt-4 flex gap-2">
-                <input
-                  value={name}
-                  onChange={(e) => setNameState(e.target.value)}
-                  placeholder={t("name_gate_placeholder")}
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-                />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-              </div>
-            ) : null}
+            {/* New users are prompted for a name by the global NameGate
+                modal — no inline name input here. Showing both led to a
+                double-submit (auto-submit + inline OK), which is why
+                the leaderboard listed the same play twice and the
+                player landed in #4 instead of #1. */}
             {done && !unlimited && !eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">
                 {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
             {submitted ? (
-              <p className="mt-3 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+              <p className="mt-3 text-sm text-emerald-300">
+                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+              </p>
             ) : null}
 
             <div className="mt-4 flex gap-2">
