@@ -34,10 +34,22 @@ export default function NameGate() {
       setError(true);
       return;
     }
-    window.dispatchEvent(
-      new CustomEvent("brainarena:name-submitted", { detail: trimmed.slice(0, 24) })
-    );
+    // Close the modal FIRST, then dispatch. CustomEvent listeners run
+    // synchronously, so if any subscriber throws (e.g. a localStorage
+    // write hitting Brave's Shields or a quota cap) the exception used
+    // to propagate out of dispatchEvent and skip setOpen(false) — the
+    // modal stayed mounted and the whole screen looked frozen. Closing
+    // first guarantees the modal goes away even if a listener throws.
     setOpen(false);
+    try {
+      window.dispatchEvent(
+        new CustomEvent("brainarena:name-submitted", { detail: trimmed.slice(0, 24) })
+      );
+    } catch {
+      // A subscriber threw — we still want the player to continue. The
+      // promise on the ensurePlayerName side may not resolve, but the
+      // UI is no longer wedged.
+    }
   }, [value]);
 
   if (!open) return null;
