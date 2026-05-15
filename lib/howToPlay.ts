@@ -252,7 +252,7 @@ const NL: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   vlakken: {
-    label: "Vlakken",
+    label: "Patches",
     href: "/vlakken",
     summary: "Vul het rooster door de vorm rond elke genummerde anker te voltooien.",
     rules: [

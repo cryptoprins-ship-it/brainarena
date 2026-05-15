@@ -46,7 +46,7 @@ type TranslationKey =
   | "streak_active" | "streak_lost" | "streak_start_best" | "streak_start"
   | "win_title" | "win_your_time" | "win_hints_used" | "win_best_time"
   | "win_new_record" | "win_play_again" | "win_new_puzzle" | "win_share"
-  | "zonmaan_three_in_row" | "zonmaan_max_three"
+  | "zonmaan_three_in_row" | "zonmaan_max_three" | "zonmaan_near_miss"
   | "zonmaan_solved_in"
   | "kronen_conflict_row" | "kronen_conflict_col"
   | "kronen_conflict_region" | "kronen_conflict_adjacent"
@@ -184,6 +184,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Share",
     zonmaan_three_in_row: "⚠ Three of the same symbol in a row or column.",
     zonmaan_max_three: "⚠ Max 3 suns or moons per row or column.",
+    zonmaan_near_miss: "Almost there — check the '=' and '×' links between cells.",
     vlakken_drag_hint: "Drag a rectangle that contains exactly one numbered seed.",
     vlakken_err_no_seed: "No numbered seed in that selection.",
     vlakken_err_multi_seed: "More than one seed in that selection.",
@@ -384,7 +385,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     cookie_back: "Back",
   },
   nl: {
-    game_vlakken: "Vlakken",
+    game_vlakken: "Patches",
     game_vlakken_desc: "Vul het rooster door de vormen rond de getallen te voltooien",
     game_verbind: "Verbind",
     game_verbind_desc: "Verbind de getallen op volgorde via één pad door alle cellen",
@@ -436,6 +437,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Deel",
     zonmaan_three_in_row: "⚠ Drie dezelfde symbolen op een rij of kolom.",
     zonmaan_max_three: "⚠ Maximaal 3 zonnen of manen per rij of kolom.",
+    zonmaan_near_miss: "Bijna! Klopt nog niet — controleer de '=' en '×' tussen de cellen.",
     vlakken_drag_hint: "Sleep een rechthoek met precies één genummerde zaadcel.",
     vlakken_err_no_seed: "Geen zaadcel in deze selectie.",
     vlakken_err_multi_seed: "Meer dan één zaadcel in deze selectie.",
@@ -689,6 +691,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Teilen",
     zonmaan_three_in_row: "⚠ Drei gleiche Symbole in einer Zeile oder Spalte.",
     zonmaan_max_three: "⚠ Maximal 3 Sonnen oder Monde pro Zeile oder Spalte.",
+    zonmaan_near_miss: "Fast — prüfe die '=' und '×' Verbindungen zwischen den Feldern.",
     vlakken_drag_hint: "Ziehe ein Rechteck, das genau einen nummerierten Anker enthält.",
     vlakken_err_no_seed: "Kein Anker in der Auswahl.",
     vlakken_err_multi_seed: "Mehr als ein Anker in der Auswahl.",
@@ -942,6 +945,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Partager",
     zonmaan_three_in_row: "⚠ Trois mêmes symboles sur une ligne ou colonne.",
     zonmaan_max_three: "⚠ Max 3 soleils ou lunes par ligne ou colonne.",
+    zonmaan_near_miss: "Presque ! Vérifie les liens '=' et '×' entre les cellules.",
     vlakken_drag_hint: "Trace un rectangle contenant exactement un point numéroté.",
     vlakken_err_no_seed: "Aucun point numéroté dans la sélection.",
     vlakken_err_multi_seed: "Plus d'un point dans la sélection.",
@@ -1195,6 +1199,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Compartir",
     zonmaan_three_in_row: "⚠ Tres símbolos iguales en una fila o columna.",
     zonmaan_max_three: "⚠ Máx 3 soles o lunas por fila o columna.",
+    zonmaan_near_miss: "Casi — revisa los enlaces '=' y '×' entre celdas.",
     vlakken_drag_hint: "Arrastra un rectángulo que contenga exactamente un número.",
     vlakken_err_no_seed: "Ningún número en la selección.",
     vlakken_err_multi_seed: "Más de un número en la selección.",
@@ -1448,6 +1453,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "शेयर",
     zonmaan_three_in_row: "⚠ एक पंक्ति या स्तंभ में तीन समान चिह्न।",
     zonmaan_max_three: "⚠ प्रति पंक्ति या स्तंभ अधिकतम 3 सूर्य या चंद्रमा।",
+    zonmaan_near_miss: "लगभग! कोशिकाओं के बीच '=' और '×' संबंध जाँचें।",
     vlakken_drag_hint: "ऐसा आयत खींचें जिसमें ठीक एक संख्या हो।",
     vlakken_err_no_seed: "चयन में कोई संख्या नहीं।",
     vlakken_err_multi_seed: "चयन में एक से अधिक संख्या।",
@@ -1703,6 +1709,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "Compartilhar",
     zonmaan_three_in_row: "⚠ Três símbolos iguais em uma linha ou coluna.",
     zonmaan_max_three: "⚠ Máx 3 sóis ou luas por linha ou coluna.",
+    zonmaan_near_miss: "Quase! Confira os vínculos '=' e '×' entre as células.",
     vlakken_drag_hint: "Arraste um retângulo com exatamente uma semente numerada.",
     vlakken_err_no_seed: "Nenhuma semente na seleção.",
     vlakken_err_multi_seed: "Mais de uma semente na seleção.",
@@ -1956,6 +1963,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     win_share: "シェア",
     zonmaan_three_in_row: "⚠ 同じ記号が縦・横に3つ並んでいます。",
     zonmaan_max_three: "⚠ 1 行または 1 列につき太陽または月は最大 3 つ。",
+    zonmaan_near_miss: "あと一歩 — セル間の「=」と「×」を確認してください。",
     vlakken_drag_hint: "番号付きの種を 1 つだけ含む長方形をドラッグしてください。",
     vlakken_err_no_seed: "選択範囲に番号がありません。",
     vlakken_err_multi_seed: "選択範囲に複数の番号があります。",

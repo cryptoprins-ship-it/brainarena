@@ -47,7 +47,7 @@ const COPY = {
       "Ik speel als ik me verveel. Sudoku blijft mijn favoriet, maar Kronen is ook een dagelijkse gewoonte geworden. Hersenen trainen is belangrijk — vijf minuten met een logica-puzzel is iets kleins dat over jaren optelt.",
     what_h: "Wat hier staat",
     what:
-      "Elf dagelijkse puzzels: woordgames (Wordle, Boggle, LetterStack), logica (Sudoku, Vlakken, Verbind, Zon & Maan, Kronen) en arcade-breinkrakers (TileDrop, ColorMatch, Typing). Elke game heeft Makkelijk / Gemiddeld / Moeilijk, een dagelijkse seed die voor iedereen hetzelfde is, en een wereldwijd leaderboard. Je voortgang blijft in je browser — geen account nodig.",
+      "Elf dagelijkse puzzels: woordgames (Wordle, Boggle, LetterStack), logica (Sudoku, Patches, Verbind, Zon & Maan, Kronen) en arcade-breinkrakers (TileDrop, ColorMatch, Typing). Elke game heeft Makkelijk / Gemiddeld / Moeilijk, een dagelijkse seed die voor iedereen hetzelfde is, en een wereldwijd leaderboard. Je voortgang blijft in je browser — geen account nodig.",
     free_h: "Gratis, en hoe dat kan",
     free:
       "BrainArena is gratis voor iedereen. Hosting, domeinen en mail kosten geld, dus draai ik Google AdSense om die rekeningen te dekken. Via de cookie-banner kies jij of je advertentie-cookies accepteert — zeg je nee, dan werkt de site nog steeds, alleen zonder ads. Ik verkoop geen data en er is geen 'premium' versie waar features achter een paywall hangen.",

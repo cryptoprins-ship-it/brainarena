@@ -211,6 +211,17 @@ export default function ZonMaanPage() {
     return false;
   }, [cells, puzzle, done]);
 
+  // "Fully filled, looks rule-OK to the player, but the win didn't fire" —
+  // means an edge constraint (= or ×) is being violated, since clues are
+  // pre-filled and uneditable, and triplet/balance violations get their own
+  // banners. Without an explicit nudge the player kept staring at a grid
+  // that looked done and assumed the game was broken.
+  const isFullyFilled = useMemo(() => {
+    if (!puzzle || cells.length !== puzzle.size * puzzle.size) return false;
+    for (let i = 0; i < cells.length; i++) if (cells[i] === -1) return false;
+    return true;
+  }, [cells, puzzle]);
+
   // Row/column balance — flag rows or columns that already hold more than
   // half their cells as one symbol. With N=6 the cap is 3, so a 4th sun
   // (or moon) in the same row/column is impossible in any valid solution.
@@ -342,6 +353,10 @@ export default function ZonMaanPage() {
       ) : tripletViolation ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
           {t("zonmaan_three_in_row")}
+        </div>
+      ) : isFullyFilled ? (
+        <div className="mx-auto mt-4 max-w-md rounded-lg border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-center text-xs font-medium text-amber-200">
+          {t("zonmaan_near_miss")}
         </div>
       ) : null}
 

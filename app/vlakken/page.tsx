@@ -510,7 +510,6 @@ export default function VlakkenPage() {
               msg={error.msg}
               rect={states[error.anchorIdx].rect}
               size={size}
-              onClose={() => setError(null)}
             />
           ) : null}
         </div>
@@ -742,12 +741,10 @@ function ErrorTooltip({
   msg,
   rect,
   size,
-  onClose,
 }: {
   msg: string;
   rect: Rect;
   size: number;
-  onClose: () => void;
 }) {
   const top = Math.floor(rect.topLeft / size);
   const left = rect.topLeft % size;
@@ -764,27 +761,21 @@ function ErrorTooltip({
         left: `${left * cellPct}%`,
         marginTop: 4,
       };
-  // The tooltip sits inside a pointer-events:none overlay layer so its body
-  // does NOT swallow taps on the cells beneath it — otherwise the player
-  // couldn't restart a drag from any cell the tooltip is covering after a
-  // warning. Only the close button needs to receive clicks.
+  // Tooltip is fully pointer-events:none — including no close button. The
+  // close button used to absorb taps on the cells beneath the tooltip,
+  // which on touch devices made the grid feel undraggable after a wrong
+  // placement (the player tried to re-drag from a cell under the ×, the
+  // close button ate the tap, no drag started, and the error rec). Now
+  // any cell tap dismisses the tooltip via onCellPointerDown, and the
+  // 5-second auto-dismiss timer covers the "stare at it, then continue"
+  // case.
   return (
     <div
       role="status"
       className="pointer-events-none absolute z-20 max-w-[14rem] rounded-md border border-red-500/70 bg-[#1a1010] px-3 py-2 text-xs text-red-200 shadow-lg"
       style={positionStyle}
     >
-      <div className="flex items-start gap-2">
-        <span className="flex-1 leading-snug">{msg}</span>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Dismiss"
-          className="pointer-events-auto -mr-1 -mt-1 cursor-pointer p-1 text-red-400 hover:text-red-200"
-        >
-          ×
-        </button>
-      </div>
+      <span className="block leading-snug">{msg}</span>
     </div>
   );
 }
