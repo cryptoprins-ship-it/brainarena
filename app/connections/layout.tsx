@@ -5,6 +5,8 @@ import {
   generateHreflangAlternates,
 } from "@/lib/seo/hreflang";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Daily Connections — Group 16 Words",
   description:

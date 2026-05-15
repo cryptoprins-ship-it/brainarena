@@ -1,6 +1,8 @@
 import GameJsonLd from "@/components/GameJsonLd";
 import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
 
+export const dynamic = "force-dynamic";
+
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
