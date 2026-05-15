@@ -624,6 +624,18 @@ function modeMatches(w: number, h: number, mode: AnchorMode): boolean {
 // Anchor seed — small colored badge in the cell's top-left corner. Always
 // visible (also under a locked overlay, since the overlay is translucent),
 // so the player keeps the size/mode reference even after solving.
+// Square mode is only geometrically possible when the cell-count is a
+// perfect square (1, 4, 9, 16…). The generator never assigns mode
+// "square" to a non-square-area anchor, but a defensive check here means
+// any future bug — or a misbehaving solver pass — can't surface a
+// misleading "square" glyph on, say, a size-3 anchor where a square is
+// mathematically impossible.
+function effectiveMode(size: number, mode: AnchorMode): AnchorMode {
+  if (mode !== "square") return mode;
+  const root = Math.round(Math.sqrt(size));
+  return root * root === size ? "square" : "any";
+}
+
 function AnchorSeed({
   anchor,
   colorIdx,
@@ -632,14 +644,15 @@ function AnchorSeed({
   colorIdx: number;
 }) {
   const color = VLAKKEN_PALETTE[colorIdx % VLAKKEN_PALETTE.length];
+  const mode = effectiveMode(anchor.size, anchor.mode);
   return (
     <span
       className="pointer-events-none absolute left-1 top-1 z-[1] flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-black text-white shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
       style={{ background: color }}
     >
       <span className="leading-none">{anchor.hidden ? "?" : anchor.size}</span>
-      {!anchor.hidden && anchor.mode !== "any" ? (
-        <ModeGlyph mode={anchor.mode} compact />
+      {!anchor.hidden && mode !== "any" ? (
+        <ModeGlyph mode={mode} compact />
       ) : null}
     </span>
   );
