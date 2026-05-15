@@ -13,7 +13,7 @@ import {
   type MinesweeperBoard,
 } from "@/lib/games/minesweeper";
 import { dayIndex } from "@/lib/games/kronen";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
@@ -53,7 +53,6 @@ export default function MinesweeperPage() {
   const [elapsed, setElapsed] = useState(0);
   const [newBest, setNewBest] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [nameInput, setNameInput] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
@@ -62,7 +61,6 @@ export default function MinesweeperPage() {
 
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("minesweeper", todayIdx, difficulty);
-  useEffect(() => { setNameInput(getName()); }, []);
 
   // Pointer-mode detection. `pointer: coarse` matches devices whose primary
   // input is a finger or stylus (phones, tablets). We use this to choose
@@ -123,19 +121,6 @@ export default function MinesweeperPage() {
       }
     }
   }, [state, elapsed, difficulty, flagged.size, record, submitted]);
-
-  const saveName = useCallback(() => {
-    setName(nameInput);
-    if (state === "won" && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "minesweeper",
-        name: nameInput || "Anonymous",
-        score: Math.max(1, 100000 - elapsed),
-        time: elapsed,
-        meta: { difficulty, won: true, flagsPlaced: flagged.size, mineCount: GRID_FOR[difficulty].mines },
-      }).then((r) => r && setSubmitted(r));
-    }
-  }, [nameInput, state, eligibleToSubmit, submitted, elapsed, difficulty, flagged.size]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -394,19 +379,10 @@ export default function MinesweeperPage() {
             <p className="mt-1 text-emerald-100">
               {t("your_time")}: <span className="font-mono">{formatDuration(elapsed)}</span>
             </p>
-            {!submitted && eligibleToSubmit ? (
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder={t("name_gate_placeholder")}
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-                />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-              </div>
-            ) : null}
             {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+              <p className="mt-2 text-sm text-emerald-300">
+                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+              </p>
             ) : null}
             {!eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">

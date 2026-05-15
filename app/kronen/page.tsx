@@ -6,7 +6,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import { useLocale } from "@/lib/i18n";
 import { generateKronen, dayIndex, type KronenPuzzle } from "@/lib/games/kronen";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
@@ -48,14 +48,12 @@ export default function KronenPage() {
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [nameInput, setNameInput] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("kronen", todayIdx, difficulty);
-  useEffect(() => { setNameInput(getName()); }, []);
 
   // Build a daily seed tied to UTC day + difficulty + nonce. The nonce lets
   // "New game" within the same day produce a fresh puzzle; nonce=0 is the
@@ -99,19 +97,6 @@ export default function KronenPage() {
       }).then((r) => r && setSubmitted(r));
     }
   }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
-
-  const saveName = useCallback(() => {
-    setName(nameInput);
-    if (done && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "kronen",
-        name: nameInput || "Anonymous",
-        score: Math.max(1, 100000 - elapsed),
-        time: elapsed,
-        meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
-      }).then((r) => r && setSubmitted(r));
-    }
-  }, [nameInput, done, eligibleToSubmit, submitted, elapsed, difficulty, hintsLeft]);
 
   // Best-time per difficulty.
   useEffect(() => {
@@ -400,23 +385,14 @@ export default function KronenPage() {
               {t("your_time")}: <span className="font-mono">{elapsed}s</span>
               {bestSeconds === elapsed ? <span className="ml-2 text-amber-300">★ {t("best_time").toLowerCase()}</span> : null}
             </p>
-            {!submitted && eligibleToSubmit ? (
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Your name"
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-                />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-              </div>
-            ) : null}
             {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+              <p className="mt-2 text-sm text-emerald-300">
+                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+              </p>
             ) : null}
             {!eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">
-                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {difficulty} puzzle. Tomorrow resets the counter.
+                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
           </div>

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generateDaily, type Cell, type Difficulty } from "@/lib/sudoku";
 import { dayIndex } from "@/lib/dailyWord";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -24,7 +24,6 @@ export default function SudokuPage() {
   const [time, setTime] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const startedAt = useRef<number | null>(null);
 
@@ -46,7 +45,6 @@ export default function SudokuPage() {
     setDone(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
-    setNameState(getName());
     startedAt.current = null;
   }, [diff]);
 
@@ -171,19 +169,6 @@ export default function SudokuPage() {
     return board[selected.r][selected.c].value || null;
   }, [board, selected]);
 
-  const saveName = () => {
-    setName(name);
-    if (done && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "sudoku",
-        name: name || "Anonymous",
-        score: 1,
-        time,
-        meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
-
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <StreakBanner />
@@ -280,19 +265,10 @@ export default function SudokuPage() {
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
           <h2 className="text-xl font-black">{t("sudoku_solved_in", { time })}</h2>
-          {!submitted && eligibleToSubmit ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">{t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}</p>
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}
+            </p>
           ) : null}
           {done && !eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { isInWordList, dayIndex } from "@/lib/dailyWord";
 import { useLocale } from "@/lib/i18n";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
@@ -23,7 +23,6 @@ export default function LetterStackPage() {
   const [missed, setMissed] = useState(0);
   const [over, setOver] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [input, setInput] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
   const [slowMs, setSlowMs] = useState(0);
@@ -37,7 +36,6 @@ export default function LetterStackPage() {
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, locale);
 
-  useEffect(() => { setNameState(getName()); }, []);
 
   // Spawn falling letters.
   useEffect(() => {
@@ -177,18 +175,6 @@ export default function LetterStackPage() {
     setBombAvailable(false);
   };
 
-  const saveName = () => {
-    setName(name);
-    if (over && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "letterstack",
-        name: name || "Anonymous",
-        score,
-        meta: { missed },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
-
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
       <StreakBanner />
@@ -275,19 +261,10 @@ export default function LetterStackPage() {
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">{t("ls_game_over", { score })}</h2>
-          {!submitted && eligibleToSubmit ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
           ) : null}
           {!eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">

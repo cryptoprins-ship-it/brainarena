@@ -14,7 +14,7 @@ import {
   type ConnectionsPuzzle,
 } from "@/lib/games/connections";
 import { dayIndex } from "@/lib/games/kronen";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const MAX_MISTAKES = 4;
@@ -46,7 +46,6 @@ export default function ConnectionsPage() {
   const [shakeFlash, setShakeFlash] = useState(false);
   const [startedAt, setStartedAt] = useState<number>(() => Date.now());
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [nameInput, setNameInput] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   // Snapshot of "groups the player actually solved" (0-4) at game-end —
   // captured BEFORE the lost-state auto-fill so the leaderboard score
@@ -58,7 +57,6 @@ export default function ConnectionsPage() {
   const todayIdx = useMemo(() => dayIndex(), []);
   // Connections has one puzzle per day (with optional nonce for replays).
   const { attempts: dailyAttempts, record } = useDailyAttempts("connections", todayIdx);
-  useEffect(() => { setNameInput(getName()); }, []);
 
   useEffect(() => {
     setOrder(shuffleSeeded(allWords(puzzle), seed));
@@ -169,25 +167,6 @@ export default function ConnectionsPage() {
       }).then((r) => r && setSubmitted(r));
     }
   }, [state, playerScore, finalElapsed, mistakes, record, submitted]);
-
-  const saveName = useCallback(() => {
-    setName(nameInput);
-    if (
-      (state === "won" || state === "lost") &&
-      eligibleToSubmit &&
-      !submitted &&
-      playerScore != null &&
-      finalElapsed != null
-    ) {
-      submitScore({
-        game: "connections",
-        name: nameInput || "Anonymous",
-        score: playerScore,
-        time: finalElapsed,
-        meta: { mistakes, won: state === "won" },
-      }).then((r) => r && setSubmitted(r));
-    }
-  }, [nameInput, state, eligibleToSubmit, submitted, playerScore, finalElapsed, mistakes]);
 
   const onNewPuzzle = useCallback(() => setSeedNonce((n) => n + 1), []);
 
@@ -328,19 +307,10 @@ export default function ConnectionsPage() {
             <p className="mt-1 text-emerald-100">
               {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? elapsed}s</span>
             </p>
-            {!submitted && eligibleToSubmit ? (
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder={t("name_gate_placeholder")}
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-                />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-              </div>
-            ) : null}
             {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+              <p className="mt-2 text-sm text-emerald-300">
+                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+              </p>
             ) : null}
             {!eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">

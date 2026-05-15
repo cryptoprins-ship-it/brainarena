@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { pickText } from "@/lib/typingTexts";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { dayIndex } from "@/lib/dailyWord";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
@@ -21,7 +21,6 @@ export default function TypingPage() {
   const startedAt = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const todayIdx = useMemo(() => dayIndex(), []);
@@ -34,7 +33,6 @@ export default function TypingPage() {
     setTime(DURATION);
     setDone(false);
     setSubmitted(null);
-    setNameState(getName());
     startedAt.current = null;
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [locale]);
@@ -95,20 +93,6 @@ export default function TypingPage() {
       }).then((r) => r && setSubmitted(r));
     }
   }, [done, locale, record, stats.accuracy, stats.elapsed, stats.wpm, submitted]);
-
-  const saveName = () => {
-    setName(name);
-    if (done && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "typing",
-        name: name || "Anonymous",
-        score: stats.wpm,
-        time: stats.elapsed,
-        language: locale,
-        meta: { accuracy: stats.accuracy },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
@@ -192,19 +176,10 @@ export default function TypingPage() {
           <p className="mt-1 text-sm text-gray-300">
             {t("typing_result_detail", { wpm: stats.wpm, accuracy: stats.accuracy, correct: stats.correct })}
           </p>
-          {!submitted && eligibleToSubmit ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
           ) : null}
           {!eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">

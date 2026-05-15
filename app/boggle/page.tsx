@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { dayIndex } from "@/lib/dailyWord";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { useLocale } from "@/lib/i18n";
 import {
   isBoggleSupported,
@@ -80,7 +80,6 @@ export default function BogglePage() {
   const [shakeKey, setShakeKey] = useState(0);
   const [invalidMsg, setInvalidMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const todayIdx = useMemo(() => dayIndex(), []);
@@ -106,7 +105,7 @@ export default function BogglePage() {
     return () => { cancelled = true; };
   }, [supported, dictLocale]);
 
-  useEffect(() => { setGrid(makeGrid(dayIndex())); setNameState(getName()); }, []);
+  useEffect(() => { setGrid(makeGrid(dayIndex())); }, []);
 
   useEffect(() => {
     if (!running) return;
@@ -242,19 +241,6 @@ export default function BogglePage() {
     }
   }, [done, found, record, score, submitted]);
 
-  const saveName = () => {
-    setName(name);
-    if (done && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "boggle",
-        name: name || "Anonymous",
-        score,
-        time: DURATION,
-        meta: { found },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
-
   if (!supported) {
     return (
       <div className="mx-auto w-full max-w-2xl px-4 py-10">
@@ -375,19 +361,10 @@ export default function BogglePage() {
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">{t("boggle_final_score", { score })}</h2>
           <p className="mt-1 text-sm text-gray-400">{t("boggle_words_found", { n: found.length })}</p>
-          {!submitted && eligibleToSubmit ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="mt-3 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+            <p className="mt-3 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
           ) : null}
           {done && !eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RAL } from "@/lib/ralColors";
 import { dayIndex } from "@/lib/dailyWord";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
@@ -72,13 +72,11 @@ export default function ColorMatchPage() {
   const [remaining, setRemaining] = useState(ROUND_MS);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
   const { attempts: dailyAttempts, record } = useDailyAttempts("colormatch", todayIdx);
 
-  useEffect(() => { setNameState(getName()); }, []);
 
   // Timer per round.
   useEffect(() => {
@@ -140,17 +138,6 @@ export default function ColorMatchPage() {
     }
   }, [correct, done, record, score, submitted]);
 
-  const saveName = () => {
-    setName(name);
-    if (!eligibleToSubmit || submitted) return;
-    submitScore({
-      game: "colormatch",
-      name: name || "Anonymous",
-      score,
-      meta: { correct, rating: ratingFor(correct) },
-    }).then((r) => r && setSubmitted(r));
-  };
-
   if (done) {
     return (
       <div className="mx-auto w-full max-w-md px-4 py-8">
@@ -159,19 +146,10 @@ export default function ColorMatchPage() {
         <p className="mt-1 text-sm text-gray-300">{t("cm_correct", { n: correct, total: ROUNDS })} · <span className="text-indigo-300">{t(ratingFor(correct))}</span></p>
 
         <div className="mt-4 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-          {!submitted && eligibleToSubmit ? (
-            <div className="flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+            <p className="text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
           ) : null}
           {!submitted && !eligibleToSubmit ? (
             <p className="text-xs text-amber-300">

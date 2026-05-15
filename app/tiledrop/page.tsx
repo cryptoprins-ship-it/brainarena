@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { dayIndex } from "@/lib/dailyWord";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
@@ -98,7 +98,6 @@ export default function TileDropPage() {
   const [paused, setPaused] = useState(false);
   const [highScore, setHighScore] = useState(0);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const todayIdx = useMemo(() => dayIndex(), []);
@@ -109,7 +108,6 @@ export default function TileDropPage() {
 
   useEffect(() => {
     setHighScore(Number(localStorage.getItem("tiledrop-hi") ?? "0") || 0);
-    setNameState(getName());
   }, []);
 
   // Spawn helper.
@@ -368,17 +366,6 @@ export default function TileDropPage() {
   };
 
   const next = bag[0];
-  const saveName = () => {
-    setName(name);
-    if (over && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "tiledrop",
-        name: name || "Anonymous",
-        score,
-        meta: { lines, level },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 pb-28 md:pb-6">
@@ -489,19 +476,10 @@ export default function TileDropPage() {
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
           <h2 className="text-xl font-black">{t("td_game_over", { score })}</h2>
-          {!submitted && eligibleToSubmit ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder={t("name_gate_placeholder")}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-            </div>
-          ) : null}
           {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">{t("you_ranked", { rank: submitted.rank })}</p>
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
           ) : null}
           {!eligibleToSubmit && !submitted ? (
             <p className="mt-3 text-xs text-amber-300">

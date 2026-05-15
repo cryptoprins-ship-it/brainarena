@@ -8,7 +8,7 @@ import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
 import { generateZonMaan, edgeKey, type ZonMaanPuzzle } from "@/lib/games/zonmaan";
 import { dayIndex } from "@/lib/games/kronen";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
@@ -52,14 +52,12 @@ export default function ZonMaanPage() {
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [nameInput, setNameInput] = useState("");
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("zonmaan", todayIdx, difficulty);
-  useEffect(() => { setNameInput(getName()); }, []);
 
   // dayIndex × prime + difficulty offset + nonce gives a stable daily seed
   // per difficulty plus a fresh stream when the player taps "New game".
@@ -107,19 +105,6 @@ export default function ZonMaanPage() {
       }).then((r) => r && setSubmitted(r));
     }
   }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
-
-  const saveName = useCallback(() => {
-    setName(nameInput);
-    if (done && eligibleToSubmit && !submitted) {
-      submitScore({
-        game: "zonmaan",
-        name: nameInput || "Anonymous",
-        score: Math.max(1, 100000 - elapsed),
-        time: elapsed,
-        meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
-      }).then((r) => r && setSubmitted(r));
-    }
-  }, [nameInput, done, eligibleToSubmit, submitted, elapsed, difficulty, hintsLeft]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -403,23 +388,14 @@ export default function ZonMaanPage() {
             <p className="mt-1 text-emerald-100">
               {t("your_time")}: <span className="font-mono">{elapsed}s</span>
             </p>
-            {!submitted && eligibleToSubmit ? (
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={nameInput}
-                  onChange={(e) => setNameInput(e.target.value)}
-                  placeholder="Your name"
-                  className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-                />
-                <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">{t("submit")}</button>
-              </div>
-            ) : null}
             {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
+              <p className="mt-2 text-sm text-emerald-300">
+                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+              </p>
             ) : null}
             {!eligibleToSubmit && !submitted ? (
               <p className="mt-3 text-xs text-amber-300">
-                Practice play — you&apos;ve used your {MAX_LEADERBOARD_ATTEMPTS} ranked attempts on today&apos;s {difficulty} puzzle. Tomorrow resets the counter.
+                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
           </div>
