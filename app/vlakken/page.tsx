@@ -33,7 +33,15 @@ const VLAKKEN_PALETTE = [
 
 type Rect = { topLeft: number; w: number; h: number };
 type AnchorState = { rect: Rect; locked: boolean };
-type DragState = { startCell: number; currentCell: number; pointerId: number };
+type DragState = { startCell: number; currentCell: number; pointerId: number; startedAt: number };
+
+// A pointerup that fires within this many ms of the pointerdown is
+// treated as an accidental tap or abandoned drag — we silently clear
+// the drag without running validation, so the player doesn't get
+// scolded by a "no seed" / "wrong size" tooltip for what was really
+// just an accidental touch. The threshold gives the player time to
+// reconsider mid-drag.
+const DRAG_MIN_HOLD_MS = 3000;
 type ErrorState = { msg: string; anchorIdx: number | null };
 
 export default function VlakkenPage() {
@@ -283,7 +291,7 @@ export default function VlakkenPage() {
         window.clearTimeout(errorTimerRef.current);
         errorTimerRef.current = null;
       }
-      setDrag({ startCell: idx, currentCell: idx, pointerId: e.pointerId });
+      setDrag({ startCell: idx, currentCell: idx, pointerId: e.pointerId, startedAt: Date.now() });
     },
     [done]
   );
@@ -311,6 +319,12 @@ export default function VlakkenPage() {
       const cur = dragRef.current;
       if (!cur || cur.pointerId !== e.pointerId) return;
       setDrag(null);
+      // Short releases are almost always accidental taps or abandoned
+      // drags. Don't run validation — the player would see a "no seed"
+      // or "wrong size" error tooltip for something they didn't even
+      // mean to submit, which read as "vlakken is freezing on me" in
+      // user feedback. Validation still runs on real, considered drags.
+      if (Date.now() - cur.startedAt < DRAG_MIN_HOLD_MS) return;
       finishDragRef.current(cur.startCell, cur.currentCell);
     };
     const handleCancel = (e: PointerEvent) => {
