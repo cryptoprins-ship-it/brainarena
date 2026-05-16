@@ -127,7 +127,7 @@ export function listAchievements(stats: Stats = loadStats()): Achievement[] {
       id: "word_wizard",
       name: "Word Wizard",
       icon: "🧙",
-      desc: "Solve Wordle in 2 guesses",
+      desc: "Solve Wordle in 2 guesses or fewer",
       progress: stats.records.bestWordleGuesses <= 2 ? 1 : 0.5,
     },
     {
