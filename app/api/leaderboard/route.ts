@@ -124,7 +124,25 @@ export async function POST(req: Request) {
     await writeScores(game, trimmed);
   } catch (err) {
     logger.error({ err, game }, "leaderboard_write_failed");
-    return NextResponse.json({ error: "internal_error" }, { status: 500 });
+    // TEMPORARY DIAGNOSTIC — to be reverted once the Vercel env-var
+    // visibility issue is pinned down. Surfaces just enough state in
+    // the response to distinguish fs-fallback (EROFS, env-vars not
+    // reaching the function) from a real Upstash error (401/NOAUTH/
+    // network). Only emits booleans for env-var *presence* — never
+    // the secret values.
+    const e = err as { message?: string; code?: string };
+    return NextResponse.json(
+      {
+        error: "internal_error",
+        debug: {
+          errMessage: e?.message ?? String(err),
+          errCode: e?.code,
+          hasUpstashUrl: !!process.env.UPSTASH_REDIS_REST_URL,
+          hasUpstashToken: !!process.env.UPSTASH_REDIS_REST_TOKEN,
+        },
+      },
+      { status: 500 },
+    );
   }
   const rank = trimmed.findIndex((e) => e === entry) + 1;
   return NextResponse.json({ ok: true, rank });
