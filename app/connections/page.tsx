@@ -70,7 +70,6 @@ export default function ConnectionsPage() {
     setEligibleToSubmit(false);
     setPlayerScore(null);
     setFinalElapsed(null);
-    recordedRef.current = false;
     setStartedAt(Date.now());
   }, [puzzle, seed]);
 
@@ -151,7 +150,10 @@ export default function ConnectionsPage() {
   // matches the API's "score desc, time asc" sort so winners rank by
   // speed, losers rank by partial progress.
   useEffect(() => {
-    if (state !== "won" && state !== "lost") return;
+    if (state !== "won" && state !== "lost") {
+      recordedRef.current = false;
+      return;
+    }
     if (recordedRef.current) return;
     if (playerScore == null || finalElapsed == null) return;
     recordedRef.current = true;

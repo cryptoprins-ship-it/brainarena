@@ -95,7 +95,6 @@ export default function MinesweeperPage() {
     setNewBest(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
-    recordedRef.current = false;
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -105,7 +104,10 @@ export default function MinesweeperPage() {
   // below — otherwise a player could blow up 100 boards then hand-pick
   // their best win.
   useEffect(() => {
-    if (state !== "won" && state !== "lost") return;
+    if (state !== "won" && state !== "lost") {
+      recordedRef.current = false;
+      return;
+    }
     if (recordedRef.current) return;
     recordedRef.current = true;
     const { shouldSubmit } = record();
