@@ -8,6 +8,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 
 const DURATION = 60;
@@ -160,14 +161,23 @@ export default function TypingPage() {
       </button>
 
       {done ? (
-        <EndScreenAddon
-          game="typing"
-          score={stats.wpm}
-          time={stats.elapsed}
-          rank={submitted?.rank}
-          locale={locale}
-          meta={{ accuracy: stats.accuracy }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="typing"
+            playerName={getName()}
+            playerScore={stats.wpm}
+            submittedRank={submitted?.rank}
+            formatScore={(e) => `${e.score} WPM`}
+          />
+          <EndScreenAddon
+            game="typing"
+            score={stats.wpm}
+            time={stats.elapsed}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ accuracy: stats.accuracy }}
+          />
+        </>
       ) : null}
 
       {done ? (

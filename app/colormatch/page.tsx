@@ -6,6 +6,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
@@ -62,7 +63,7 @@ function ratingFor(correct: number) {
 }
 
 export default function ColorMatchPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const todayIdx = useMemo(() => dayIndex(), []);
   const questions = useMemo(() => buildQuestions(todayIdx), [todayIdx]);
   const [round, setRound] = useState(0);
@@ -133,10 +134,11 @@ export default function ColorMatchPage() {
         game: "colormatch",
         name: getName() || "Anonymous",
         score,
+        language: locale,
         meta: { correct, rating: ratingFor(correct) },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [correct, done, record, score, submitted]);
+  }, [correct, done, locale, record, score, submitted]);
 
   if (done) {
     return (
@@ -157,6 +159,13 @@ export default function ColorMatchPage() {
             </p>
           ) : null}
         </div>
+
+        <ScoreEndLeaderboard
+          game="colormatch"
+          playerName={getName()}
+          playerScore={score}
+          submittedRank={submitted?.rank}
+        />
 
         <EndScreenAddon
           game="colormatch"

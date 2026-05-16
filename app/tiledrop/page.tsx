@@ -6,6 +6,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { useLocale } from "@/lib/i18n";
@@ -85,7 +86,7 @@ function clearLines(board: Cell[][]): { board: Cell[][]; lines: number } {
 const LINE_POINTS = [0, 100, 300, 500, 800];
 
 export default function TileDropPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [board, setBoard] = useState<Cell[][]>(newBoard);
   const [bag, setBag] = useState<Piece[]>(randomBag);
   const [piece, setPiece] = useState<{ p: Piece; x: number; y: number } | null>(null);
@@ -319,10 +320,11 @@ export default function TileDropPage() {
         game: "tiledrop",
         name: getName() || "Anonymous",
         score,
+        language: locale,
         meta: { lines, level },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [highScore, level, lines, over, record, score, submitted]);
+  }, [highScore, level, lines, locale, over, record, score, submitted]);
 
   // Compose render board with active piece + ghost.
   const renderBoard = useMemo(() => {
@@ -463,6 +465,12 @@ export default function TileDropPage() {
 
       {over ? (
         <>
+          <ScoreEndLeaderboard
+            game="tiledrop"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+          />
           <EndScreenAddon
             game="tiledrop"
             score={score}
