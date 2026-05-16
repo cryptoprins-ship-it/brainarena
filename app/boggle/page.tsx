@@ -12,6 +12,7 @@ import {
 } from "@/lib/dictionary";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
@@ -236,10 +237,11 @@ export default function BogglePage() {
         name: getName() || "Anonymous",
         score,
         time: DURATION,
+        language: locale,
         meta: { found },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [done, found, record, score, submitted]);
+  }, [done, found, locale, record, score, submitted]);
 
   if (!supported) {
     return (
@@ -347,14 +349,26 @@ export default function BogglePage() {
       </div>
 
       {done ? (
-        <EndScreenAddon
-          game="boggle"
-          score={score}
-          time={DURATION}
-          rank={submitted?.rank}
-          locale={locale}
-          meta={{ found: found.length }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="boggle"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+            formatScore={(e) => {
+              const f = (e.meta as { found?: unknown } | undefined)?.found;
+              return String(Array.isArray(f) ? f.length : typeof f === "number" ? f : 0);
+            }}
+          />
+          <EndScreenAddon
+            game="boggle"
+            score={score}
+            time={DURATION}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ found: found.length }}
+          />
+        </>
       ) : null}
 
       {done ? (

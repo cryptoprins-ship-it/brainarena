@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import { useLocale } from "@/lib/i18n";
 import {
   allWords,
@@ -163,10 +164,11 @@ export default function ConnectionsPage() {
         name: getName() || "Anonymous",
         score: playerScore,
         time: finalElapsed,
+        language: locale,
         meta: { mistakes, won: state === "won" },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [state, playerScore, finalElapsed, mistakes, record, submitted]);
+  }, [state, playerScore, finalElapsed, locale, mistakes, record, submitted]);
 
   const onNewPuzzle = useCallback(() => setSeedNonce((n) => n + 1), []);
 
@@ -317,6 +319,13 @@ export default function ConnectionsPage() {
                 {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
+            <ScoreEndLeaderboard
+              game="connections"
+              playerName={getName()}
+              playerScore={playerScore ?? 0}
+              submittedRank={submitted?.rank}
+              formatScore={(e) => `${e.score}/4`}
+            />
           </div>
           <EndScreenAddon
             game="connections"

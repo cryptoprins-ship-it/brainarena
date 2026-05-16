@@ -7,6 +7,7 @@ import { getName, submitScore } from "@/lib/scores";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 
 const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTTTTUUUVVWWXYYZ";
@@ -164,10 +165,11 @@ export default function LetterStackPage() {
         game: "letterstack",
         name: getName() || "Anonymous",
         score,
+        language: locale,
         meta: { missed },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [missed, over, record, score, submitted]);
+  }, [locale, missed, over, record, score, submitted]);
 
   const useBomb = () => {
     if (!bombAvailable) return;
@@ -249,13 +251,21 @@ export default function LetterStackPage() {
       </div>
 
       {over ? (
-        <EndScreenAddon
-          game="letterstack"
-          score={score}
-          rank={submitted?.rank}
-          locale={locale}
-          meta={{ missed }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="letterstack"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+          />
+          <EndScreenAddon
+            game="letterstack"
+            score={score}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ missed }}
+          />
+        </>
       ) : null}
 
       {over ? (
