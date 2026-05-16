@@ -159,8 +159,16 @@ export default function VlakkenPage() {
   }, [drag, puzzle]);
 
   const finishDrag = useCallback(
-    (start: number, end: number) => {
+    (start: number, end: number, dragStartedAt: number) => {
       if (!puzzle || done) return;
+      // Short releases are almost always accidental taps or abandoned
+      // drags. We still run the validation logic so valid placements
+      // can lock instantly (fast confident plays), but we suppress the
+      // error tooltips that previously read as "vlakken is freezing"
+      // — and skip the state mutation that would have shown the
+      // invalid rect outline. Long, deliberate drags get the full
+      // feedback as before.
+      const shortDrag = Date.now() - dragStartedAt < DRAG_MIN_HOLD_MS;
       const size = puzzle.size;
       const r1 = Math.floor(start / size), c1 = start % size;
       const r2 = Math.floor(end / size), c2 = end % size;
@@ -184,6 +192,7 @@ export default function VlakkenPage() {
       }
       for (const c of cells) {
         if (lockedCells.has(c)) {
+          if (shortDrag) return;
           showError(t("vlakken_err_overlap"));
           return;
         }
@@ -196,10 +205,12 @@ export default function VlakkenPage() {
         .filter((a) => !states[a.anchorIdx]?.locked);
 
       if (seedsInBox.length === 0) {
+        if (shortDrag) return;
         showError(t("vlakken_err_no_seed"));
         return;
       }
       if (seedsInBox.length > 1) {
+        if (shortDrag) return;
         showError(t("vlakken_err_multi_seed"));
         return;
       }
@@ -243,6 +254,11 @@ export default function VlakkenPage() {
         if (!sizeOk) errMsg = `${t("vlakken_err_size")} ${placedSize}/${target.size}`;
         else if (!modeOk) errMsg = modeErrorFor(t, target.mode);
       }
+
+      // Skip the state mutation entirely on short invalid drags —
+      // otherwise the player sees a ghostly attempt-rect that isn't
+      // locked, which reads as "did the game accept me or not?"
+      if (errMsg && shortDrag) return;
 
       newStates[target.anchorIdx] = {
         rect: { topLeft, w, h },
@@ -319,13 +335,12 @@ export default function VlakkenPage() {
       const cur = dragRef.current;
       if (!cur || cur.pointerId !== e.pointerId) return;
       setDrag(null);
-      // Short releases are almost always accidental taps or abandoned
-      // drags. Don't run validation — the player would see a "no seed"
-      // or "wrong size" error tooltip for something they didn't even
-      // mean to submit, which read as "vlakken is freezing on me" in
-      // user feedback. Validation still runs on real, considered drags.
-      if (Date.now() - cur.startedAt < DRAG_MIN_HOLD_MS) return;
-      finishDragRef.current(cur.startCell, cur.currentCell);
+      // Always run finishDrag — a valid placement locks immediately
+      // regardless of how long the player held. Short releases only
+      // suppress error tooltips on INVALID drags (see DRAG_MIN_HOLD_MS
+      // inside finishDrag); the player isn't penalised for being fast
+      // when they got it right.
+      finishDragRef.current(cur.startCell, cur.currentCell, cur.startedAt);
     };
     const handleCancel = (e: PointerEvent) => {
       const cur = dragRef.current;
