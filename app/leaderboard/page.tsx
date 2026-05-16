@@ -10,6 +10,7 @@ import type {
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
 import { getName, setName } from "@/lib/scores";
+import { flagOf } from "@/lib/leaderboard/flag";
 
 // Tab order only — display labels come from lib/howToPlay.ts so they
 // re-localise with the language switcher.
@@ -39,14 +40,6 @@ function monthLabel(): string {
     year: "numeric",
     timeZone: "UTC",
   });
-}
-
-function flagOf(country?: string) {
-  if (!country) return "🌍";
-  const cc = country.trim().toUpperCase();
-  if (cc.length !== 2) return "🌍";
-  const A = 0x1f1e6;
-  return String.fromCodePoint(A + cc.charCodeAt(0) - 65, A + cc.charCodeAt(1) - 65);
 }
 
 function scoreCell(game: Game, e: ScoreEntry): string {

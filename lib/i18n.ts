@@ -105,6 +105,7 @@ type TranslationKey =
   | "wordle_distribution" | "wordle_next"
   | "wordle_lb_title" | "wordle_lb_col_attempts" | "wordle_lb_col_time"
   | "wordle_lb_empty" | "wordle_lb_you"
+  | "time_lb_title" | "time_lb_empty"
   // Boggle
   | "boggle_status" | "boggle_word" | "boggle_start" | "boggle_kbd_hint"
   | "boggle_found" | "boggle_drag_hint" | "boggle_final_score" | "boggle_words_found"
@@ -318,6 +319,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Time",
     wordle_lb_empty: "No scores yet today",
     wordle_lb_you: "You",
+    time_lb_title: "Today's fastest times",
+    time_lb_empty: "No times yet today",
     boggle_status: "Daily 4×4 · find words 3+ letters · {seconds}s",
     boggle_word: "Word:",
     boggle_start: "Start",
@@ -570,6 +573,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Tijd",
     wordle_lb_empty: "Nog geen scores vandaag",
     wordle_lb_you: "Jij",
+    time_lb_title: "Snelste tijden vandaag",
+    time_lb_empty: "Nog geen tijden vandaag",
     boggle_status: "Dagelijks 4×4 · vind woorden van 3+ letters · {seconds}s",
     boggle_word: "Woord:",
     boggle_start: "Start",
@@ -823,6 +828,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Zeit",
     wordle_lb_empty: "Heute noch keine Ergebnisse",
     wordle_lb_you: "Du",
+    time_lb_title: "Schnellste Zeiten heute",
+    time_lb_empty: "Heute noch keine Zeiten",
     boggle_status: "Täglich 4×4 · finde Wörter mit 3+ Buchstaben · {seconds}s",
     boggle_word: "Wort:",
     boggle_start: "Start",
@@ -1076,6 +1083,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Temps",
     wordle_lb_empty: "Aucun score aujourd'hui",
     wordle_lb_you: "Toi",
+    time_lb_title: "Meilleurs temps du jour",
+    time_lb_empty: "Aucun temps aujourd'hui",
     boggle_status: "Quotidien 4×4 · trouve des mots de 3+ lettres · {seconds}s",
     boggle_word: "Mot :",
     boggle_start: "Démarrer",
@@ -1329,6 +1338,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Tiempo",
     wordle_lb_empty: "Aún no hay puntuaciones hoy",
     wordle_lb_you: "Tú",
+    time_lb_title: "Mejores tiempos de hoy",
+    time_lb_empty: "Aún no hay tiempos hoy",
     boggle_status: "Diario 4×4 · encuentra palabras de 3+ letras · {seconds}s",
     boggle_word: "Palabra:",
     boggle_start: "Empezar",
@@ -1582,6 +1593,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "समय",
     wordle_lb_empty: "आज अभी कोई स्कोर नहीं",
     wordle_lb_you: "आप",
+    time_lb_title: "आज के सबसे तेज़ समय",
+    time_lb_empty: "आज अभी कोई समय नहीं",
     boggle_status: "दैनिक 4×4 · 3+ अक्षरों के शब्द खोजें · {seconds}s",
     boggle_word: "शब्द:",
     boggle_start: "शुरू करें",
@@ -1837,6 +1850,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "Tempo",
     wordle_lb_empty: "Ainda não há pontuações hoje",
     wordle_lb_you: "Você",
+    time_lb_title: "Tempos mais rápidos de hoje",
+    time_lb_empty: "Ainda não há tempos hoje",
     boggle_status: "Diário 4×4 · encontre palavras de 3+ letras · {seconds}s",
     boggle_word: "Palavra:",
     boggle_start: "Começar",
@@ -2090,6 +2105,8 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_col_time: "時間",
     wordle_lb_empty: "今日はまだスコアがありません",
     wordle_lb_you: "あなた",
+    time_lb_title: "本日の最速タイム",
+    time_lb_empty: "今日はまだタイムがありません",
     boggle_status: "デイリー 4×4 · 3 文字以上の単語を探そう · {seconds}s",
     boggle_word: "単語:",
     boggle_start: "スタート",

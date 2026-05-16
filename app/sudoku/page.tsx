@@ -7,6 +7,7 @@ import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { useLocale } from "@/lib/i18n";
 
@@ -14,7 +15,7 @@ const DIFFS: Difficulty[] = ["easy", "medium", "hard"];
 const N = 9;
 
 export default function SudokuPage() {
-  const { t } = useLocale();
+  const { t, locale } = useLocale();
   const [diff, setDiff] = useState<Difficulty>("easy");
   const [board, setBoard] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<number[][]>([]);
@@ -131,10 +132,11 @@ export default function SudokuPage() {
         name: getName() || "Anonymous",
         score: 1, // sortable by time anyway
         time,
+        language: locale,
         meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [diff, done, hintsLeft, record, submitted, time]);
+  }, [diff, done, hintsLeft, locale, record, submitted, time]);
 
   // Keyboard input.
   useEffect(() => {
@@ -275,6 +277,15 @@ export default function SudokuPage() {
               {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
             </p>
           ) : null}
+          <TimeEndLeaderboard
+            game="sudoku"
+            playerName={getName()}
+            playerTime={time}
+            submittedRank={submitted?.rank}
+            metaFilter={(e) =>
+              (e.meta as { difficulty?: string } | undefined)?.difficulty === diff
+            }
+          />
         </div>
       ) : null}
     </div>
