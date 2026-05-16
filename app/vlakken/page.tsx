@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { useLocale } from "@/lib/i18n";
 import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/games/vlakken";
@@ -98,10 +99,11 @@ export default function VlakkenPage() {
         name: getName() || "Anonymous",
         score: Math.max(1, 100000 - elapsed),
         time: elapsed,
+        language: locale,
         meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
+  }, [done, elapsed, difficulty, hintsLeft, locale, record, submitted]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -575,6 +577,15 @@ export default function VlakkenPage() {
                 {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
+            <TimeEndLeaderboard
+              game="vlakken"
+              playerName={getName()}
+              playerTime={elapsed}
+              submittedRank={submitted?.rank}
+              metaFilter={(e) =>
+                (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
+              }
+            />
           </div>
           <EndScreenAddon
             game="vlakken"

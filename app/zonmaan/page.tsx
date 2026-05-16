@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
 import { generateZonMaan, edgeKey, type ZonMaanPuzzle } from "@/lib/games/zonmaan";
@@ -101,10 +102,11 @@ export default function ZonMaanPage() {
         name: getName() || "Anonymous",
         score: Math.max(1, 100000 - elapsed),
         time: elapsed,
+        language: locale,
         meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
+  }, [done, elapsed, difficulty, hintsLeft, locale, record, submitted]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -398,6 +400,15 @@ export default function ZonMaanPage() {
                 {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
+            <TimeEndLeaderboard
+              game="zonmaan"
+              playerName={getName()}
+              playerTime={elapsed}
+              submittedRank={submitted?.rank}
+              metaFilter={(e) =>
+                (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
+              }
+            />
           </div>
           <EndScreenAddon
             game="zonmaan"
