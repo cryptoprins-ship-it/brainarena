@@ -33,8 +33,12 @@ function buildRedis(): Redis | null {
 
 const redis = buildRedis();
 
+// `:brainarena:` segment matches the namespacing the rate-limiter
+// already uses (`ratelimit:brainarena:...`) so a shared Upstash
+// instance — Renisual also stores data here — never has two apps
+// reaching for the same key.
 function redisKey(game: Game): string {
-  return `leaderboard:scores:${game}`;
+  return `leaderboard:brainarena:scores:${game}`;
 }
 
 function fileFor(game: Game): string {
