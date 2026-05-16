@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { useLocale } from "@/lib/i18n";
 import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/games/vlakken";
@@ -32,7 +33,15 @@ const VLAKKEN_PALETTE = [
 
 type Rect = { topLeft: number; w: number; h: number };
 type AnchorState = { rect: Rect; locked: boolean };
-type DragState = { startCell: number; currentCell: number; pointerId: number };
+type DragState = { startCell: number; currentCell: number; pointerId: number; startedAt: number };
+
+// A pointerup that fires within this many ms of the pointerdown is
+// treated as an accidental tap or abandoned drag — we silently clear
+// the drag without running validation, so the player doesn't get
+// scolded by a "no seed" / "wrong size" tooltip for what was really
+// just an accidental touch. The threshold gives the player time to
+// reconsider mid-drag.
+const DRAG_MIN_HOLD_MS = 3000;
 type ErrorState = { msg: string; anchorIdx: number | null };
 
 export default function VlakkenPage() {
@@ -98,10 +107,11 @@ export default function VlakkenPage() {
         name: getName() || "Anonymous",
         score: Math.max(1, 100000 - elapsed),
         time: elapsed,
+        language: locale,
         meta: { difficulty, hintsUsed: HINTS_FOR[difficulty] - hintsLeft },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [done, elapsed, difficulty, hintsLeft, record, submitted]);
+  }, [done, elapsed, difficulty, hintsLeft, locale, record, submitted]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -149,8 +159,16 @@ export default function VlakkenPage() {
   }, [drag, puzzle]);
 
   const finishDrag = useCallback(
-    (start: number, end: number) => {
+    (start: number, end: number, dragStartedAt: number) => {
       if (!puzzle || done) return;
+      // Short releases are almost always accidental taps or abandoned
+      // drags. We still run the validation logic so valid placements
+      // can lock instantly (fast confident plays), but we suppress the
+      // error tooltips that previously read as "vlakken is freezing"
+      // — and skip the state mutation that would have shown the
+      // invalid rect outline. Long, deliberate drags get the full
+      // feedback as before.
+      const shortDrag = Date.now() - dragStartedAt < DRAG_MIN_HOLD_MS;
       const size = puzzle.size;
       const r1 = Math.floor(start / size), c1 = start % size;
       const r2 = Math.floor(end / size), c2 = end % size;
@@ -174,6 +192,7 @@ export default function VlakkenPage() {
       }
       for (const c of cells) {
         if (lockedCells.has(c)) {
+          if (shortDrag) return;
           showError(t("vlakken_err_overlap"));
           return;
         }
@@ -186,10 +205,12 @@ export default function VlakkenPage() {
         .filter((a) => !states[a.anchorIdx]?.locked);
 
       if (seedsInBox.length === 0) {
+        if (shortDrag) return;
         showError(t("vlakken_err_no_seed"));
         return;
       }
       if (seedsInBox.length > 1) {
+        if (shortDrag) return;
         showError(t("vlakken_err_multi_seed"));
         return;
       }
@@ -233,6 +254,11 @@ export default function VlakkenPage() {
         if (!sizeOk) errMsg = `${t("vlakken_err_size")} ${placedSize}/${target.size}`;
         else if (!modeOk) errMsg = modeErrorFor(t, target.mode);
       }
+
+      // Skip the state mutation entirely on short invalid drags —
+      // otherwise the player sees a ghostly attempt-rect that isn't
+      // locked, which reads as "did the game accept me or not?"
+      if (errMsg && shortDrag) return;
 
       newStates[target.anchorIdx] = {
         rect: { topLeft, w, h },
@@ -281,7 +307,7 @@ export default function VlakkenPage() {
         window.clearTimeout(errorTimerRef.current);
         errorTimerRef.current = null;
       }
-      setDrag({ startCell: idx, currentCell: idx, pointerId: e.pointerId });
+      setDrag({ startCell: idx, currentCell: idx, pointerId: e.pointerId, startedAt: Date.now() });
     },
     [done]
   );
@@ -309,7 +335,12 @@ export default function VlakkenPage() {
       const cur = dragRef.current;
       if (!cur || cur.pointerId !== e.pointerId) return;
       setDrag(null);
-      finishDragRef.current(cur.startCell, cur.currentCell);
+      // Always run finishDrag — a valid placement locks immediately
+      // regardless of how long the player held. Short releases only
+      // suppress error tooltips on INVALID drags (see DRAG_MIN_HOLD_MS
+      // inside finishDrag); the player isn't penalised for being fast
+      // when they got it right.
+      finishDragRef.current(cur.startCell, cur.currentCell, cur.startedAt);
     };
     const handleCancel = (e: PointerEvent) => {
       const cur = dragRef.current;
@@ -575,6 +606,15 @@ export default function VlakkenPage() {
                 {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
               </p>
             ) : null}
+            <TimeEndLeaderboard
+              game="vlakken"
+              playerName={getName()}
+              playerTime={elapsed}
+              submittedRank={submitted?.rank}
+              metaFilter={(e) =>
+                (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
+              }
+            />
           </div>
           <EndScreenAddon
             game="vlakken"
