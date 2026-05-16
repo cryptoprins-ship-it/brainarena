@@ -76,14 +76,13 @@ export default function KronenPage() {
     setDone(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
-    recordedRef.current = false;
     startedAt.current = null;
   }, [difficulty, seed]);
 
   // Submit to leaderboard on win, gated by the 3-attempt daily cap (per
   // difficulty since each difficulty is a separate puzzle stream).
   useEffect(() => {
-    if (!done) return;
+    if (!done) { recordedRef.current = false; return; }
     if (recordedRef.current) return;
     recordedRef.current = true;
     const { shouldSubmit } = record();
