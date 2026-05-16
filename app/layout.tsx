@@ -14,6 +14,19 @@ import {
 } from "@/lib/seo/hreflang";
 import "./globals.css";
 
+// Force every route under the root layout to render on each request.
+// Without this, statically prerendered pages (e.g. /leaderboard, /about,
+// /achievements, /privacy, /how-to-play, /contact, /maintenance, and any
+// future page that forgets the directive) inherit Next's default
+// `s-maxage=31536000` and get pinned at Hostinger's CDN for hours after
+// a deploy. The pinned HTML still references rotated `_next/static/*`
+// chunk hashes, so visitors get CSS 404s (scrambled layout) and JS 404s
+// (page never finishes loading). The 13 game layouts and / already had
+// `force-dynamic` individually; lifting it to the root closes the gap
+// for the remaining routes and prevents the same bug on any page added
+// later. Tiny perf cost is acceptable at our traffic — see app/page.tsx.
+export const dynamic = "force-dynamic";
+
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
 
 // Noto fallbacks for locales whose scripts are not covered by Inter:
