@@ -3,5 +3,17 @@
     "allow": [
       "Bash(curl -sS -o /dev/null -w \"kronen HTTP %{http_code}\\\\n\" http://localhost:3001/kronen)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"SessionStart\",\"additionalContext\":\"BRAINARENA PROJECT REMINDER: Before any response or action, read CLAUDE.md and AGENTS.md at the project root. AGENTS.md warns this Next.js install has BREAKING CHANGES vs. training data — consult node_modules/next/dist/docs/ before writing any Next.js code. Heed deprecation notices.\"}}'"
+          }
+        ]
+      }
+    ]
   }
 }
