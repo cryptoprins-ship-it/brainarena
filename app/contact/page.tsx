@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useLocale } from "@/lib/i18n";
 
 const TOPICS = [
   { value: "general", label: "General question" },
@@ -12,6 +13,7 @@ const TOPICS = [
 ];
 
 export default function ContactPage() {
+  const { t } = useLocale();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [topic, setTopic] = useState("general");
@@ -39,7 +41,7 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10">
-      <h1 className="text-3xl font-black md:text-4xl">Contact</h1>
+      <h1 className="text-3xl font-black md:text-4xl">{t("contact_title")}</h1>
       <p className="mt-2 text-sm text-gray-400">
         Bug reports, leaderboard removal requests, partnerships — drop us a line.
       </p>
@@ -61,7 +63,7 @@ export default function ContactPage() {
         onSubmit={handleSubmit}
         className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5"
       >
-        <h2 className="text-lg font-bold">Send us a message</h2>
+        <h2 className="text-lg font-bold">{t("contact_send_us_message")}</h2>
         <p className="mt-1 text-xs text-gray-500">
           Submitting opens your default email client with the message pre-filled.
         </p>

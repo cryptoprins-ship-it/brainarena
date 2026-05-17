@@ -1,11 +1,15 @@
+"use client";
+
 import type { CSSProperties } from "react";
+import { useLocale } from "@/lib/i18n";
 
 export default function MaintenancePage() {
+  const { t } = useLocale();
   return (
     <main style={styles.wrapper}>
       <div style={styles.card}>
-        <h1 style={styles.title}>We&rsquo;re currently under maintenance</h1>
-        <p style={styles.text}>Please try again in 10 minutes.</p>
+        <h1 style={styles.title}>{t("maintenance_title")}</h1>
+        <p style={styles.text}>{t("maintenance_text")}</p>
       </div>
     </main>
   );

@@ -138,6 +138,7 @@ function ChampionPanel() {
 // Without this UI a typo or shared device leaves the wrong name attached to
 // every future submission — the regular NameGate only opens on first play.
 function PlayerNameEditor() {
+  const { t } = useLocale();
   const [name, setNameState] = useState<string>("");
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
@@ -198,7 +199,7 @@ function PlayerNameEditor() {
       ) : (
         <div className="flex items-center justify-between gap-2">
           <span>
-            <span className="text-gray-400">Playing as: </span>
+            <span className="text-gray-400">{t("leaderboard_playing_as")}: </span>
             <span className="font-bold">{name || "Anonymous"}</span>
           </span>
           <button
