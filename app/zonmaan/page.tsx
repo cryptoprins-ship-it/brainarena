@@ -172,18 +172,22 @@ export default function ZonMaanPage() {
     [applyMove, cells, done, puzzle]
   );
 
-  // Highlights when the player has three of the same symbol consecutively
-  // in a row or column. Pure detection — we don't auto-correct, just nudge
-  // the player to fix it themselves.
-  const tripletViolation = useMemo(() => {
-    if (!puzzle || done) return false;
+  // Triplet violation cells — the 3 cells forming any run of 3 same symbols
+  // get red tint, not just a generic banner. Pure detection, no auto-correct.
+  const tripletCells = useMemo(() => {
+    const out = new Set<number>();
+    if (!puzzle || done) return out;
     const N = puzzle.size;
     for (let r = 0; r < N; r++) {
       for (let c = 0; c <= N - 3; c++) {
         const a = cells[r * N + c];
         const b = cells[r * N + c + 1];
         const d = cells[r * N + c + 2];
-        if (a !== -1 && a === b && b === d) return true;
+        if (a !== -1 && a === b && b === d) {
+          out.add(r * N + c);
+          out.add(r * N + c + 1);
+          out.add(r * N + c + 2);
+        }
       }
     }
     for (let c = 0; c < N; c++) {
@@ -191,11 +195,44 @@ export default function ZonMaanPage() {
         const a = cells[r * N + c];
         const b = cells[(r + 1) * N + c];
         const d = cells[(r + 2) * N + c];
-        if (a !== -1 && a === b && b === d) return true;
+        if (a !== -1 && a === b && b === d) {
+          out.add(r * N + c);
+          out.add((r + 1) * N + c);
+          out.add((r + 2) * N + c);
+        }
       }
     }
-    return false;
+    return out;
   }, [cells, puzzle, done]);
+
+  // Edge-constraint violation cells — when two adjacent cells contradict
+  // an "=" or "×" constraint between them, flag both. Cells with at least
+  // one filled side get checked; pairs where either side is still empty
+  // are ignored (player hasn't committed).
+  const edgeViolationCells = useMemo(() => {
+    const out = new Set<number>();
+    if (!puzzle || done) return out;
+    for (const k of Object.keys(puzzle.edges)) {
+      const [aStr, bStr] = k.split(":");
+      const a = Number(aStr);
+      const b = Number(bStr);
+      const va = cells[a];
+      const vb = cells[b];
+      if (va === -1 || vb === -1) continue;
+      const sym = puzzle.edges[k];
+      if (sym === "=" && va !== vb) {
+        out.add(a);
+        out.add(b);
+      } else if (sym === "x" && va === vb) {
+        out.add(a);
+        out.add(b);
+      }
+    }
+    return out;
+  }, [cells, puzzle, done]);
+
+  const tripletViolation = tripletCells.size > 0;
+  const edgeViolation = edgeViolationCells.size > 0;
 
   // Row/column balance — flag rows or columns that already hold more than
   // half their cells as one symbol. With N=6 the cap is 3, so a 4th sun
@@ -325,6 +362,10 @@ export default function ZonMaanPage() {
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/60 bg-rose-500/15 px-3 py-2 text-center text-sm font-bold text-rose-100">
           {t("zonmaan_max_three")}
         </div>
+      ) : edgeViolation ? (
+        <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/60 bg-rose-500/15 px-3 py-2 text-center text-sm font-bold text-rose-100">
+          {t("zonmaan_edge_violation")}
+        </div>
       ) : tripletViolation ? (
         <div className="mx-auto mt-4 max-w-md rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-center text-xs font-medium text-rose-200">
           {t("zonmaan_three_in_row")}
@@ -336,6 +377,8 @@ export default function ZonMaanPage() {
         cells={cells}
         done={done}
         badCells={overBalanceCells}
+        tripletCells={tripletCells}
+        edgeViolationCells={edgeViolationCells}
         onClick={onCellClick}
       />
 
@@ -494,12 +537,16 @@ function ZonMaanGrid({
   cells,
   done,
   badCells,
+  tripletCells,
+  edgeViolationCells,
   onClick,
 }: {
   puzzle: ZonMaanPuzzle;
   cells: CellState[];
   done: boolean;
   badCells: Set<number>;
+  tripletCells: Set<number>;
+  edgeViolationCells: Set<number>;
   onClick: (idx: number) => void;
 }) {
   const { size } = puzzle;
@@ -519,25 +566,30 @@ function ZonMaanGrid({
         const state = cells[idx];
         const isClue = idx in puzzle.clues;
         const isBad = badCells.has(idx);
+        const isTriplet = tripletCells.has(idx);
+        const isEdgeBad = edgeViolationCells.has(idx);
+        const anyError = isBad || isTriplet || isEdgeBad;
         const stateLabel = state === 1 ? "sun" : state === 0 ? "moon" : "empty";
+        // LinkedIn Tango cell look: lighter card bg + subtle ring on user
+        // cells; clues sit on a darker card with stronger ring so the player
+        // can tell givens apart at a glance.
+        const baseClass = done
+          ? "bg-emerald-500/10 border border-emerald-500/40 cursor-default"
+          : anyError
+          ? "bg-rose-500/25 border-2 border-rose-500/70"
+          : isClue
+          ? "bg-[#0f1018] border border-[#3a3a48]"
+          : "bg-[#1e1f2a] hover:bg-[#262838] border border-[#2f3142]";
         slots.push(
           <button
             key={`c-${idx}`}
             type="button"
             disabled={done || isClue}
             onClick={() => onClick(idx)}
-            aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}${isBad ? ", too many" : ""}`}
-            className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] ${
-              done
-                ? "bg-emerald-500/10 border border-emerald-500/40 cursor-default"
-                : isBad
-                ? "bg-rose-500/25 border border-rose-500/70"
-                : isClue
-                ? "bg-[#13141c] border border-[#2a2a2a]"
-                : "bg-[#15151c] hover:bg-[#1c1c25] border border-[#2a2a2a]"
-            }`}
+            aria-label={`row ${r + 1} col ${c + 1}, ${stateLabel}${isClue ? ", clue" : ""}${anyError ? ", error" : ""}`}
+            className={`aspect-square grid place-items-center select-none transition active:scale-[0.97] rounded-sm ${baseClass}`}
           >
-            {state === 1 ? <SunIcon dim={isClue} /> : state === 0 ? <MoonIcon dim={isClue} /> : null}
+            {state === 1 ? <SunIcon dim={isClue} won={done} /> : state === 0 ? <MoonIcon dim={isClue} won={done} /> : null}
           </button>
         );
       } else if (isCellRow && !isCellCol) {
@@ -571,7 +623,7 @@ function ZonMaanGrid({
 
   // The cells take "1fr" each; the edge gutters take a fixed narrow band so
   // they don't squash the cells but stay readable.
-  const cols = Array.from({ length: gridSize }, (_, i) => (i % 2 === 0 ? "1fr" : "16px")).join(" ");
+  const cols = Array.from({ length: gridSize }, (_, i) => (i % 2 === 0 ? "1fr" : "22px")).join(" ");
   const rows = cols;
 
   return (
@@ -585,27 +637,24 @@ function ZonMaanGrid({
 }
 
 function EdgeBadge({ sym }: { sym: "=" | "x" }) {
-  // Terracotta-on-cream for both = and × — color is for legibility, the
-  // glyph itself carries the meaning.
   return (
     <span
       aria-label={sym === "=" ? "same symbol" : "opposite symbols"}
-      className="inline-grid place-items-center text-[11px] font-black h-4 w-4 rounded-full bg-[#fef3e2] text-[#c2410c] ring-1 ring-[#fb923c]/40"
+      className="inline-grid place-items-center text-[13px] font-black h-[20px] w-[20px] rounded-full bg-[#fef3e2] text-[#c2410c] ring-1 ring-[#fb923c]/50 shadow-sm"
     >
       {sym === "=" ? "=" : "×"}
     </span>
   );
 }
 
-function SunIcon({ dim }: { dim?: boolean } = {}) {
-  // Solid orange disc; rays kept subtle so it reads at small sizes too.
-  // `dim` is set on pre-placed clue cells so the player can tell their
-  // own placements apart from the puzzle's givens at a glance.
+function SunIcon({ dim, won }: { dim?: boolean; won?: boolean } = {}) {
+  // `dim` distinguishes pre-placed clue cells; `won` triggers a bounce
+  // animation when the puzzle is solved.
   const ray = dim ? "#92651a" : "#f59e0b";
   const fill = dim ? "#8a5a16" : "#f39c12";
   const stroke = dim ? "#5d3d0e" : "#d97706";
   return (
-    <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
+    <svg viewBox="0 0 32 32" width="65%" height="65%" aria-hidden="true" className={won ? "animate-bounce" : ""}>
       <g stroke={ray} strokeWidth="2" strokeLinecap="round">
         <line x1="16" y1="3"  x2="16" y2="7" />
         <line x1="16" y1="25" x2="16" y2="29" />
@@ -621,17 +670,13 @@ function SunIcon({ dim }: { dim?: boolean } = {}) {
   );
 }
 
-function MoonIcon({ dim }: { dim?: boolean } = {}) {
-  // Blue crescent built from two overlapping circles via mask. `dim`
-  // marks pre-placed clue cells so the player can tell givens apart
-  // from their own placements.
+function MoonIcon({ dim, won }: { dim?: boolean; won?: boolean } = {}) {
+  // `dim` marks pre-placed clue cells; `won` triggers bounce on solve.
   const fill = dim ? "#1e3a8a" : "#3b82f6";
   const stroke = dim ? "#0e1e58" : "#1d4ed8";
-  // Each instance needs a unique mask id; React 19 useId would be cleaner
-  // but a per-prop suffix is enough for the two render variants.
   const maskId = dim ? "zm-moon-mask-dim" : "zm-moon-mask";
   return (
-    <svg viewBox="0 0 32 32" width="60%" height="60%" aria-hidden="true">
+    <svg viewBox="0 0 32 32" width="65%" height="65%" aria-hidden="true" className={won ? "animate-bounce" : ""}>
       <defs>
         <mask id={maskId}>
           <rect width="32" height="32" fill="white" />
