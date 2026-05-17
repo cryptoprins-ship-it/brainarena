@@ -192,28 +192,13 @@ export default function VlakkenPage() {
       for (let r = top; r < top + h; r++) for (let c = left; c < left + w; c++) cells.push(r * size + c);
       const cellSet = new Set(cells);
 
-      // Overlap with locked rectangles?
-      const lockedCells = new Set<number>();
-      for (const st of Object.values(states)) {
-        if (!st.locked) continue;
-        const tt = Math.floor(st.rect.topLeft / size), ll = st.rect.topLeft % size;
-        for (let r = 0; r < st.rect.h; r++) for (let c = 0; c < st.rect.w; c++) {
-          lockedCells.add((tt + r) * size + ll + c);
-        }
-      }
-      for (const c of cells) {
-        if (lockedCells.has(c)) {
-          if (shortDrag) return;
-          showError(t("vlakken_err_overlap"));
-          return;
-        }
-      }
-
-      // Seeds in selection that aren't already locked.
+      // LinkedIn-Patches flexibility: any drag can replace any existing
+      // rect, even a locked one. Conflicting placements get cleared further
+      // down. The player keeps full freedom to redraw at any time until the
+      // whole tiling is valid.
       const seedsInBox = puzzle.anchors
         .map((a, i) => ({ ...a, anchorIdx: i }))
-        .filter((a) => cellSet.has(a.idx))
-        .filter((a) => !states[a.anchorIdx]?.locked);
+        .filter((a) => cellSet.has(a.idx));
 
       if (seedsInBox.length === 0) {
         if (shortDrag) return;
@@ -232,13 +217,15 @@ export default function VlakkenPage() {
       // Snapshot for undo.
       setHistory((h) => [...h, states]);
 
-      // Clear any other anchor's non-locked attempt that overlaps these cells.
+      // Clear any other anchor's attempt that overlaps these cells, locked
+      // or not. Replacing a locked rect is intentional — the player may
+      // have "locked" a wrong-but-locally-valid placement that conflicts
+      // with the final tiling.
       const newStates: Record<number, AnchorState> = { ...states };
       for (const k of Object.keys(newStates)) {
         const aIdx = Number(k);
         if (aIdx === target.anchorIdx) continue;
         const st = newStates[aIdx];
-        if (st.locked) continue;
         const tt = Math.floor(st.rect.topLeft / size), ll = st.rect.topLeft % size;
         let overlaps = false;
         for (let r = 0; r < st.rect.h && !overlaps; r++) {
@@ -450,18 +437,9 @@ export default function VlakkenPage() {
   }
 
   const size = puzzle.size;
-  const dragValid = (() => {
-    if (!dragRect) return true;
-    const dragCells = rectCellSet(dragRect, size);
-    for (const st of Object.values(states)) {
-      if (!st.locked) continue;
-      const tt = Math.floor(st.rect.topLeft / size), ll = st.rect.topLeft % size;
-      for (let r = 0; r < st.rect.h; r++) for (let c = 0; c < st.rect.w; c++) {
-        if (dragCells.has((tt + r) * size + ll + c)) return false;
-      }
-    }
-    return true;
-  })();
+  // Every drag is permitted — overlaps simply replace existing rects, so
+  // the drag overlay is always rendered as a positive selection.
+  const dragValid = true;
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -854,13 +832,6 @@ function modeErrorFor(t: (k: TKey) => string, mode: AnchorMode): string {
 }
 
 type TKey = Parameters<ReturnType<typeof useLocale>["t"]>[0];
-
-function rectCellSet(rect: Rect, size: number): Set<number> {
-  const set = new Set<number>();
-  const top = Math.floor(rect.topLeft / size), left = rect.topLeft % size;
-  for (let r = 0; r < rect.h; r++) for (let c = 0; c < rect.w; c++) set.add((top + r) * size + left + c);
-  return set;
-}
 
 function DifficultyToggle({ value, onChange }: { value: Difficulty; onChange: (d: Difficulty) => void }) {
   const { t } = useLocale();
