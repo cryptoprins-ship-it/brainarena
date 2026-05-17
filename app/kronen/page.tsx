@@ -12,29 +12,30 @@ import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
-type CellMark = 0 | 1 | 2; // 0 empty, 1 X, 2 crown
+type CellMark = 0 | 1 | 2; // 0 empty, 1 manual-X, 2 crown
 
 const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 8, hard: 10 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 const BEST_KEY = (d: Difficulty) => `brainarena-kronen-best-${d}`;
 
-// LinkedIn-Queens-style vivid palette: high-contrast, mutually distinct
-// hues so neighbouring regions never blur together.
+// Pastel palette tuned to match LinkedIn Queens: softer than vivid but still
+// distinct enough that neighbouring regions read separately on dark bg.
 const KRONEN_PALETTE = [
-  "#60a5fa", // blue
-  "#fb923c", // orange
-  "#a855f7", // purple
-  "#22c55e", // green
-  "#f87171", // coral
-  "#facc15", // yellow
-  "#94a3b8", // slate
-  "#ec4899", // pink
-  "#14b8a6", // teal
-  "#84cc16", // lime
+  "#f4a8a8", // soft coral
+  "#f7c08a", // peach
+  "#f5d97a", // soft yellow
+  "#a8d99b", // sage green
+  "#9bd1c8", // mint teal
+  "#a8c8e8", // sky blue
+  "#c4a8e0", // lavender
+  "#e8a8c4", // pink
+  "#c8c8c8", // warm grey
+  "#d4c97a", // olive
 ];
 
 type Move = { idx: number; prev: CellMark; next: CellMark };
+type DragState = { startIdx: number; moved: boolean; pointerId: number };
 
 export default function KronenPage() {
   const { t, locale } = useLocale();
@@ -43,28 +44,27 @@ export default function KronenPage() {
   const [seedNonce, setSeedNonce] = useState(0);
   const [puzzle, setPuzzle] = useState<KronenPuzzle | null>(null);
   const [marks, setMarks] = useState<CellMark[]>([]);
-  const [history, setHistory] = useState<Move[]>([]);
+  const [history, setHistory] = useState<Move[][]>([]);
   const [hintsLeft, setHintsLeft] = useState(HINTS_FOR.easy);
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [drag, setDrag] = useState<DragState | null>(null);
+  const dragPaintedRef = useRef<Set<number>>(new Set());
+  const dragMovesRef = useRef<Move[]>([]);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("kronen", todayIdx, difficulty);
 
-  // Build a daily seed tied to UTC day + difficulty + nonce. The nonce lets
-  // "New game" within the same day produce a fresh puzzle; nonce=0 is the
-  // shared daily so leaderboard entries match across players.
   const seed = useMemo(
     () => dayIndex() * 1009 + DIFF_INDEX[difficulty] * 17 + seedNonce,
     [difficulty, seedNonce]
   );
 
-  // Generate puzzle whenever seed/difficulty changes.
   useEffect(() => {
     const size = SIZE_FOR[difficulty];
     const p = generateKronen(size, seed);
@@ -76,11 +76,12 @@ export default function KronenPage() {
     setDone(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setDrag(null);
+    dragPaintedRef.current.clear();
+    dragMovesRef.current = [];
     startedAt.current = null;
   }, [difficulty, seed]);
 
-  // Submit to leaderboard on win, gated by the 3-attempt daily cap (per
-  // difficulty since each difficulty is a separate puzzle stream).
   useEffect(() => {
     if (!done) { recordedRef.current = false; return; }
     if (recordedRef.current) return;
@@ -99,14 +100,12 @@ export default function KronenPage() {
     }
   }, [done, elapsed, difficulty, hintsLeft, locale, record, submitted]);
 
-  // Best-time per difficulty.
   useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = safeGetItem(BEST_KEY(difficulty));
     setBestSeconds(raw ? Number(raw) : null);
   }, [difficulty]);
 
-  // Timer.
   useEffect(() => {
     if (done) return;
     const id = window.setInterval(() => {
@@ -115,12 +114,6 @@ export default function KronenPage() {
     return () => window.clearInterval(id);
   }, [done]);
 
-  // Win detection: validate the rules directly instead of comparing against
-  // the embedded solution. On hard (10x10) the uniqueness refiner sometimes
-  // can't make a puzzle unique within budget, so a player who places a
-  // valid placement that isn't the embedded one would otherwise never see
-  // a win. Rule-based: exactly N crowns, one per row, one per column, one
-  // per region, and no two crowns king-adjacent.
   const isWin = useCallback(
     (current: CellMark[]) => {
       if (!puzzle) return false;
@@ -158,7 +151,81 @@ export default function KronenPage() {
     [puzzle]
   );
 
-  const onCellClick = useCallback(
+  // Auto-X overlay: every empty cell that's row/col/region/king-adj to a
+  // placed crown gets a faded X automatically. Pure derived state from marks.
+  const autoX = useMemo(() => {
+    const set = new Set<number>();
+    if (!puzzle) return set;
+    const { size, regions } = puzzle;
+    for (let q = 0; q < size * size; q++) {
+      if (marks[q] !== 2) continue;
+      const rq = Math.floor(q / size);
+      const cq = q % size;
+      const reg = regions[q];
+      for (let j = 0; j < size * size; j++) {
+        if (j === q || marks[j] === 2 || marks[j] === 1) continue;
+        const rj = Math.floor(j / size);
+        const cj = j % size;
+        const sameRow = rj === rq;
+        const sameCol = cj === cq;
+        const sameReg = regions[j] === reg;
+        const adj = Math.abs(rj - rq) <= 1 && Math.abs(cj - cq) <= 1;
+        if (sameRow || sameCol || sameReg || adj) set.add(j);
+      }
+    }
+    return set;
+  }, [marks, puzzle]);
+
+  // Conflict set: every queen involved in any rule violation gets flagged.
+  // Replaces single-cell hasConflict — now both members of each pair light up.
+  const conflicts = useMemo(() => {
+    const set = new Set<number>();
+    if (!puzzle) return set;
+    const { size, regions } = puzzle;
+    const crowns: number[] = [];
+    for (let i = 0; i < size * size; i++) if (marks[i] === 2) crowns.push(i);
+    for (let i = 0; i < crowns.length; i++) {
+      const ri = Math.floor(crowns[i] / size);
+      const ci = crowns[i] % size;
+      for (let j = i + 1; j < crowns.length; j++) {
+        const rj = Math.floor(crowns[j] / size);
+        const cj = crowns[j] % size;
+        const clash =
+          ri === rj ||
+          ci === cj ||
+          regions[crowns[i]] === regions[crowns[j]] ||
+          (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1);
+        if (clash) {
+          set.add(crowns[i]);
+          set.add(crowns[j]);
+        }
+      }
+    }
+    return set;
+  }, [marks, puzzle]);
+
+  const firstConflictKind = useMemo<ConflictKind | null>(() => {
+    if (!puzzle || conflicts.size === 0) return null;
+    const { size, regions } = puzzle;
+    const crowns: number[] = [];
+    for (let i = 0; i < size * size; i++) if (marks[i] === 2) crowns.push(i);
+    for (let i = 0; i < crowns.length; i++) {
+      const ri = Math.floor(crowns[i] / size);
+      const ci = crowns[i] % size;
+      for (let j = i + 1; j < crowns.length; j++) {
+        const rj = Math.floor(crowns[j] / size);
+        const cj = crowns[j] % size;
+        if (ri === rj) return "row";
+        if (ci === cj) return "col";
+        if (regions[crowns[i]] === regions[crowns[j]]) return "region";
+        if (Math.abs(ri - rj) <= 1 && Math.abs(ci - cj) <= 1) return "adjacent";
+      }
+    }
+    return null;
+  }, [conflicts, marks, puzzle]);
+
+  // Single-tap cycle: empty → X → crown → empty.
+  const cycleCell = useCallback(
     (idx: number) => {
       if (done || !puzzle) return;
       if (!startedAt.current) startedAt.current = Date.now();
@@ -167,16 +234,15 @@ export default function KronenPage() {
         const cur = next[idx];
         const nxt: CellMark = (((cur + 1) % 3) as CellMark);
         next[idx] = nxt;
-        setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
+        setHistory((h) => [...h, [{ idx, prev: cur, next: nxt }]]);
         if (isWin(next)) {
           setDone(true);
-          const t = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
-          setElapsed(t);
-          // Persist best time.
+          const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
+          setElapsed(tt);
           const prevBest = Number(safeGetItem(BEST_KEY(difficulty)) ?? "");
-          if (!prevBest || t < prevBest) {
-            safeSetItem(BEST_KEY(difficulty), String(t));
-            setBestSeconds(t);
+          if (!prevBest || tt < prevBest) {
+            safeSetItem(BEST_KEY(difficulty), String(tt));
+            setBestSeconds(tt);
           }
         }
         return next;
@@ -185,14 +251,112 @@ export default function KronenPage() {
     [difficulty, done, elapsed, isWin, puzzle]
   );
 
+  // Drag-paint: stroke empty cells with X. Skips cells that already hold a
+  // crown or manual X (only paints onto empty). Idempotent per cell within
+  // one drag — dragPaintedRef de-dupes pointerenter floods.
+  const paintCellX = useCallback(
+    (idx: number) => {
+      if (done || !puzzle) return;
+      if (dragPaintedRef.current.has(idx)) return;
+      dragPaintedRef.current.add(idx);
+      if (!startedAt.current) startedAt.current = Date.now();
+      setMarks((prev) => {
+        if (prev[idx] !== 0) return prev;
+        const next = [...prev];
+        next[idx] = 1;
+        dragMovesRef.current.push({ idx, prev: 0, next: 1 });
+        return next;
+      });
+    },
+    [done, puzzle]
+  );
+
+  // End-of-drag commit: collapse all per-cell moves into a single undo group
+  // so one ctrl+Z (or Undo tap) rolls back the whole stroke.
+  const commitDrag = useCallback(() => {
+    if (dragMovesRef.current.length > 0) {
+      const group = dragMovesRef.current.slice();
+      dragMovesRef.current = [];
+      setHistory((h) => [...h, group]);
+    }
+    dragPaintedRef.current.clear();
+  }, []);
+
+  const onCellPointerDown = useCallback(
+    (idx: number, e: React.PointerEvent<HTMLButtonElement>) => {
+      if (done) return;
+      e.preventDefault();
+      try {
+        (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+      } catch {
+        // older browsers: ignore
+      }
+      setDrag({ startIdx: idx, moved: false, pointerId: e.pointerId });
+      dragPaintedRef.current.clear();
+      dragMovesRef.current = [];
+    },
+    [done]
+  );
+
+  const onCellPointerEnter = useCallback(
+    (idx: number, e: React.PointerEvent<HTMLButtonElement>) => {
+      if (!drag) return;
+      if (e.pointerId !== drag.pointerId) return;
+      // Mark drag as having moved off the start cell, then paint.
+      if (!drag.moved || idx !== drag.startIdx) {
+        if (!drag.moved) setDrag((d) => (d ? { ...d, moved: true } : null));
+        // Also paint the start cell on first move so the stroke starts there.
+        paintCellX(drag.startIdx);
+        paintCellX(idx);
+      }
+    },
+    [drag, paintCellX]
+  );
+
+  // pointerup: tap if no movement, otherwise commit the stroke.
+  useEffect(() => {
+    if (!drag) return;
+    const onUp = (e: PointerEvent) => {
+      if (e.pointerId !== drag.pointerId) return;
+      if (!drag.moved) {
+        cycleCell(drag.startIdx);
+      } else {
+        commitDrag();
+        // Run win check after committing the stroke (paint doesn't add crowns
+        // so a stroke alone can't win, but be defensive).
+        setMarks((prev) => {
+          if (isWin(prev)) {
+            setDone(true);
+            const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
+            setElapsed(tt);
+          }
+          return prev;
+        });
+      }
+      setDrag(null);
+    };
+    const onCancel = () => {
+      commitDrag();
+      setDrag(null);
+    };
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onCancel);
+    return () => {
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onCancel);
+    };
+  }, [drag, cycleCell, commitDrag, isWin, elapsed]);
+
   const onUndo = useCallback(() => {
     if (done) return;
     setHistory((h) => {
       if (!h.length) return h;
-      const last = h[h.length - 1];
+      const lastGroup = h[h.length - 1];
       setMarks((m) => {
         const next = [...m];
-        next[last.idx] = last.prev;
+        for (let i = lastGroup.length - 1; i >= 0; i--) {
+          next[lastGroup[i].idx] = lastGroup[i].prev;
+        }
         return next;
       });
       return h.slice(0, -1);
@@ -202,7 +366,6 @@ export default function KronenPage() {
   const onHint = useCallback(() => {
     if (done || !puzzle || hintsLeft <= 0) return;
     const { size, solution } = puzzle;
-    // Pick a row whose crown isn't yet correctly placed.
     const candidates: number[] = [];
     for (let r = 0; r < size; r++) {
       const want = solution[r];
@@ -216,7 +379,7 @@ export default function KronenPage() {
       const next = [...prev];
       const cur = next[idx];
       next[idx] = 2;
-      setHistory((h) => [...h, { idx, prev: cur, next: 2 }]);
+      setHistory((h) => [...h, [{ idx, prev: cur, next: 2 }]]);
       if (isWin(next)) {
         setDone(true);
         const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
@@ -252,7 +415,6 @@ export default function KronenPage() {
   }
 
   const size = puzzle.size;
-  const conflictKind = firstConflict(marks, puzzle);
 
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-6">
@@ -273,18 +435,16 @@ export default function KronenPage() {
       </div>
 
       <div
-        className="mx-auto mt-5 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] overflow-hidden"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
+        className="mx-auto mt-5 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] overflow-hidden select-none"
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0, touchAction: "none" }}
       >
         {puzzle.regions.map((region, idx) => {
           const mark = marks[idx];
           const r = Math.floor(idx / size);
           const c = idx % size;
-          const conflict = mark === 2 && hasConflict(idx, marks, puzzle);
+          const isConflict = mark === 2 && conflicts.has(idx);
+          const showAutoX = mark === 0 && autoX.has(idx);
           const fill = KRONEN_PALETTE[region % KRONEN_PALETTE.length];
-          // LinkedIn-style region outlines: thick dark border between
-          // different regions, thin same-fill border within a region (so
-          // adjacent same-region cells still get a hairline cell separator).
           const sameRegion = (otherIdx: number | undefined) =>
             otherIdx !== undefined && puzzle.regions[otherIdx] === region;
           const top = r > 0 ? idx - size : undefined;
@@ -302,10 +462,11 @@ export default function KronenPage() {
               key={idx}
               type="button"
               aria-label={`row ${r + 1} col ${c + 1}`}
-              onClick={() => onCellClick(idx)}
+              onPointerDown={(e) => onCellPointerDown(idx, e)}
+              onPointerEnter={(e) => onCellPointerEnter(idx, e)}
               disabled={done}
               className={`aspect-square grid place-items-center text-lg font-bold transition active:scale-[0.97] ${
-                conflict ? "ring-2 ring-red-500 ring-inset z-10" : ""
+                isConflict ? "ring-2 ring-red-500 ring-inset z-10 animate-pulse" : ""
               }`}
               style={{
                 background: fill,
@@ -318,27 +479,33 @@ export default function KronenPage() {
                 borderBottomWidth,
                 borderLeftWidth,
                 borderRightWidth,
+                touchAction: "none",
               }}
             >
               {mark === 2 ? (
-                <span className="text-2xl leading-none text-[#0a0a0a] drop-shadow">♛</span>
+                <span
+                  className={`text-2xl leading-none text-[#0a0a0a] drop-shadow ${
+                    done ? "animate-bounce" : ""
+                  }`}
+                >
+                  ♛
+                </span>
               ) : mark === 1 ? (
                 <span className="text-base leading-none text-[#0a0a0a]/70">×</span>
+              ) : showAutoX ? (
+                <span className="text-base leading-none text-[#0a0a0a]/25">×</span>
               ) : null}
             </button>
           );
         })}
       </div>
 
-      {/* Conflict banner — explains *why* the placement isn't a solution.
-          The thin red ring on each conflicting crown is easy to miss, so we
-          surface the first conflict kind found in plain text. */}
-      {conflictKind && !done ? (
+      {firstConflictKind && !done ? (
         <div
           role="status"
           className="mt-3 rounded-md border border-red-500/50 bg-red-500/10 px-3 py-2 text-sm text-red-200"
         >
-          {t(`kronen_conflict_${conflictKind}` as
+          {t(`kronen_conflict_${firstConflictKind}` as
             | "kronen_conflict_row" | "kronen_conflict_col"
             | "kronen_conflict_region" | "kronen_conflict_adjacent")}
         </div>
@@ -418,49 +585,7 @@ export default function KronenPage() {
   );
 }
 
-function hasConflict(idx: number, marks: CellMark[], puzzle: KronenPuzzle): boolean {
-  const { size, regions } = puzzle;
-  if (marks[idx] !== 2) return false;
-  const r = Math.floor(idx / size);
-  const c = idx % size;
-  // Same row / column / region duplicate?
-  for (let i = 0; i < size * size; i++) {
-    if (i === idx || marks[i] !== 2) continue;
-    const ri = Math.floor(i / size);
-    const ci = i % size;
-    if (ri === r) return true;
-    if (ci === c) return true;
-    if (regions[i] === regions[idx]) return true;
-    if (Math.abs(ri - r) <= 1 && Math.abs(ci - c) <= 1) return true;
-  }
-  return false;
-}
-
 type ConflictKind = "row" | "col" | "region" | "adjacent";
-
-// Walk all placed crowns and return the first conflict kind found, or null.
-// Priority: row → col → region → adjacent (row/col are the most obvious to a
-// player so we surface those first). Used for the inline warning banner.
-function firstConflict(marks: CellMark[], puzzle: KronenPuzzle): ConflictKind | null {
-  const { size, regions } = puzzle;
-  const crowns: number[] = [];
-  for (let i = 0; i < size * size; i++) {
-    if (marks[i] === 2) crowns.push(i);
-  }
-  for (let i = 0; i < crowns.length; i++) {
-    const r1 = Math.floor(crowns[i] / size);
-    const c1 = crowns[i] % size;
-    for (let j = i + 1; j < crowns.length; j++) {
-      const r2 = Math.floor(crowns[j] / size);
-      const c2 = crowns[j] % size;
-      if (r1 === r2) return "row";
-      if (c1 === c2) return "col";
-      if (regions[crowns[i]] === regions[crowns[j]]) return "region";
-      if (Math.abs(r1 - r2) <= 1 && Math.abs(c1 - c2) <= 1) return "adjacent";
-    }
-  }
-  return null;
-}
 
 function DifficultyToggle({
   value,
