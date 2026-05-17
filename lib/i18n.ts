@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useParams } from "next/navigation";
 import {
   SUPPORTED,
   REVIEW_PENDING,
@@ -2333,7 +2334,22 @@ function setLocale(l: Locale) {
 }
 
 export function useLocale() {
-  const [locale, set] = useState<Locale>(current);
+  // Server-aware locale detection: useParams() works on both server and
+  // client, so the SSR'd HTML for /nl/* routes is already in Dutch instead
+  // of flashing English until the post-hydration useEffect catches up.
+  // Without this the homepage cards rendered "Sun & Moon / Patches / etc."
+  // on the NL build, then swapped to Dutch a beat later — a visible
+  // bilingual flicker the user reported as "shows both languages".
+  // Returns null for routes that have no [locale] segment (root `/` and
+  // English-canonical pages like `/sudoku`); module-level `current` and
+  // the post-hydration detection then take over as before.
+  const params = useParams<{ locale?: string | string[] }>();
+  const rawLocale = Array.isArray(params?.locale) ? params.locale[0] : params?.locale;
+  const urlLocale: Locale | null =
+    rawLocale && (SUPPORTED as readonly string[]).includes(rawLocale)
+      ? (rawLocale as Locale)
+      : null;
+  const [locale, set] = useState<Locale>(urlLocale ?? current);
 
   useEffect(() => {
     // Priority order: URL path > stored preference > browser language.
