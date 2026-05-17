@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildGameLocaleMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildGameLocaleMetadata({
     params: props.params,
     path: "/minesweeper",
-    title: "Free Daily Minesweeper Online",
-    description:
-      "Play free daily Minesweeper online. Same board for everyone, three difficulties on a 9×9, 12×12 or 14×14 grid — race the clock on the global leaderboard.",
+    slug: "minesweeper",
   });
 
 export default function LocaleMinesweeperLayout({

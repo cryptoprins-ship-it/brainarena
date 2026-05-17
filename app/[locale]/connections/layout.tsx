@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildGameLocaleMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildGameLocaleMetadata({
     params: props.params,
     path: "/connections",
-    title: "Daily Connections — Group 16 Words",
-    description:
-      "Free daily Connections-style word puzzle: group 16 words into 4 hidden categories. Yellow easy, green medium, blue hard, purple tricky. Global leaderboard.",
+    slug: "connections",
   });
 
 export default function LocaleConnectionsLayout({

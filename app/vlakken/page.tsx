@@ -16,8 +16,11 @@ import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
 // LinkedIn-Patches-sized grids: easy 5×5 matches LinkedIn directly, medium
-// and hard scale up for variety without losing the fast-pace feel.
-const SIZE_FOR: Record<Difficulty, number> = { easy: 5, medium: 6, hard: 7 };
+// 6×6 scales up cleanly, hard 8×8 keeps challenge without dropping into
+// the 7×7 trap where the {3,4,6,9} dim set always leaves a 1×2 corner
+// remainder that greedy tiling can't fill — which surfaced as an empty
+// hard board ("leeg") in production.
+const SIZE_FOR: Record<Difficulty, number> = { easy: 5, medium: 6, hard: 8 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 // Number of anchors hidden ("?"-style) per difficulty. The generator only

@@ -57,7 +57,11 @@ function smartCycle(s: CellState, idx: number, cells: CellState[], size: number)
     if (cand === 0 && (rowMoons + 1 > cap || colMoons + 1 > cap)) continue;
     return cand;
   }
-  return s;
+  // Both sun and moon would violate cap (e.g. row at moon-cap AND column
+  // at sun-cap) — fall back to the standard next state so the click still
+  // registers. The over-balance banner surfaces the conflict for the user
+  // to resolve elsewhere instead of the cell silently swallowing taps.
+  return order[(startIdx + 1) % 3];
 }
 
 function formatDuration(seconds: number) {
@@ -78,6 +82,7 @@ export default function ZonMaanPage() {
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
@@ -110,6 +115,7 @@ export default function ZonMaanPage() {
     setNewBest(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setWinModalDismissed(false);
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -442,17 +448,21 @@ export default function ZonMaanPage() {
         </p>
       </div>
 
+      {done && puzzle && !winModalDismissed ? (
+        <WinModal
+          elapsed={elapsed}
+          hintsUsed={HINTS_FOR[difficulty] - hintsLeft}
+          difficulty={difficulty}
+          bestSeconds={bestSeconds}
+          isNewBest={newBest}
+          onPlayAgain={() => { onReset(); setWinModalDismissed(true); }}
+          onNewPuzzle={() => { onNewGame(); setWinModalDismissed(true); }}
+          onClose={() => setWinModalDismissed(true)}
+        />
+      ) : null}
+
       {done && puzzle ? (
         <>
-          <WinModal
-            elapsed={elapsed}
-            hintsUsed={HINTS_FOR[difficulty] - hintsLeft}
-            difficulty={difficulty}
-            bestSeconds={bestSeconds}
-            isNewBest={newBest}
-            onPlayAgain={onReset}
-            onNewPuzzle={onNewGame}
-          />
           <div className="mt-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
             <p className="font-bold text-emerald-200">{t("solved")}</p>
             <p className="mt-1 text-emerald-100">
@@ -498,6 +508,7 @@ function WinModal({
   isNewBest,
   onPlayAgain,
   onNewPuzzle,
+  onClose,
 }: {
   elapsed: number;
   hintsUsed: number;
@@ -506,17 +517,39 @@ function WinModal({
   isNewBest: boolean;
   onPlayAgain: () => void;
   onNewPuzzle: () => void;
+  onClose: () => void;
 }) {
   const { t } = useLocale();
   const fmt = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
+        >
+          ×
+        </button>
         <h2 className="text-2xl font-black text-emerald-300">{t("win_title")}</h2>
         <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
           <dt className="text-gray-400">{t("win_your_time")}</dt>

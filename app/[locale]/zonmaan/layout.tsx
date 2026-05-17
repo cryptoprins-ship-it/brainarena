@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildGameLocaleMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildGameLocaleMetadata({
     params: props.params,
     path: "/zonmaan",
-    title: "Zon & Maan — Sun & Moon Logic Grid",
-    description:
-      "Fill a daily grid with suns and moons. No three in a row, balanced rows and columns, plus = / × edge constraints. Easy / Medium / Hard.",
+    slug: "zonmaan",
   });
 
 export default function LocaleZonMaanLayout({
