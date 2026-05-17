@@ -26,12 +26,38 @@ const BEST_KEY = (d: Difficulty) => `brainarena-zonmaan-best-${d}`;
 
 type Move = { idx: number; prev: CellState; next: CellState };
 
-// Single click cycles: empty → sun → moon → empty. No double-click —
-// avoids the latency a click/dblclick disambiguator would introduce.
-function cycleResult(s: CellState): CellState {
-  if (s === -1) return 1;  // empty → sun
-  if (s === 1) return 0;   // sun → moon
-  return -1;               // moon → empty
+// Smart cycle: tries empty → sun → moon → empty, but skips any state that
+// would push the row or column past its size/2 cap for that symbol. So a
+// row already holding 3 suns transitions empty → moon directly (sun is
+// impossible), and a row already holding 3 moons transitions empty → sun.
+// This stops the player from being briefly "wrong" mid-cycle just because
+// the cycle order happens to land on a violating state first.
+function smartCycle(s: CellState, idx: number, cells: CellState[], size: number): CellState {
+  const cap = size / 2;
+  const r = Math.floor(idx / size);
+  const c = idx % size;
+  let rowSuns = 0, rowMoons = 0, colSuns = 0, colMoons = 0;
+  for (let cc = 0; cc < size; cc++) {
+    if (cc === c) continue;
+    const v = cells[r * size + cc];
+    if (v === 1) rowSuns++;
+    else if (v === 0) rowMoons++;
+  }
+  for (let rr = 0; rr < size; rr++) {
+    if (rr === r) continue;
+    const v = cells[rr * size + c];
+    if (v === 1) colSuns++;
+    else if (v === 0) colMoons++;
+  }
+  const order: CellState[] = [-1, 1, 0]; // empty → sun → moon
+  const startIdx = order.indexOf(s);
+  for (let step = 1; step <= 3; step++) {
+    const cand = order[(startIdx + step) % 3];
+    if (cand === 1 && (rowSuns + 1 > cap || colSuns + 1 > cap)) continue;
+    if (cand === 0 && (rowMoons + 1 > cap || colMoons + 1 > cap)) continue;
+    return cand;
+  }
+  return s;
 }
 
 function formatDuration(seconds: number) {
@@ -167,7 +193,7 @@ export default function ZonMaanPage() {
     (idx: number) => {
       if (done || !puzzle) return;
       if (idx in puzzle.clues) return;
-      applyMove(idx, cycleResult(cells[idx]));
+      applyMove(idx, smartCycle(cells[idx], idx, cells, puzzle.size));
     },
     [applyMove, cells, done, puzzle]
   );
@@ -559,8 +585,12 @@ function ZonMaanGrid({
     for (let col = 0; col < gridSize; col++) {
       const isCellRow = row % 2 === 0;
       const isCellCol = col % 2 === 0;
-      const r = row / 2;
-      const c = col / 2;
+      // Edge-slot rows/cols (odd indices) need flooring to map to the
+      // lower-index cell coordinate; bare /2 yielded fractional indices
+      // and the edgeKey lookup silently returned undefined, hiding the
+      // = / × badges while the constraints stayed enforced.
+      const r = Math.floor(row / 2);
+      const c = Math.floor(col / 2);
       if (isCellRow && isCellCol) {
         const idx = r * size + c;
         const state = cells[idx];

@@ -12,7 +12,7 @@ import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
-type CellMark = 0 | 1 | 2; // 0 empty, 1 manual-X, 2 crown
+type CellMark = 0 | 1; // 0 empty, 1 crown
 
 const SIZE_FOR: Record<Difficulty, number> = { easy: 6, medium: 8, hard: 10 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
@@ -35,7 +35,6 @@ const KRONEN_PALETTE = [
 ];
 
 type Move = { idx: number; prev: CellMark; next: CellMark };
-type DragState = { startIdx: number; moved: boolean; pointerId: number };
 
 export default function KronenPage() {
   const { t, locale } = useLocale();
@@ -44,16 +43,13 @@ export default function KronenPage() {
   const [seedNonce, setSeedNonce] = useState(0);
   const [puzzle, setPuzzle] = useState<KronenPuzzle | null>(null);
   const [marks, setMarks] = useState<CellMark[]>([]);
-  const [history, setHistory] = useState<Move[][]>([]);
+  const [history, setHistory] = useState<Move[]>([]);
   const [hintsLeft, setHintsLeft] = useState(HINTS_FOR.easy);
   const [bestSeconds, setBestSeconds] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
-  const [drag, setDrag] = useState<DragState | null>(null);
-  const dragPaintedRef = useRef<Set<number>>(new Set());
-  const dragMovesRef = useRef<Move[]>([]);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
@@ -76,9 +72,6 @@ export default function KronenPage() {
     setDone(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
-    setDrag(null);
-    dragPaintedRef.current.clear();
-    dragMovesRef.current = [];
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -120,7 +113,7 @@ export default function KronenPage() {
       const { size, regions } = puzzle;
       const crownCells: number[] = [];
       for (let i = 0; i < size * size; i++) {
-        if (current[i] === 2) crownCells.push(i);
+        if (current[i] === 1) crownCells.push(i);
       }
       if (crownCells.length !== size) return false;
 
@@ -151,39 +144,13 @@ export default function KronenPage() {
     [puzzle]
   );
 
-  // Auto-X overlay: every empty cell that's row/col/region/king-adj to a
-  // placed crown gets a faded X automatically. Pure derived state from marks.
-  const autoX = useMemo(() => {
-    const set = new Set<number>();
-    if (!puzzle) return set;
-    const { size, regions } = puzzle;
-    for (let q = 0; q < size * size; q++) {
-      if (marks[q] !== 2) continue;
-      const rq = Math.floor(q / size);
-      const cq = q % size;
-      const reg = regions[q];
-      for (let j = 0; j < size * size; j++) {
-        if (j === q || marks[j] === 2 || marks[j] === 1) continue;
-        const rj = Math.floor(j / size);
-        const cj = j % size;
-        const sameRow = rj === rq;
-        const sameCol = cj === cq;
-        const sameReg = regions[j] === reg;
-        const adj = Math.abs(rj - rq) <= 1 && Math.abs(cj - cq) <= 1;
-        if (sameRow || sameCol || sameReg || adj) set.add(j);
-      }
-    }
-    return set;
-  }, [marks, puzzle]);
-
   // Conflict set: every queen involved in any rule violation gets flagged.
-  // Replaces single-cell hasConflict — now both members of each pair light up.
   const conflicts = useMemo(() => {
     const set = new Set<number>();
     if (!puzzle) return set;
     const { size, regions } = puzzle;
     const crowns: number[] = [];
-    for (let i = 0; i < size * size; i++) if (marks[i] === 2) crowns.push(i);
+    for (let i = 0; i < size * size; i++) if (marks[i] === 1) crowns.push(i);
     for (let i = 0; i < crowns.length; i++) {
       const ri = Math.floor(crowns[i] / size);
       const ci = crowns[i] % size;
@@ -208,7 +175,7 @@ export default function KronenPage() {
     if (!puzzle || conflicts.size === 0) return null;
     const { size, regions } = puzzle;
     const crowns: number[] = [];
-    for (let i = 0; i < size * size; i++) if (marks[i] === 2) crowns.push(i);
+    for (let i = 0; i < size * size; i++) if (marks[i] === 1) crowns.push(i);
     for (let i = 0; i < crowns.length; i++) {
       const ri = Math.floor(crowns[i] / size);
       const ci = crowns[i] % size;
@@ -224,17 +191,16 @@ export default function KronenPage() {
     return null;
   }, [conflicts, marks, puzzle]);
 
-  // Single-tap cycle: empty → X → crown → empty.
-  const cycleCell = useCallback(
+  const onCellClick = useCallback(
     (idx: number) => {
       if (done || !puzzle) return;
       if (!startedAt.current) startedAt.current = Date.now();
       setMarks((prev) => {
         const next: CellMark[] = [...prev];
         const cur = next[idx];
-        const nxt: CellMark = (((cur + 1) % 3) as CellMark);
+        const nxt: CellMark = cur === 1 ? 0 : 1;
         next[idx] = nxt;
-        setHistory((h) => [...h, [{ idx, prev: cur, next: nxt }]]);
+        setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
         if (isWin(next)) {
           setDone(true);
           const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
@@ -251,112 +217,14 @@ export default function KronenPage() {
     [difficulty, done, elapsed, isWin, puzzle]
   );
 
-  // Drag-paint: stroke empty cells with X. Skips cells that already hold a
-  // crown or manual X (only paints onto empty). Idempotent per cell within
-  // one drag — dragPaintedRef de-dupes pointerenter floods.
-  const paintCellX = useCallback(
-    (idx: number) => {
-      if (done || !puzzle) return;
-      if (dragPaintedRef.current.has(idx)) return;
-      dragPaintedRef.current.add(idx);
-      if (!startedAt.current) startedAt.current = Date.now();
-      setMarks((prev) => {
-        if (prev[idx] !== 0) return prev;
-        const next = [...prev];
-        next[idx] = 1;
-        dragMovesRef.current.push({ idx, prev: 0, next: 1 });
-        return next;
-      });
-    },
-    [done, puzzle]
-  );
-
-  // End-of-drag commit: collapse all per-cell moves into a single undo group
-  // so one ctrl+Z (or Undo tap) rolls back the whole stroke.
-  const commitDrag = useCallback(() => {
-    if (dragMovesRef.current.length > 0) {
-      const group = dragMovesRef.current.slice();
-      dragMovesRef.current = [];
-      setHistory((h) => [...h, group]);
-    }
-    dragPaintedRef.current.clear();
-  }, []);
-
-  const onCellPointerDown = useCallback(
-    (idx: number, e: React.PointerEvent<HTMLButtonElement>) => {
-      if (done) return;
-      e.preventDefault();
-      try {
-        (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
-      } catch {
-        // older browsers: ignore
-      }
-      setDrag({ startIdx: idx, moved: false, pointerId: e.pointerId });
-      dragPaintedRef.current.clear();
-      dragMovesRef.current = [];
-    },
-    [done]
-  );
-
-  const onCellPointerEnter = useCallback(
-    (idx: number, e: React.PointerEvent<HTMLButtonElement>) => {
-      if (!drag) return;
-      if (e.pointerId !== drag.pointerId) return;
-      // Mark drag as having moved off the start cell, then paint.
-      if (!drag.moved || idx !== drag.startIdx) {
-        if (!drag.moved) setDrag((d) => (d ? { ...d, moved: true } : null));
-        // Also paint the start cell on first move so the stroke starts there.
-        paintCellX(drag.startIdx);
-        paintCellX(idx);
-      }
-    },
-    [drag, paintCellX]
-  );
-
-  // pointerup: tap if no movement, otherwise commit the stroke.
-  useEffect(() => {
-    if (!drag) return;
-    const onUp = (e: PointerEvent) => {
-      if (e.pointerId !== drag.pointerId) return;
-      if (!drag.moved) {
-        cycleCell(drag.startIdx);
-      } else {
-        commitDrag();
-        // Run win check after committing the stroke (paint doesn't add crowns
-        // so a stroke alone can't win, but be defensive).
-        setMarks((prev) => {
-          if (isWin(prev)) {
-            setDone(true);
-            const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
-            setElapsed(tt);
-          }
-          return prev;
-        });
-      }
-      setDrag(null);
-    };
-    const onCancel = () => {
-      commitDrag();
-      setDrag(null);
-    };
-    window.addEventListener("pointerup", onUp);
-    window.addEventListener("pointercancel", onCancel);
-    return () => {
-      window.removeEventListener("pointerup", onUp);
-      window.removeEventListener("pointercancel", onCancel);
-    };
-  }, [drag, cycleCell, commitDrag, isWin, elapsed]);
-
   const onUndo = useCallback(() => {
     if (done) return;
     setHistory((h) => {
       if (!h.length) return h;
-      const lastGroup = h[h.length - 1];
+      const last = h[h.length - 1];
       setMarks((m) => {
         const next = [...m];
-        for (let i = lastGroup.length - 1; i >= 0; i--) {
-          next[lastGroup[i].idx] = lastGroup[i].prev;
-        }
+        next[last.idx] = last.prev;
         return next;
       });
       return h.slice(0, -1);
@@ -370,7 +238,7 @@ export default function KronenPage() {
     for (let r = 0; r < size; r++) {
       const want = solution[r];
       const idx = r * size + want;
-      if (marks[idx] !== 2) candidates.push(idx);
+      if (marks[idx] !== 1) candidates.push(idx);
     }
     if (!candidates.length) return;
     const idx = candidates[Math.floor(Math.random() * candidates.length)];
@@ -378,8 +246,8 @@ export default function KronenPage() {
     setMarks((prev) => {
       const next = [...prev];
       const cur = next[idx];
-      next[idx] = 2;
-      setHistory((h) => [...h, [{ idx, prev: cur, next: 2 }]]);
+      next[idx] = 1;
+      setHistory((h) => [...h, { idx, prev: cur, next: 1 }]);
       if (isWin(next)) {
         setDone(true);
         const tt = startedAt.current ? Math.floor((Date.now() - startedAt.current) / 1000) : elapsed;
@@ -436,14 +304,13 @@ export default function KronenPage() {
 
       <div
         className="mx-auto mt-5 grid rounded-md border-2 border-[#0a0a0a] bg-[#0a0a0a] overflow-hidden select-none"
-        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0, touchAction: "none" }}
+        style={{ gridTemplateColumns: `repeat(${size}, minmax(0, 1fr))`, gap: 0 }}
       >
         {puzzle.regions.map((region, idx) => {
           const mark = marks[idx];
           const r = Math.floor(idx / size);
           const c = idx % size;
-          const isConflict = mark === 2 && conflicts.has(idx);
-          const showAutoX = mark === 0 && autoX.has(idx);
+          const isConflict = mark === 1 && conflicts.has(idx);
           const fill = KRONEN_PALETTE[region % KRONEN_PALETTE.length];
           const sameRegion = (otherIdx: number | undefined) =>
             otherIdx !== undefined && puzzle.regions[otherIdx] === region;
@@ -462,8 +329,7 @@ export default function KronenPage() {
               key={idx}
               type="button"
               aria-label={`row ${r + 1} col ${c + 1}`}
-              onPointerDown={(e) => onCellPointerDown(idx, e)}
-              onPointerEnter={(e) => onCellPointerEnter(idx, e)}
+              onClick={() => onCellClick(idx)}
               disabled={done}
               className={`aspect-square grid place-items-center text-lg font-bold transition active:scale-[0.97] ${
                 isConflict ? "ring-2 ring-red-500 ring-inset z-10 animate-pulse" : ""
@@ -479,10 +345,9 @@ export default function KronenPage() {
                 borderBottomWidth,
                 borderLeftWidth,
                 borderRightWidth,
-                touchAction: "none",
               }}
             >
-              {mark === 2 ? (
+              {mark === 1 ? (
                 <span
                   className={`text-2xl leading-none text-[#0a0a0a] drop-shadow ${
                     done ? "animate-bounce" : ""
@@ -490,10 +355,6 @@ export default function KronenPage() {
                 >
                   ♛
                 </span>
-              ) : mark === 1 ? (
-                <span className="text-base leading-none text-[#0a0a0a]/70">×</span>
-              ) : showAutoX ? (
-                <span className="text-base leading-none text-[#0a0a0a]/25">×</span>
               ) : null}
             </button>
           );
