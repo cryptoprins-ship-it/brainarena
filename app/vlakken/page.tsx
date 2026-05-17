@@ -57,13 +57,18 @@ type Rect = { topLeft: number; w: number; h: number };
 type AnchorState = { rect: Rect; locked: boolean };
 type DragState = { startCell: number; currentCell: number; pointerId: number; startedAt: number };
 
-// A pointerup that fires within this many ms of the pointerdown is
-// treated as an accidental tap or abandoned drag — we silently clear
-// the drag without running validation, so the player doesn't get
-// scolded by a "no seed" / "wrong size" tooltip for what was really
-// just an accidental touch. The threshold gives the player time to
-// reconsider mid-drag.
-const DRAG_MIN_HOLD_MS = 3000;
+// An interaction that's BOTH a single cell (no movement) AND released
+// within this many ms is treated as an accidental tap — we silently
+// clear it without running validation, so the player doesn't get
+// scolded by a "no seed" tooltip for what was really just a fumble
+// touch. Any drag that moves between cells, OR a press held longer
+// than this on a single cell, is treated as deliberate and gets full
+// validation feedback. (Previously this was a flat 3-second window on
+// ALL drags, which silently swallowed real adjustment attempts on
+// mobile — typical mobile drags are 200-800ms, so the player would
+// drag, miss the anchor seed hidden under the placed rect, and see
+// nothing happen — reading as "locked, can't adjust".)
+const ACCIDENTAL_TAP_MS = 250;
 type ErrorState = { msg: string; anchorIdx: number | null };
 
 export default function VlakkenPage() {
@@ -182,14 +187,14 @@ export default function VlakkenPage() {
   const finishDrag = useCallback(
     (start: number, end: number, dragStartedAt: number) => {
       if (!puzzle || done) return;
-      // Short releases are almost always accidental taps or abandoned
-      // drags. We still run the validation logic so valid placements
-      // can lock instantly (fast confident plays), but we suppress the
-      // error tooltips that previously read as "vlakken is freezing"
-      // — and skip the state mutation that would have shown the
-      // invalid rect outline. Long, deliberate drags get the full
-      // feedback as before.
-      const shortDrag = Date.now() - dragStartedAt < DRAG_MIN_HOLD_MS;
+      // Only true fumble-touches are silenced: single cell (finger
+      // never moved between cells) AND released almost immediately.
+      // Multi-cell drags and long holds are deliberate gestures and
+      // always get validation feedback — critical on mobile, where a
+      // typical adjustment drag is ~300ms and the player has no other
+      // way to know whether their gesture registered.
+      const accidentalTap =
+        start === end && Date.now() - dragStartedAt < ACCIDENTAL_TAP_MS;
       const size = puzzle.size;
       const r1 = Math.floor(start / size), c1 = start % size;
       const r2 = Math.floor(end / size), c2 = end % size;
@@ -211,12 +216,12 @@ export default function VlakkenPage() {
         .filter((a) => cellSet.has(a.idx));
 
       if (seedsInBox.length === 0) {
-        if (shortDrag) return;
+        if (accidentalTap) return;
         showError(t("vlakken_err_no_seed"));
         return;
       }
       if (seedsInBox.length > 1) {
-        if (shortDrag) return;
+        if (accidentalTap) return;
         showError(t("vlakken_err_multi_seed"));
         return;
       }
@@ -263,10 +268,10 @@ export default function VlakkenPage() {
         else if (!modeOk) errMsg = modeErrorFor(t, target.mode);
       }
 
-      // Skip the state mutation entirely on short invalid drags —
-      // otherwise the player sees a ghostly attempt-rect that isn't
-      // locked, which reads as "did the game accept me or not?"
-      if (errMsg && shortDrag) return;
+      // Accidental taps that happen to hit a seed cell but don't match
+      // the required size/mode are silenced too — otherwise a stray
+      // poke on the puzzle leaves a ghost rect on screen.
+      if (errMsg && accidentalTap) return;
 
       newStates[target.anchorIdx] = {
         rect: { topLeft, w, h },
@@ -344,10 +349,10 @@ export default function VlakkenPage() {
       if (!cur || cur.pointerId !== e.pointerId) return;
       setDrag(null);
       // Always run finishDrag — a valid placement locks immediately
-      // regardless of how long the player held. Short releases only
-      // suppress error tooltips on INVALID drags (see DRAG_MIN_HOLD_MS
-      // inside finishDrag); the player isn't penalised for being fast
-      // when they got it right.
+      // regardless of how long the player held. Only true single-cell
+      // fumble-taps are silenced on the invalid path (see
+      // ACCIDENTAL_TAP_MS inside finishDrag); the player isn't
+      // penalised for being fast when they got it right.
       finishDragRef.current(cur.startCell, cur.currentCell, cur.startedAt);
     };
     const handleCancel = (e: PointerEvent) => {
