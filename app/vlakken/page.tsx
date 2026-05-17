@@ -27,6 +27,13 @@ const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 // applies a hide-set that keeps the puzzle uniquely solvable, so on rare
 // hard puzzles you may end up with one hidden anchor instead of two.
 const HIDE_FOR: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
+// Probability that a non-square anchor is downgraded to "any" mode, i.e.
+// rendered as a dashed badge that hides its orientation. Higher = more
+// anchors withhold the w:h hint, forcing the player to deduce direction
+// from the rest of the board. easy keeps most anchors hinted; medium
+// withholds half; hard hides nearly all so the puzzle reads like LinkedIn
+// Patches where direction is never given away.
+const FLEX_FOR: Record<Difficulty, number> = { easy: 0.3, medium: 0.6, hard: 0.85 };
 const BEST_KEY = (d: Difficulty) => `brainarena-vlakken-best-${d}`;
 
 // LinkedIn-Patches-style pastel palette: muted enough that filled rects sit
@@ -93,7 +100,7 @@ export default function VlakkenPage() {
 
   useEffect(() => {
     const size = SIZE_FOR[difficulty];
-    const p = generateVlakken(size, seed, 0.3, HIDE_FOR[difficulty]);
+    const p = generateVlakken(size, seed, FLEX_FOR[difficulty], HIDE_FOR[difficulty]);
     setPuzzle(p);
     setStates({});
     setHistory([]);
