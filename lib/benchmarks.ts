@@ -52,11 +52,6 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
     "Crossword fans": 81,
     "Editors": 74,
   },
-  wordbuild: {
-    "Builders": 72,
-    "Architects": 70,
-    "Children's authors": 68,
-  },
   letterstack: {
     "Gamers": 75,
     "Stenographers": 80,
@@ -64,6 +59,16 @@ export const benchmarks: Partial<Record<GameKey, Record<string, number>>> = {
   tiledrop: {
     "Gamers": 79,
     "Engineers": 70,
+  },
+  minesweeper: {
+    "Software developers": 78,
+    "Engineers": 74,
+    "Risk analysts": 80,
+  },
+  connections: {
+    "Linguists": 82,
+    "Crossword fans": 84,
+    "Editors": 76,
   },
 };
 
@@ -127,14 +132,6 @@ export function percentileFor(s: Score): number {
       if (v >= 500) return 50;
       return 25;
     }
-    case "wordbuild": {
-      const v = s.score;
-      if (v >= 500) return 95;
-      if (v >= 300) return 82;
-      if (v >= 150) return 65;
-      if (v >= 50) return 45;
-      return 25;
-    }
     case "colormatch": {
       const correct = (s.meta as { correct?: number } | undefined)?.correct ?? 0;
       if (correct === 10) return 97;
@@ -145,7 +142,8 @@ export function percentileFor(s: Score): number {
     case "vlakken":
     case "verbind":
     case "zonmaan":
-    case "kronen": {
+    case "kronen":
+    case "minesweeper": {
       // Logic puzzles: score = time-based (lower = better; encoded as 100000 - seconds).
       const t = s.time ?? Infinity;
       const diff = (s.meta as { difficulty?: string } | undefined)?.difficulty ?? "easy";
@@ -163,6 +161,16 @@ export function percentileFor(s: Score): number {
       if (v >= 2000) return 80;
       if (v >= 500) return 55;
       return 30;
+    }
+    case "connections": {
+      // Score is groups solved (0-4) — same value the leaderboard ranks
+      // on. 4 = all groups, 0 = solved none before running out.
+      const v = s.score;
+      if (v >= 4) return 95;
+      if (v >= 3) return 80;
+      if (v >= 2) return 55;
+      if (v >= 1) return 30;
+      return 10;
     }
   }
 }

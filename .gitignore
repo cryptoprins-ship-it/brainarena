@@ -40,3 +40,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# personal work notes — not for the public repo
+TRAFFIC_PLAN.md
+NOTES_*.md
+
+# wordlist generator cache — re-downloads on demand
+/data/wordlists/.cache/

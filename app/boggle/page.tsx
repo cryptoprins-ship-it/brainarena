@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { dayIndex } from "@/lib/dailyWord";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
+import { useLocale } from "@/lib/i18n";
+import {
+  isBoggleSupported,
+  loadDictionary,
+  getCachedDictionary,
+  type BoggleLocale,
+} from "@/lib/dictionary";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const SIZE = 4;
 const DURATION = 180; // seconds
@@ -58,6 +67,10 @@ function makeGrid(seed: number): string[] {
 }
 
 export default function BogglePage() {
+  const { t, locale } = useLocale();
+  const supported = isBoggleSupported(locale);
+  const dictLocale: BoggleLocale = supported ? locale : "en";
+
   const [grid, setGrid] = useState<string[]>([]);
   const [path, setPath] = useState<number[]>([]);
   const [flash, setFlash] = useState<number[]>([]);
@@ -66,13 +79,34 @@ export default function BogglePage() {
   const [running, setRunning] = useState(false);
   const [done, setDone] = useState(false);
   const [shakeKey, setShakeKey] = useState(0);
+  const [invalidMsg, setInvalidMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  // Grid is the same for everyone today, but each locale draws from its
+  // own dictionary, so attempts are tracked per-locale.
+  const { attempts: dailyAttempts, record } = useDailyAttempts("boggle", todayIdx, dictLocale);
+  const [dictReady, setDictReady] = useState(() => getCachedDictionary(dictLocale) !== null);
+  const dictRef = useRef<Set<string> | null>(getCachedDictionary(dictLocale));
   const startedAt = useRef<number | null>(null);
   const pathRef = useRef<number[]>([]);
   useEffect(() => { pathRef.current = path; }, [path]);
 
-  useEffect(() => { setGrid(makeGrid(dayIndex())); setNameState(getName()); }, []);
+  // Pre-load the dictionary as soon as the page mounts so it's ready by
+  // the time the player commits their first word.
+  useEffect(() => {
+    if (!supported) return;
+    let cancelled = false;
+    loadDictionary(dictLocale).then((set) => {
+      if (cancelled) return;
+      dictRef.current = set;
+      setDictReady(true);
+    }).catch(() => { /* swallow — game still playable, all words rejected */ });
+    return () => { cancelled = true; };
+  }, [supported, dictLocale]);
+
+  useEffect(() => { setGrid(makeGrid(dayIndex())); }, []);
 
   useEffect(() => {
     if (!running) return;
@@ -96,13 +130,22 @@ export default function BogglePage() {
     const p = pathRef.current;
     if (!running) { setPath([]); return; }
     const w = p.map((i) => grid[i]).join("").toLowerCase();
-    if (p.length >= 3 && !found.includes(w)) {
+    const dict = dictRef.current;
+    const inDict = dict?.has(w) === true;
+    if (p.length >= 3 && !found.includes(w) && inDict) {
       setFound((f) => [w, ...f]);
+      setInvalidMsg(null);
     } else if (p.length >= 1) {
       setShakeKey((k) => k + 1);
+      // Only show "not a word" once the dict is ready — before that, a
+      // failure could just be due to the dict still loading.
+      if (p.length >= 3 && !found.includes(w) && dict && !inDict) {
+        setInvalidMsg(t("boggle_invalid_word"));
+        window.setTimeout(() => setInvalidMsg(null), 1500);
+      }
     }
     setPath([]);
-  }, [found, grid, running]);
+  }, [found, grid, running, t]);
   const tryCommitRef = useRef(tryCommit);
   useEffect(() => { tryCommitRef.current = tryCommit; }, [tryCommit]);
 
@@ -181,30 +224,36 @@ export default function BogglePage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [done, grid, running, flashCandidates]);
 
-  // Submit on game end.
+  // Submit on game end, gated by the daily attempt cap.
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "boggle",
-      name: getName() || "Anonymous",
-      score,
-      time: DURATION,
-      meta: { found },
-    }).then((r) => r && setSubmitted(r));
-  }, [done, found, score, submitted]);
-
-  const saveName = () => {
-    setName(name);
-    if (done) {
+    if (!done) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
       submitScore({
         game: "boggle",
-        name: name || "Anonymous",
+        name: getName() || "Anonymous",
         score,
         time: DURATION,
+        language: locale,
         meta: { found },
       }).then((r) => r && setSubmitted(r));
     }
-  };
+  }, [done, found, locale, record, score, submitted]);
+
+  if (!supported) {
+    return (
+      <div className="mx-auto w-full max-w-2xl px-4 py-10">
+        <h1 className="text-2xl font-black">Boggle</h1>
+        <div className="mt-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm">
+          <p className="font-bold text-amber-200">{t("boggle_unsupported_title")}</p>
+          <p className="mt-2 text-amber-100">{t("boggle_unsupported_body")}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
@@ -213,7 +262,12 @@ export default function BogglePage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">Boggle</h1>
-          <p className="text-xs text-gray-400">Daily 4×4 · find words 3+ letters · {DURATION}s</p>
+          <p className="text-xs text-gray-400">
+            {t("boggle_status", { seconds: DURATION })} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-3">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1 text-sm font-mono">⏱ {time}s</span>
@@ -252,10 +306,10 @@ export default function BogglePage() {
           </div>
 
           <div className="mt-4 flex items-center justify-between gap-3">
-            <span className="text-sm text-gray-400">Word: <span className="font-mono uppercase text-white">{word || "—"}</span></span>
+            <span className="text-sm text-gray-400">{t("boggle_word")} <span className="font-mono uppercase text-white">{word || "—"}</span></span>
             <div className="flex gap-2">
               {!running && !done ? (
-                <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Start</button>
+                <button onClick={start} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("boggle_start")}</button>
               ) : null}
               {running && !done ? (
                 <button
@@ -263,18 +317,25 @@ export default function BogglePage() {
                   disabled={path.length < 3}
                   className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold disabled:opacity-40"
                 >
-                  Submit
+                  {t("submit")}
                 </button>
               ) : null}
             </div>
           </div>
-          <p className="mt-2 text-[11px] text-gray-500">
-            Keyboard: type letters · Enter submits · Backspace undoes · Esc clears
-          </p>
+          <div className="mt-2 flex h-5 items-center justify-between text-[11px]">
+            <span className="text-gray-500">
+              {t("boggle_kbd_hint")}
+            </span>
+            {invalidMsg ? (
+              <span className="font-bold text-red-300">{invalidMsg}</span>
+            ) : !dictReady ? (
+              <span className="text-gray-500">{t("boggle_loading_dict")}</span>
+            ) : null}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400">Found ({found.length})</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-gray-400">{t("boggle_found", { n: found.length })}</h2>
           <ul className="mt-2 grid grid-cols-2 gap-x-3 text-sm">
             {found.map((w) => (
               <li key={w} className="flex justify-between">
@@ -282,38 +343,48 @@ export default function BogglePage() {
                 <span className="text-gray-500">+{pointsFor(w.length)}</span>
               </li>
             ))}
-            {found.length === 0 ? <li className="text-gray-600">Drag to build words.</li> : null}
+            {found.length === 0 ? <li className="text-gray-600">{t("boggle_drag_hint")}</li> : null}
           </ul>
         </div>
       </div>
 
       {done ? (
-        <EndScreenAddon
-          game="boggle"
-          score={score}
-          time={DURATION}
-          rank={submitted?.rank}
-          meta={{ found: found.length }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="boggle"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+            formatScore={(e) => {
+              const f = (e.meta as { found?: unknown } | undefined)?.found;
+              return String(Array.isArray(f) ? f.length : typeof f === "number" ? f : 0);
+            }}
+          />
+          <EndScreenAddon
+            game="boggle"
+            score={score}
+            time={DURATION}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ found: found.length }}
+          />
+        </>
       ) : null}
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Time! Final score: <span className="text-indigo-300">{score}</span></h2>
-          <p className="mt-1 text-sm text-gray-400">{found.length} words found.</p>
-          {!submitted ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
-            </div>
-          ) : (
-            <p className="mt-3 text-sm text-emerald-300">You ranked #{submitted.rank} globally.</p>
-          )}
+          <h2 className="text-xl font-black">{t("boggle_final_score", { score })}</h2>
+          <p className="mt-1 text-sm text-gray-400">{t("boggle_words_found", { n: found.length })}</p>
+          {submitted ? (
+            <p className="mt-3 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
+          ) : null}
+          {done && !eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Script from "next/script";
+import { useLocale } from "@/lib/i18n";
 
 // Cookie / consent banner. Three categories:
 //   - necessary: always on (game state, language, leaderboard submissions
@@ -22,14 +23,41 @@ export type ConsentState = {
 };
 
 const STORAGE_KEY = "brainarena-consent-v1";
+const COOKIE_KEY = "brainarena-consent";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 const CONSENT_VERSION = 1;
 const ADSENSE_CLIENT = process.env.NEXT_PUBLIC_ADSENSE_CLIENT ?? "";
 
-function readConsent(): ConsentState | null {
-  if (typeof window === "undefined") return null;
+// Read the consent cookie. Returns the raw string value or null. Cookies
+// survive Brave's aggressive Shields and Safari's intelligent tracking
+// prevention better than localStorage, which both will wipe between
+// sessions — that's why we don't rely on localStorage alone.
+function readCookie(name: string): string | null {
+  if (typeof document === "undefined") return null;
+  const prefix = `${name}=`;
+  for (const part of document.cookie.split("; ")) {
+    if (part.startsWith(prefix)) {
+      try {
+        return decodeURIComponent(part.slice(prefix.length));
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function writeCookie(name: string, value: string, maxAgeSeconds: number) {
+  if (typeof document === "undefined") return;
+  document.cookie =
+    `${name}=${encodeURIComponent(value)}` +
+    `; Max-Age=${maxAgeSeconds}` +
+    `; Path=/` +
+    `; SameSite=Lax`;
+}
+
+function parseConsent(raw: string): ConsentState | null {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<ConsentState> & { v?: number };
     if (parsed.v !== CONSENT_VERSION) return null;
     return {
@@ -43,14 +71,37 @@ function readConsent(): ConsentState | null {
   }
 }
 
-function writeConsent(c: ConsentState) {
+function readConsent(): ConsentState | null {
+  if (typeof window === "undefined") return null;
+  // Prefer the cookie — it's the durable copy on browsers that wipe
+  // localStorage between sessions. Fall back to localStorage so users
+  // who consented before this cookie path existed aren't re-prompted.
+  const fromCookie = readCookie(COOKIE_KEY);
+  if (fromCookie) {
+    const parsed = parseConsent(fromCookie);
+    if (parsed) return parsed;
+  }
   try {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...c, v: CONSENT_VERSION })
-    );
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    return parseConsent(raw);
   } catch {
-    // localStorage quota / private mode — fail silent, banner re-shows next visit.
+    return null;
+  }
+}
+
+function writeConsent(c: ConsentState) {
+  const payload = JSON.stringify({ ...c, v: CONSENT_VERSION });
+  // Write both: cookie is the source of truth across Brave/Safari
+  // sessions, localStorage keeps the existing behaviour for everyone
+  // else (and is the channel the rest of the app can synchronously
+  // inspect without parsing document.cookie).
+  writeCookie(COOKIE_KEY, payload, COOKIE_MAX_AGE);
+  try {
+    localStorage.setItem(STORAGE_KEY, payload);
+  } catch {
+    // localStorage quota / private mode — cookie still carries the
+    // decision into the next session.
   }
   // Notify any listeners (e.g. settings page) that consent changed.
   window.dispatchEvent(new CustomEvent("brainarena:consent", { detail: c }));
@@ -65,6 +116,7 @@ declare global {
 }
 
 export default function CookieBanner() {
+  const { t } = useLocale();
   const [consent, setConsent] = useState<ConsentState | null>(null);
   const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
@@ -136,73 +188,69 @@ export default function CookieBanner() {
       {hydrated && open ? (
         <div
           role="dialog"
-          aria-label="Cookie settings"
+          aria-label={t("cookie_settings")}
           aria-modal="false"
           className="fixed inset-x-0 bottom-0 z-[60] flex justify-center px-3 pb-3 pt-2"
         >
           <div className="w-full max-w-3xl rounded-2xl border border-[#2a2a2a] bg-[#0f0f0f]/95 p-5 text-sm text-gray-200 shadow-2xl backdrop-blur">
             {!customise ? (
               <>
-                <p className="font-bold text-white">We use cookies</p>
-                <p className="mt-1 text-gray-300">
-                  BrainArena stores game progress on your device. We optionally use
-                  analytics and advertising cookies to keep the site free.
-                  You decide what loads.
-                </p>
+                <p className="font-bold text-white">{t("cookie_title")}</p>
+                <p className="mt-1 text-gray-300">{t("cookie_body")}</p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <button
                     type="button"
                     onClick={acceptAll}
                     className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold hover:bg-indigo-500"
                   >
-                    Accept all
+                    {t("cookie_accept_all")}
                   </button>
                   <button
                     type="button"
                     onClick={rejectAll}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Reject all
+                    {t("cookie_reject_all")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomise(true)}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Customise
+                    {t("cookie_customise")}
                   </button>
                   <a
                     href="/privacy"
                     className="ml-auto self-center text-xs text-gray-400 underline hover:text-indigo-300"
                   >
-                    Privacy policy
+                    {t("cookie_privacy")}
                   </a>
                 </div>
               </>
             ) : (
               <>
-                <p className="font-bold text-white">Cookie settings</p>
-                <p className="mt-1 text-xs text-gray-400">
-                  Toggle each category. Necessary storage is always on — it's just
-                  your local game progress.
-                </p>
+                <p className="font-bold text-white">{t("cookie_settings")}</p>
+                <p className="mt-1 text-xs text-gray-400">{t("cookie_settings_desc")}</p>
                 <div className="mt-3 space-y-2">
                   <Row
-                    title="Necessary"
-                    desc="Game state, language preference, leaderboard submissions you initiate. Stored on your device, never sent to ad networks."
+                    title={t("cookie_cat_necessary")}
+                    desc={t("cookie_desc_necessary")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked
                     locked
                     onChange={() => {}}
                   />
                   <Row
-                    title="Analytics"
-                    desc="Anonymous traffic counts. Helps us understand which games are popular. Off by default."
+                    title={t("cookie_cat_analytics")}
+                    desc={t("cookie_desc_analytics")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked={draftAnalytics}
                     onChange={setDraftAnalytics}
                   />
                   <Row
-                    title="Advertising"
-                    desc="Google AdSense delivers and personalises ads. Sets cookies that may identify your device across sites. Off by default — site is free either way; ads keep it free for everyone."
+                    title={t("cookie_cat_advertising")}
+                    desc={t("cookie_desc_advertising")}
+                    alwaysOnLabel={t("cookie_always_on")}
                     checked={draftAdvertising}
                     onChange={setDraftAdvertising}
                   />
@@ -213,14 +261,14 @@ export default function CookieBanner() {
                     onClick={saveCustom}
                     className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold hover:bg-indigo-500"
                   >
-                    Save choices
+                    {t("cookie_save")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setCustomise(false)}
                     className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2 text-sm hover:bg-[#222]"
                   >
-                    Back
+                    {t("cookie_back")}
                   </button>
                 </div>
               </>
@@ -237,12 +285,14 @@ function Row({
   desc,
   checked,
   locked,
+  alwaysOnLabel,
   onChange,
 }: {
   title: string;
   desc: string;
   checked: boolean;
   locked?: boolean;
+  alwaysOnLabel: string;
   onChange: (v: boolean) => void;
 }) {
   return (
@@ -257,7 +307,7 @@ function Row({
       <span className="flex-1">
         <span className="font-bold text-white">{title}</span>
         {locked ? (
-          <span className="ml-2 rounded bg-[#1f1f1f] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">Always on</span>
+          <span className="ml-2 rounded bg-[#1f1f1f] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-gray-400">{alwaysOnLabel}</span>
         ) : null}
         <span className="mt-1 block text-xs text-gray-400">{desc}</span>
       </span>

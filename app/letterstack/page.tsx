@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { isInWordList } from "@/lib/dailyWord";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { isInWordList, dayIndex } from "@/lib/dailyWord";
 import { useLocale } from "@/lib/i18n";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 
 const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTTTTUUUVVWWXYYZ";
@@ -15,24 +17,26 @@ const POINTS = (len: number) => len < 3 ? 0 : len === 3 ? 10 : len === 4 ? 25 : 
 type FallingLetter = { id: number; ch: string; x: number; t: number };
 
 export default function LetterStackPage() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const [stack, setStack] = useState<string[]>([]);
   const [falling, setFalling] = useState<FallingLetter[]>([]);
   const [score, setScore] = useState(0);
   const [missed, setMissed] = useState(0);
   const [over, setOver] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
   const [input, setInput] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
   const [slowMs, setSlowMs] = useState(0);
   const [wildAvailable, setWildAvailable] = useState(false);
   const [bombAvailable, setBombAvailable] = useState(false);
   const [milestones, setMilestones] = useState<number>(0);
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
   const idRef = useRef(0);
   const startRef = useRef<number>(Date.now());
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, locale);
 
-  useEffect(() => { setNameState(getName()); }, []);
 
   // Spawn falling letters.
   useEffect(() => {
@@ -148,31 +152,29 @@ export default function LetterStackPage() {
     });
   }, [input, locale, milestones, over, stack, wildAvailable]);
 
-  // Stack overflow → game over (already handled in tryCatch). Submit on game over.
+  // Stack overflow → game over (already handled in tryCatch). Submit on game
+  // over, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {
-    if (!over || submitted) return;
-    submitScore({
-      game: "letterstack",
-      name: getName() || "Anonymous",
-      score,
-      meta: { missed },
-    }).then((r) => r && setSubmitted(r));
-  }, [missed, over, score, submitted]);
+    if (!over) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "letterstack",
+        name: getName() || "Anonymous",
+        score,
+        language: locale,
+        meta: { missed },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [locale, missed, over, record, score, submitted]);
 
   const useBomb = () => {
     if (!bombAvailable) return;
     setStack([]);
     setBombAvailable(false);
-  };
-
-  const saveName = () => {
-    setName(name);
-    submitScore({
-      game: "letterstack",
-      name: name || "Anonymous",
-      score,
-      meta: { missed },
-    }).then((r) => r && setSubmitted(r));
   };
 
   return (
@@ -182,11 +184,16 @@ export default function LetterStackPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">LetterStack</h1>
-          <p className="text-xs text-gray-400">Press letter keys to catch · Enter to submit · {locale.toUpperCase()}</p>
+          <p className="text-xs text-gray-400">
+            {t("ls_controls")} · {locale.toUpperCase()} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
+            </span>
+          </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
-          <span className="rounded-md bg-red-500/20 px-3 py-1 text-red-200">missed {missed}</span>
+          <span className="rounded-md bg-red-500/20 px-3 py-1 text-red-200">{t("ls_missed", { n: missed })}</span>
         </div>
       </div>
 
@@ -205,13 +212,13 @@ export default function LetterStackPage() {
             </div>
           );
         })}
-        {slowMs > 0 ? <div className="absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200">⏸️ Slow</div> : null}
+        {slowMs > 0 ? <div className="absolute right-2 top-2 rounded-md bg-emerald-500/20 px-2 py-1 text-xs text-emerald-200">⏸️ {t("ls_slow")}</div> : null}
       </div>
 
       <div key={shakeKey} className={`mt-4 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 ${shakeKey ? "shake" : ""}`}>
-        <p className="text-xs uppercase tracking-wider text-gray-500">Stack ({stack.length}/{STACK_LIMIT})</p>
+        <p className="text-xs uppercase tracking-wider text-gray-500">{t("ls_stack", { n: stack.length, max: STACK_LIMIT })}</p>
         <div className="mt-1 flex flex-wrap gap-1">
-          {stack.length === 0 ? <span className="text-xs text-gray-600">empty</span> : stack.map((c, i) => (
+          {stack.length === 0 ? <span className="text-xs text-gray-600">{t("label_empty")}</span> : stack.map((c, i) => (
             <span key={i} className="rounded bg-[#0a0a0a] px-2 py-1 text-sm font-bold uppercase">{c}</span>
           ))}
         </div>
@@ -222,19 +229,19 @@ export default function LetterStackPage() {
           value={input}
           onChange={(e) => setInput(e.target.value.replace(/[^a-zA-Z]/g, "").toLowerCase().slice(0, 16))}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submitWord(); } }}
-          placeholder="Type a word & Enter"
+          placeholder={t("ls_input_placeholder")}
           className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-base"
         />
-        <button onClick={submitWord} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">Submit</button>
+        <button onClick={submitWord} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("submit")}</button>
       </div>
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs">
-        <button onClick={useBomb} disabled={!bombAvailable} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 disabled:opacity-40">💣 Bomb {bombAvailable ? "(ready)" : ""}</button>
-        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⏸️ Slow {slowMs > 0 ? `${(slowMs/1000).toFixed(0)}s` : ""}</span>
-        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⭐ Wild {wildAvailable ? "(ready)" : ""}</span>
+        <button onClick={useBomb} disabled={!bombAvailable} className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 disabled:opacity-40">💣 {t("ls_bomb")} {bombAvailable ? t("ls_ready") : ""}</button>
+        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⏸️ {t("ls_slow")} {slowMs > 0 ? `${(slowMs/1000).toFixed(0)}s` : ""}</span>
+        <span className="rounded-md bg-[#1a1a1a] border border-[#2a2a2a] px-3 py-1 opacity-80">⭐ {t("ls_wild")} {wildAvailable ? t("ls_ready") : ""}</span>
       </div>
 
-      <p className="mt-3 text-xs text-gray-500">Letters use power-ups every 500 points.</p>
+      <p className="mt-3 text-xs text-gray-500">{t("ls_powerup_hint")}</p>
 
       {/* Mobile letter buttons */}
       <div className="mt-4 grid grid-cols-9 gap-1 md:hidden">
@@ -244,30 +251,36 @@ export default function LetterStackPage() {
       </div>
 
       {over ? (
-        <EndScreenAddon
-          game="letterstack"
-          score={score}
-          rank={submitted?.rank}
-          meta={{ missed }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="letterstack"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+          />
+          <EndScreenAddon
+            game="letterstack"
+            score={score}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ missed }}
+          />
+        </>
       ) : null}
 
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Stack overflowed · {score} pts</h2>
-          {!submitted ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          <h2 className="text-xl font-black">{t("ls_game_over", { score })}</h2>
+          {submitted ? (
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

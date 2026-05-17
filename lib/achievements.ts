@@ -127,7 +127,7 @@ export function listAchievements(stats: Stats = loadStats()): Achievement[] {
       id: "word_wizard",
       name: "Word Wizard",
       icon: "🧙",
-      desc: "Solve Wordle in 2 guesses",
+      desc: "Solve Wordle in 2 guesses or fewer",
       progress: stats.records.bestWordleGuesses <= 2 ? 1 : 0.5,
     },
     {
@@ -218,7 +218,8 @@ export function recordGame(payload: GameResultPayload): RecordResult {
     payload.game === "vlakken" ||
     payload.game === "verbind" ||
     payload.game === "zonmaan" ||
-    payload.game === "kronen"
+    payload.game === "kronen" ||
+    payload.game === "minesweeper"
   ) {
     const won = (payload.meta as { won?: boolean } | undefined)?.won;
     if (won) r.logicGamesSolved += 1;
@@ -249,17 +250,23 @@ export function recordGame(payload: GameResultPayload): RecordResult {
   return { stats, newAchievements, streakMessage };
 }
 
-export function streakBannerText(stats: Stats = loadStats()): string {
+type T = (key: string) => string;
+
+function fillN(template: string, n: number): string {
+  return template.replace(/\{n\}/g, String(n));
+}
+
+export function streakBannerText(t: T, stats: Stats = loadStats()): string {
   const today = isoDay();
   if (stats.streakDays === 0) {
     return stats.bestStreak > 0
-      ? `Start a new streak today! Your best was ${stats.bestStreak} days.`
-      : "Play any game today to start a daily streak!";
+      ? fillN(t("streak_start_best"), stats.bestStreak)
+      : t("streak_start");
   }
   if (stats.lastPlayed === today) {
-    return `🔥 ${stats.streakDays} day streak — keep it going!`;
+    return fillN(t("streak_active"), stats.streakDays);
   }
-  return `Play today to keep your ${stats.streakDays} day streak alive!`;
+  return fillN(t("streak_lost"), stats.streakDays);
 }
 
 export function medalCount(stats: Stats = loadStats()): number {

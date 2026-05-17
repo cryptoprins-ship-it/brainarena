@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { loadStats, streakBannerText, type Stats } from "@/lib/achievements";
+import { useLocale } from "@/lib/i18n";
 
 export default function StreakBanner() {
+  const { t } = useLocale();
   const [stats, setStats] = useState<Stats | null>(null);
   useEffect(() => { setStats(loadStats()); }, []);
   if (!stats) return null;
 
-  const text = streakBannerText(stats);
+  const text = streakBannerText(t as (k: string) => string, stats);
   const today = new Date().toISOString().slice(0, 10);
   const playedToday = stats.lastPlayed === today;
   const tone = playedToday

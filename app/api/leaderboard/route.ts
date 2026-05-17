@@ -1,81 +1,25 @@
 import { NextResponse } from "next/server";
-import path from "node:path";
-import fs from "node:fs/promises";
 import { z } from "zod";
 import { apiLimit, scoreLimit, clientKeyFromRequest, rateLimitResponse } from "@/lib/ratelimit";
 import { verifyOrigin } from "@/lib/verifyOrigin";
 import { logger } from "@/lib/logger";
+import { validateScore } from "@/lib/leaderboard/validate";
+import {
+  GAMES,
+  type ScoreEntry,
+  isGame,
+  sortFor,
+  withinPeriod,
+  bestPerPlayer,
+} from "@/lib/leaderboard/standings";
+import { MAX_ENTRIES, readScores, writeScores } from "@/lib/leaderboard/store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const GAMES = [
-  "wordle",
-  "boggle",
-  "sudoku",
-  "typing",
-  "tiledrop",
-  "wordbuild",
-  "colormatch",
-  "letterstack",
-  "vlakken",
-  "verbind",
-  "zonmaan",
-  "kronen",
-] as const;
-type Game = (typeof GAMES)[number];
-
-export type ScoreEntry = {
-  name: string;
-  score: number;
-  time?: number;
-  language?: string;
-  country?: string;
-  date: string;
-  meta?: Record<string, unknown>;
-};
-
-const MAX_ENTRIES = 1000;
-
-function isGame(g: string | null): g is Game {
-  return !!g && (GAMES as readonly string[]).includes(g);
-}
-
-function fileFor(g: Game) {
-  return path.join(process.cwd(), "public", "scores", `${g}.json`);
-}
-
-async function readScores(g: Game): Promise<ScoreEntry[]> {
-  try {
-    const raw = await fs.readFile(fileFor(g), "utf8");
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-async function writeScores(g: Game, list: ScoreEntry[]) {
-  await fs.mkdir(path.dirname(fileFor(g)), { recursive: true });
-  await fs.writeFile(fileFor(g), JSON.stringify(list, null, 2), "utf8");
-}
-
-function sortFor(g: Game) {
-  return (a: ScoreEntry, b: ScoreEntry) =>
-    g === "sudoku"
-      ? (a.time ?? Infinity) - (b.time ?? Infinity)
-      : b.score - a.score || (a.time ?? Infinity) - (b.time ?? Infinity);
-}
-
-function withinPeriod(date: string, period: string): boolean {
-  if (period === "alltime" || !period) return true;
-  const t = new Date(date).getTime();
-  if (Number.isNaN(t)) return false;
-  const now = Date.now();
-  if (period === "today") return now - t < 86_400_000;
-  if (period === "week") return now - t < 7 * 86_400_000;
-  return true;
-}
+// Re-exported for back-compat; the canonical definition lives in
+// lib/leaderboard/standings.ts now.
+export type { ScoreEntry } from "@/lib/leaderboard/standings";
 
 // Schema validates BEFORE we touch the filesystem so a malformed POST can
 // never wedge the JSON file. `meta` is intentionally permissive — game
@@ -105,8 +49,14 @@ export async function GET(req: Request) {
   }
   const list = await readScores(game);
   const filtered = list.filter((e) => withinPeriod(e.date, period));
-  filtered.sort(sortFor(game));
-  return NextResponse.json({ game, period, scores: filtered.slice(0, 50) });
+  // The monthly board is the prize-bearing one — collapse it to one row
+  // per player (their best result) so a single player's repeat plays
+  // can't fill the top of the standings. Other periods stay raw.
+  const ranked =
+    period === "month"
+      ? bestPerPlayer(filtered, game)
+      : filtered.sort(sortFor(game));
+  return NextResponse.json({ game, period, scores: ranked.slice(0, 50) });
 }
 
 export async function POST(req: Request) {
@@ -134,10 +84,32 @@ export async function POST(req: Request) {
   const data = parsed.data;
   const game = data.game;
 
+  // Zod proved the payload is well-formed; validateScore proves it's
+  // *plausible* — and, where the canonical score is a known function of
+  // verifiable evidence, recomputes it server-side. We persist the
+  // returned score/time, never the client's originals.
+  const verdict = validateScore({
+    game,
+    score: data.score,
+    time: data.time,
+    language: data.language,
+    meta: data.meta,
+  });
+  if (!verdict.ok) {
+    logger.warn(
+      { game, reason: verdict.reason, ip, clientScore: data.score, clientTime: data.time },
+      "leaderboard_score_rejected",
+    );
+    return NextResponse.json(
+      { error: "rejected", reason: verdict.reason },
+      { status: 422 },
+    );
+  }
+
   const entry: ScoreEntry = {
     name: data.name || "Anonymous",
-    score: Math.floor(data.score),
-    time: data.time != null ? Math.floor(data.time) : undefined,
+    score: verdict.score,
+    time: verdict.time,
     language: data.language,
     country: data.country,
     meta: data.meta,

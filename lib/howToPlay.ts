@@ -69,17 +69,6 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "Speed increases every 10 cleared lines.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Type words from today's category to build a house piece by piece.",
-    rules: [
-      "Every word must belong to the day's category.",
-      "3 letters = brick, 4 = wall, 5 = window, 6 = roof tile, 7+ = chimney.",
-      "Longer words score more points.",
-      "10 rounds — your finished house is shown on the leaderboard.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -104,19 +93,19 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   vlakken: {
-    label: "Vlakken",
+    label: "Patches",
     href: "/vlakken",
     summary: "Fill the grid by completing the shape around each numbered anchor.",
     rules: [
       "Each anchor has a number = the size of the shape it belongs to.",
       "Shapes are rectangles: square, tall, or wide. Dashed anchors accept any shape of that size.",
       "Every cell must belong to exactly one shape; shapes cannot overlap.",
-      "Tap an anchor to make it active, then tap cells to assign them.",
-      "Solved when every cell is assigned and every shape matches its anchor.",
+      "Drag a rectangle that contains exactly one numbered seed. Wrong size or shape shows a message; correct locks the shape.",
+      "Solved when every shape is locked.",
     ],
   },
   verbind: {
-    label: "Verbind",
+    label: "Connect",
     href: "/verbind",
     summary: "Connect the numbers in order with one path that passes through every cell.",
     rules: [
@@ -128,19 +117,20 @@ const EN: Record<GameKey, HowToPlayEntry> = {
     ],
   },
   zonmaan: {
-    label: "Zon & Maan",
+    label: "Sun & Moon",
     href: "/zonmaan",
-    summary: "Fill every cell with a sun or moon, following the row/column and edge rules.",
+    summary: "Fill every cell with ☀ or 🌙, following the row/column and edge rules.",
     rules: [
-      "Tap a cell to cycle: empty → sun → moon → empty.",
-      "No more than two of the same symbol in a row horizontally or vertically.",
-      "Each row and each column must contain equal suns and moons.",
-      "An '=' between two cells means they share the same symbol.",
-      "An '×' between two cells means they hold opposite symbols.",
+      "Fill the grid so each cell contains either a ☀ or a 🌙.",
+      "No more than 2 ☀ or 🌙 may be next to each other, vertically or horizontally.",
+      "Each row and each column must contain the same number of ☀ and 🌙.",
+      "Cells separated by an = sign must be of the same type.",
+      "Cells separated by a × sign must be of the opposite type.",
+      "Each puzzle has one right answer and can be solved via deduction — you should never have to guess.",
     ],
   },
   kronen: {
-    label: "Kronen",
+    label: "Crowns",
     href: "/kronen",
     summary: "Place exactly one crown in each row, column, and color region.",
     rules: [
@@ -149,6 +139,30 @@ const EN: Record<GameKey, HowToPlayEntry> = {
       "Each colored region must have exactly one crown.",
       "Crowns may not touch — not even diagonally.",
       "Solved when all crowns are placed correctly.",
+    ],
+  },
+  minesweeper: {
+    label: "Minesweeper",
+    href: "/minesweeper",
+    summary: "Uncover safe cells, flag the mines, don't tap a bomb.",
+    rules: [
+      "Mouse: left-click reveals, right-click flags.",
+      "Touch: tap reveals, long-press flags (a small vibration confirms).",
+      "Numbered cells tell you how many mines touch that cell (up to 8).",
+      "Click a revealed number with the right flags around it to clear the rest (chord).",
+      "First click is always safe — go ahead and start in the middle.",
+    ],
+  },
+  connections: {
+    label: "Connections",
+    href: "/connections",
+    summary: "Find four groups of four — one daily puzzle.",
+    rules: [
+      "16 words on the board form 4 hidden categories of 4 words each.",
+      "Pick 4 words you think belong together and submit. Get a category, lose a word.",
+      "Wrong guess costs one of your 4 mistakes; 4 strikes = game over.",
+      "'One away' hint shows when 3 of your 4 are in the same group.",
+      "Words are always English even on other-language locales — the puzzle is wordplay-dependent.",
     ],
   },
 };
@@ -214,17 +228,6 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "De snelheid stijgt elke 10 gewiste regels.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Typ woorden uit de categorie van vandaag om stuk voor stuk een huis te bouwen.",
-    rules: [
-      "Elk woord moet binnen de categorie van vandaag passen.",
-      "3 letters = baksteen, 4 = muur, 5 = raam, 6 = dakpan, 7+ = schoorsteen.",
-      "Langere woorden leveren meer punten op.",
-      "10 rondes — je voltooide huis verschijnt op het scorebord.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -256,8 +259,8 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "Elk anker bevat een getal = het aantal cellen van de vorm waar het bij hoort.",
       "Vormen zijn rechthoeken: vierkant, hoog of breed. Stippellijn-ankers accepteren elke vorm van die grootte.",
       "Elke cel hoort bij precies één vorm; vormen mogen elkaar niet overlappen.",
-      "Tik op een anker om het actief te maken, tik daarna op cellen om ze toe te wijzen.",
-      "Opgelost wanneer alle cellen zijn toegewezen en elke vorm de juiste grootte heeft.",
+      "Sleep een rechthoek met precies één genummerde zaadcel. Verkeerde maat of vorm? Je krijgt een melding. Klopt het? De vorm klikt vast.",
+      "Opgelost wanneer elke vorm vastgeklikt is.",
     ],
   },
   verbind: {
@@ -275,13 +278,14 @@ const NL: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "Zon & Maan",
     href: "/zonmaan",
-    summary: "Vul elke cel met een zon of maan volgens de rij-, kolom- en randregels.",
+    summary: "Vul elke cel met ☀ of 🌙 volgens de rij-, kolom- en randregels.",
     rules: [
-      "Tik op een cel om te wisselen: leeg → zon → maan → leeg.",
-      "Niet meer dan twee dezelfde symbolen naast elkaar (horizontaal of verticaal).",
-      "Elke rij en elke kolom bevat evenveel zonnen als manen.",
-      "Een '=' tussen cellen betekent: zelfde symbool.",
-      "Een '×' tussen cellen betekent: tegengestelde symbolen.",
+      "Vul het raster zodat elke cel een ☀ of een 🌙 bevat.",
+      "Niet meer dan 2 ☀ of 🌙 mogen naast elkaar staan, horizontaal of verticaal.",
+      "Elke rij en elke kolom moet evenveel ☀ als 🌙 bevatten.",
+      "Cellen gescheiden door een = teken zijn van hetzelfde type.",
+      "Cellen gescheiden door een × teken zijn van het tegengestelde type.",
+      "Elk raadsel heeft één oplossing en is volledig door redenering op te lossen — gokken hoeft nooit.",
     ],
   },
   kronen: {
@@ -294,6 +298,30 @@ const NL: Record<GameKey, HowToPlayEntry> = {
       "Elk gekleurd gebied bevat precies één kroon.",
       "Kronen mogen elkaar niet raken — ook niet diagonaal.",
       "Opgelost wanneer alle kronen correct staan.",
+    ],
+  },
+  minesweeper: {
+    label: "Mijnenveger",
+    href: "/minesweeper",
+    summary: "Maak veilige vakjes open, zet vlaggen op mijnen, raak geen bom.",
+    rules: [
+      "Muis: links-klikken onthult, rechts-klikken zet een vlag.",
+      "Touch: tikken onthult, lang ingedrukt houden zet een vlag (kleine vibratie bevestigt).",
+      "Getallen tonen hoeveel mijnen het vakje raken (tot 8).",
+      "Klik een onthuld getal aan met de juiste vlaggen erom om de rest open te maken (chord).",
+      "Eerste klik is altijd veilig — begin gerust in het midden.",
+    ],
+  },
+  connections: {
+    label: "Verbanden",
+    href: "/connections",
+    summary: "Vind vier groepen van vier — één puzzel per dag.",
+    rules: [
+      "16 woorden vormen 4 verborgen categorieën van 4 woorden.",
+      "Selecteer 4 woorden die volgens jou bij elkaar horen en druk op Verzenden.",
+      "Fout = één van je 4 fouten verbrand. 4 fouten = game over.",
+      "'Eentje mis' verschijnt als 3 van je 4 in dezelfde groep zitten.",
+      "Woorden zijn altijd Engels — de puzzel hangt af van wordplay.",
     ],
   },
 };
@@ -359,17 +387,6 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Geschwindigkeit steigt alle 10 gelöschten Reihen.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Tippe Wörter aus der heutigen Kategorie, um Stück für Stück ein Haus zu bauen.",
-    rules: [
-      "Jedes Wort muss zur heutigen Kategorie gehören.",
-      "3 Buchstaben = Ziegel, 4 = Wand, 5 = Fenster, 6 = Dachziegel, 7+ = Schornstein.",
-      "Längere Wörter geben mehr Punkte.",
-      "10 Runden — dein fertiges Haus erscheint in der Bestenliste.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -401,8 +418,8 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Jeder Anker enthält eine Zahl = die Zellanzahl der Form, zu der er gehört.",
       "Formen sind Rechtecke: quadratisch, hoch oder breit. Gestrichelte Anker akzeptieren jede Form dieser Größe.",
       "Jede Zelle gehört zu genau einer Form; Formen dürfen sich nicht überlappen.",
-      "Tippe einen Anker an, um ihn zu aktivieren, dann Zellen, um sie zuzuweisen.",
-      "Gelöst, wenn alle Zellen zugeordnet sind und jede Form passt.",
+      "Ziehe ein Rechteck um genau einen nummerierten Anker. Falsche Größe oder Form: Hinweis. Richtig: die Form rastet ein.",
+      "Gelöst, wenn jede Form eingerastet ist.",
     ],
   },
   verbind: {
@@ -420,13 +437,14 @@ const DE: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "Sonne & Mond",
     href: "/zonmaan",
-    summary: "Fülle jede Zelle mit Sonne oder Mond gemäß den Regeln.",
+    summary: "Fülle jede Zelle mit ☀ oder 🌙 gemäß den Reihen-, Spalten- und Kantenregeln.",
     rules: [
-      "Tippe eine Zelle: leer → Sonne → Mond → leer.",
-      "Nicht mehr als zwei gleiche Symbole nebeneinander (horizontal oder vertikal).",
-      "Jede Zeile und Spalte enthält gleich viele Sonnen und Monde.",
-      "Ein '=' zwischen Zellen bedeutet: gleiches Symbol.",
-      "Ein '×' zwischen Zellen bedeutet: gegenteilige Symbole.",
+      "Fülle das Gitter so, dass jede Zelle ☀ oder 🌙 enthält.",
+      "Höchstens 2 ☀ oder 🌙 dürfen waagerecht oder senkrecht nebeneinander stehen.",
+      "Jede Zeile und jede Spalte muss gleich viele ☀ und 🌙 enthalten.",
+      "Zellen, die durch ein = getrennt sind, haben dasselbe Symbol.",
+      "Zellen, die durch ein × getrennt sind, haben entgegengesetzte Symbole.",
+      "Jedes Rätsel hat genau eine Lösung und ist rein durch Logik lösbar — Raten ist nie nötig.",
     ],
   },
   kronen: {
@@ -439,6 +457,30 @@ const DE: Record<GameKey, HowToPlayEntry> = {
       "Jede Farbregion enthält genau eine Krone.",
       "Kronen dürfen sich nicht berühren — auch nicht diagonal.",
       "Gelöst, wenn alle Kronen korrekt platziert sind.",
+    ],
+  },
+  minesweeper: {
+    label: "Minesweeper",
+    href: "/minesweeper",
+    summary: "Decke sichere Felder auf, markiere die Minen, klick keine Bombe.",
+    rules: [
+      "Maus: Linksklick deckt auf, Rechtsklick markiert.",
+      "Touch: Tippen deckt auf, langes Drücken markiert (leichte Vibration als Bestätigung).",
+      "Zahlen zeigen, wie viele Minen das Feld berühren (bis zu 8).",
+      "Klick eine aufgedeckte Zahl mit korrekt gesetzten Flaggen, um den Rest aufzudecken (Chord).",
+      "Der erste Klick ist immer sicher — leg ruhig in der Mitte los.",
+    ],
+  },
+  connections: {
+    label: "Verbindungen",
+    href: "/connections",
+    summary: "Finde vier Gruppen zu je vier — ein tägliches Rätsel.",
+    rules: [
+      "16 Wörter bilden 4 versteckte Kategorien zu je 4 Wörtern.",
+      "Wähle 4 Wörter aus und drücke auf Absenden.",
+      "Falsch geraten kostet einen von 4 Fehlern. 4 Fehler = vorbei.",
+      "'Fast!' erscheint, wenn 3 deiner 4 in derselben Gruppe sind.",
+      "Wörter sind immer Englisch — das Rätsel basiert auf Wortspielen.",
     ],
   },
 };
@@ -504,17 +546,6 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "La vitesse augmente toutes les 10 lignes.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Tape des mots de la catégorie du jour pour construire une maison pièce par pièce.",
-    rules: [
-      "Chaque mot doit appartenir à la catégorie du jour.",
-      "3 lettres = brique, 4 = mur, 5 = fenêtre, 6 = tuile, 7+ = cheminée.",
-      "Plus le mot est long, plus tu marques.",
-      "10 manches — ta maison terminée apparaît au classement.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -546,8 +577,8 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "Chaque ancre porte un nombre = la taille de la forme à laquelle elle appartient.",
       "Les formes sont des rectangles : carré, haut ou large. Les ancres en pointillés acceptent toute forme de cette taille.",
       "Chaque cellule appartient à exactement une forme ; les formes ne peuvent pas se chevaucher.",
-      "Touche une ancre pour la rendre active, puis les cellules à lui attribuer.",
-      "Résolu lorsque toutes les cellules sont attribuées et chaque forme correcte.",
+      "Trace un rectangle autour d'un seul point numéroté. Mauvaise taille ou forme : message ; correcte : la forme se verrouille.",
+      "Résolu lorsque chaque forme est verrouillée.",
     ],
   },
   verbind: {
@@ -565,13 +596,14 @@ const FR: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "Soleil & Lune",
     href: "/zonmaan",
-    summary: "Remplis chaque case d'un soleil ou d'une lune selon les règles.",
+    summary: "Remplis chaque case d'un ☀ ou d'une 🌙 selon les règles de ligne, colonne et arête.",
     rules: [
-      "Touche une case pour cycler : vide → soleil → lune → vide.",
-      "Pas plus de deux mêmes symboles côte à côte (horizontal ou vertical).",
-      "Chaque ligne et colonne contient autant de soleils que de lunes.",
-      "Un '=' entre deux cases signifie : même symbole.",
-      "Un '×' entre deux cases signifie : symboles opposés.",
+      "Remplis la grille pour que chaque case contienne soit un ☀, soit une 🌙.",
+      "Pas plus de 2 ☀ ou 🌙 côte à côte, à l'horizontale ou à la verticale.",
+      "Chaque ligne et chaque colonne doit contenir autant de ☀ que de 🌙.",
+      "Les cases séparées par un signe = sont du même type.",
+      "Les cases séparées par un signe × sont de types opposés.",
+      "Chaque grille a une seule solution et se résout par déduction — jamais en devinant.",
     ],
   },
   kronen: {
@@ -584,6 +616,30 @@ const FR: Record<GameKey, HowToPlayEntry> = {
       "Chaque région colorée contient exactement une couronne.",
       "Les couronnes ne peuvent pas se toucher — même en diagonale.",
       "Résolu quand toutes les couronnes sont bien placées.",
+    ],
+  },
+  minesweeper: {
+    label: "Démineur",
+    href: "/minesweeper",
+    summary: "Découvre les cases sûres, marque les mines, ne clique pas sur une bombe.",
+    rules: [
+      "Souris : clic gauche pour révéler, clic droit pour marquer.",
+      "Tactile : appui pour révéler, appui long pour marquer (une légère vibration confirme).",
+      "Les chiffres indiquent combien de mines touchent la case (jusqu'à 8).",
+      "Clique un chiffre déjà révélé avec les drapeaux corrects autour pour révéler le reste (chord).",
+      "Le premier clic est toujours sûr — commence au milieu sans crainte.",
+    ],
+  },
+  connections: {
+    label: "Connexions",
+    href: "/connections",
+    summary: "Trouve quatre groupes de quatre — une énigme par jour.",
+    rules: [
+      "16 mots forment 4 catégories cachées de 4 mots chacune.",
+      "Sélectionne 4 mots qui vont ensemble et appuie sur Soumettre.",
+      "Une mauvaise réponse coûte une de tes 4 erreurs. 4 erreurs = fin.",
+      "'Presque !' apparaît quand 3 de tes 4 sont dans le même groupe.",
+      "Les mots sont toujours en anglais — l'énigme repose sur des jeux de mots.",
     ],
   },
 };
@@ -649,17 +705,6 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "La velocidad sube cada 10 líneas eliminadas.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Escribe palabras de la categoría del día para construir una casa pieza a pieza.",
-    rules: [
-      "Cada palabra debe pertenecer a la categoría del día.",
-      "3 letras = ladrillo, 4 = pared, 5 = ventana, 6 = teja, 7+ = chimenea.",
-      "Las palabras más largas dan más puntos.",
-      "10 rondas — tu casa terminada aparece en el ranking.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -691,8 +736,8 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "Cada ancla tiene un número = el tamaño de la forma a la que pertenece.",
       "Las formas son rectángulos: cuadrado, alto o ancho. Las anclas con borde discontinuo aceptan cualquier forma de ese tamaño.",
       "Cada celda pertenece a exactamente una forma; las formas no pueden solaparse.",
-      "Toca un ancla para activarla, luego toca celdas para asignárselas.",
-      "Resuelto cuando todas las celdas están asignadas y cada forma es correcta.",
+      "Arrastra un rectángulo alrededor de un único número. Si está mal, verás un mensaje; si es correcto, la forma se bloquea.",
+      "Resuelto cuando cada forma está bloqueada.",
     ],
   },
   verbind: {
@@ -710,13 +755,14 @@ const ES: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "Sol y Luna",
     href: "/zonmaan",
-    summary: "Llena cada celda con un sol o una luna siguiendo las reglas.",
+    summary: "Llena cada celda con ☀ o 🌙 siguiendo las reglas de fila, columna y arista.",
     rules: [
-      "Toca una celda para alternar: vacía → sol → luna → vacía.",
-      "No más de dos símbolos iguales seguidos (horizontal o vertical).",
-      "Cada fila y columna contiene igual número de soles y lunas.",
-      "Un '=' entre celdas significa: mismo símbolo.",
-      "Un '×' entre celdas significa: símbolos opuestos.",
+      "Llena la cuadrícula con un ☀ o una 🌙 en cada celda.",
+      "No más de 2 ☀ o 🌙 seguidos, en horizontal o vertical.",
+      "Cada fila y cada columna debe contener el mismo número de ☀ y 🌙.",
+      "Las celdas separadas por un signo = son del mismo tipo.",
+      "Las celdas separadas por un signo × son de tipos opuestos.",
+      "Cada puzzle tiene una única solución y se resuelve por deducción — nunca adivinando.",
     ],
   },
   kronen: {
@@ -729,6 +775,30 @@ const ES: Record<GameKey, HowToPlayEntry> = {
       "Cada región de color contiene exactamente una corona.",
       "Las coronas no pueden tocarse — ni siquiera en diagonal.",
       "Resuelto cuando todas las coronas están bien colocadas.",
+    ],
+  },
+  minesweeper: {
+    label: "Buscaminas",
+    href: "/minesweeper",
+    summary: "Descubre las casillas seguras, marca las minas, no toques una bomba.",
+    rules: [
+      "Ratón: clic izquierdo descubre, clic derecho marca.",
+      "Táctil: toca para descubrir, mantén pulsado para marcar (una vibración corta lo confirma).",
+      "Los números indican cuántas minas tocan la casilla (hasta 8).",
+      "Toca un número descubierto con las banderas correctas para destapar el resto (chord).",
+      "El primer clic siempre es seguro — empieza en el centro tranquilamente.",
+    ],
+  },
+  connections: {
+    label: "Conexiones",
+    href: "/connections",
+    summary: "Encuentra cuatro grupos de cuatro — un acertijo por día.",
+    rules: [
+      "16 palabras forman 4 categorías ocultas de 4 palabras.",
+      "Elige 4 palabras que crees que van juntas y pulsa Enviar.",
+      "Una respuesta incorrecta cuesta uno de tus 4 errores. 4 errores = fin.",
+      "'¡Casi!' aparece cuando 3 de tus 4 están en el mismo grupo.",
+      "Las palabras siempre están en inglés — el acertijo depende del juego de palabras.",
     ],
   },
 };
@@ -795,17 +865,6 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "A velocidade aumenta a cada 10 linhas eliminadas.",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "Escreve palavras da categoria do dia para construir uma casa peça a peça.",
-    rules: [
-      "Cada palavra tem de pertencer à categoria do dia.",
-      "3 letras = tijolo, 4 = parede, 5 = janela, 6 = telha, 7+ = chaminé.",
-      "Palavras mais longas dão mais pontos.",
-      "10 rondas — a tua casa terminada aparece no ranking.",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -837,12 +896,12 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "Cada âncora tem um número = o tamanho da forma a que pertence.",
       "Formas são retângulos: quadrado, alto ou largo. Âncoras tracejadas aceitam qualquer forma desse tamanho.",
       "Cada célula pertence a exatamente uma forma; formas não podem sobrepor-se.",
-      "Toca numa âncora para ativá-la, depois toca em células para atribuí-las.",
-      "Resolvido quando todas as células estão atribuídas e cada forma corresponde.",
+      "Arraste um retângulo em volta de uma única semente numerada. Errado: mensagem. Certo: a forma trava.",
+      "Resolvido quando cada forma está travada.",
     ],
   },
   verbind: {
-    label: "Liga",
+    label: "Conectar",
     href: "/verbind",
     summary: "Liga os números por ordem com um caminho que passe por cada célula.",
     rules: [
@@ -856,13 +915,14 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "Sol e Lua",
     href: "/zonmaan",
-    summary: "Preenche cada célula com sol ou lua segundo as regras.",
+    summary: "Preencha cada célula com ☀ ou 🌙 seguindo as regras de linha, coluna e aresta.",
     rules: [
-      "Toca numa célula para alternar: vazia → sol → lua → vazia.",
-      "Não mais de dois símbolos iguais seguidos (horizontal ou vertical).",
-      "Cada linha e coluna contém igual número de sóis e luas.",
-      "Um '=' entre duas células: mesmo símbolo.",
-      "Um '×' entre duas células: símbolos opostos.",
+      "Preencha a grade para que cada célula contenha um ☀ ou uma 🌙.",
+      "No máximo 2 ☀ ou 🌙 lado a lado, na horizontal ou vertical.",
+      "Cada linha e cada coluna deve conter o mesmo número de ☀ e 🌙.",
+      "Células separadas por um sinal = são do mesmo tipo.",
+      "Células separadas por um sinal × são de tipos opostos.",
+      "Cada quebra-cabeça tem uma única solução e resolve-se por dedução — nunca por chute.",
     ],
   },
   kronen: {
@@ -875,6 +935,30 @@ const PT_BR: Record<GameKey, HowToPlayEntry> = {
       "Cada região colorida contém exatamente uma coroa.",
       "Coroas não podem tocar-se — nem mesmo na diagonal.",
       "Resolvido quando todas as coroas estão bem colocadas.",
+    ],
+  },
+  minesweeper: {
+    label: "Campo Minado",
+    href: "/minesweeper",
+    summary: "Descubra as casas seguras, marque as minas, não toque numa bomba.",
+    rules: [
+      "Mouse: clique esquerdo revela, clique direito marca.",
+      "Toque: toque revela, segurar marca (uma pequena vibração confirma).",
+      "Os números indicam quantas minas tocam aquela casa (até 8).",
+      "Toque um número revelado com as bandeiras corretas para abrir o resto (chord).",
+      "O primeiro toque é sempre seguro — comece pelo meio sem medo.",
+    ],
+  },
+  connections: {
+    label: "Conexões",
+    href: "/connections",
+    summary: "Encontre quatro grupos de quatro — um enigma por dia.",
+    rules: [
+      "16 palavras formam 4 categorias ocultas de 4 palavras.",
+      "Escolha 4 palavras que combinam e pressione Enviar.",
+      "Uma resposta errada custa um dos seus 4 erros. 4 erros = fim.",
+      "'Quase!' aparece quando 3 das suas 4 estão no mesmo grupo.",
+      "As palavras estão sempre em inglês — o enigma depende de jogo de palavras.",
     ],
   },
 };
@@ -941,17 +1025,6 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "हर 10 साफ़ पंक्तियों पर गति बढ़ती है।",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "आज की श्रेणी से शब्द लिखकर एक घर बनाएँ।",
-    rules: [
-      "हर शब्द आज की श्रेणी का होना चाहिए।",
-      "3 अक्षर = ईंट, 4 = दीवार, 5 = खिड़की, 6 = खपरैल, 7+ = चिमनी।",
-      "लंबे शब्द अधिक अंक देते हैं।",
-      "10 राउंड — आपका तैयार घर लीडरबोर्ड पर दिखता है।",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -983,8 +1056,8 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "हर एंकर की संख्या = उसके आकार का सेल काउंट।",
       "आकार आयत हैं: वर्ग, ऊँचा या चौड़ा। डैश एंकर उस आकार की कोई भी आकृति स्वीकारते हैं।",
       "हर सेल ठीक एक आकृति का हिस्सा हो; आकृतियाँ नहीं ढक सकतीं।",
-      "एंकर पर टैप करके सक्रिय करें, फिर सेल टैप करके जोड़ें।",
-      "जब सब सेल सौंप दिए जाएँ और हर आकृति सही हो — हल हो गया।",
+      "ठीक एक संख्या के चारों ओर आयत खींचें। गलत आकार/आकृति पर संदेश; सही पर आकृति लॉक हो जाती है।",
+      "जब हर आकृति लॉक हो जाए — हल हो गया।",
     ],
   },
   verbind: {
@@ -1002,13 +1075,14 @@ const HI: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "सूर्य और चंद्र",
     href: "/zonmaan",
-    summary: "नियमों के अनुसार हर सेल को सूर्य या चंद्र से भरें।",
+    summary: "पंक्ति, स्तंभ और किनारों के नियमों का पालन करते हुए हर सेल को ☀ या 🌙 से भरें।",
     rules: [
-      "सेल पर टैप करें: खाली → सूर्य → चंद्र → खाली।",
-      "एक पंक्ति में दो से अधिक समान चिह्न नहीं (क्षैतिज या लंबवत)।",
-      "हर पंक्ति और स्तंभ में सूर्य और चंद्र की संख्या बराबर हो।",
-      "दो सेलों के बीच '=' का अर्थ: समान चिह्न।",
-      "दो सेलों के बीच '×' का अर्थ: विपरीत चिह्न।",
+      "ग्रिड भरें ताकि हर सेल में या तो ☀ हो या 🌙।",
+      "एक पंक्ति में 2 से अधिक ☀ या 🌙 साथ-साथ नहीं हो सकते (क्षैतिज या लंबवत)।",
+      "हर पंक्ति और हर स्तंभ में ☀ और 🌙 की संख्या बराबर हो।",
+      "= चिह्न से जुड़ी सेल एक ही प्रकार की होंगी।",
+      "× चिह्न से जुड़ी सेल विपरीत प्रकार की होंगी।",
+      "हर पहेली का एक ही उत्तर है और तर्क से हल होती है — अंदाज़ा लगाने की कभी ज़रूरत नहीं।",
     ],
   },
   kronen: {
@@ -1021,6 +1095,30 @@ const HI: Record<GameKey, HowToPlayEntry> = {
       "हर रंगीन क्षेत्र में ठीक एक मुकुट।",
       "मुकुट एक-दूसरे को नहीं छू सकते — तिरछे भी नहीं।",
       "जब सब मुकुट सही जगह हों — हल हो गया।",
+    ],
+  },
+  minesweeper: {
+    label: "माइनस्वीपर",
+    href: "/minesweeper",
+    summary: "सुरक्षित कोष्ठकों को खोलें, खानों पर झंडा लगाएँ, बम मत दबाएँ।",
+    rules: [
+      "माउस: बायाँ क्लिक खोलता है, दायाँ क्लिक झंडा लगाता है।",
+      "टच: टैप खोलता है, लंबा-दबाना झंडा लगाता है (हल्की कंपन से पुष्टि होती है)।",
+      "संख्याएँ बताती हैं कि उस कोष्ठक को कितनी खानें छूती हैं (अधिकतम 8)।",
+      "किसी खुले अंक पर सही झंडे लगाकर क्लिक करें ताकि बाकी कोष्ठक खुल जाएँ (chord)।",
+      "पहला क्लिक हमेशा सुरक्षित होता है — बीच में शुरू करें।",
+    ],
+  },
+  connections: {
+    label: "कनेक्शन्स",
+    href: "/connections",
+    summary: "चार-चार के चार समूह खोजें — रोज़ एक पहेली।",
+    rules: [
+      "16 शब्द 4 छिपी हुई श्रेणियाँ (हर एक में 4 शब्द) बनाते हैं।",
+      "4 शब्द चुनें जो आपको लगते हैं एक साथ हैं और सबमिट करें।",
+      "ग़लत जवाब आपकी 4 गलतियों में से एक ले लेता है। 4 गलतियाँ = खेल समाप्त।",
+      "'लगभग!' तब दिखता है जब आपके 4 में से 3 एक ही समूह में हैं।",
+      "शब्द हमेशा अंग्रेज़ी में होते हैं — पहेली शब्द-खेल पर निर्भर है।",
     ],
   },
 };
@@ -1087,17 +1185,6 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "10 ライン消すごとに速度上昇。",
     ],
   },
-  wordbuild: {
-    label: "WordBuild",
-    href: "/wordbuild",
-    summary: "今日のお題に沿った単語を入力して家を組み立てよう。",
-    rules: [
-      "すべての単語は今日のカテゴリに属していること。",
-      "3 文字 = レンガ、4 = 壁、5 = 窓、6 = 屋根瓦、7+ = 煙突。",
-      "長い単語ほど高得点。",
-      "10 ラウンド — 完成した家がリーダーボードに表示される。",
-    ],
-  },
   colormatch: {
     label: "ColorMatch",
     href: "/colormatch",
@@ -1129,8 +1216,8 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "各アンカーの数字 = その形のマス数。",
       "形は長方形: 正方形・縦長・横長。点線アンカーはそのサイズの任意の形を許容。",
       "各マスはちょうど 1 つの形に属する。形は重ならない。",
-      "アンカーをタップして選択、続いて割り当てるマスをタップ。",
-      "全マスが割り当てられ、各形が正しいサイズになればクリア。",
+      "番号付きの種を 1 つだけ含む長方形をドラッグ。サイズ・形が違うと通知、正しいと形がロックされます。",
+      "すべての形がロックされたらクリア。",
     ],
   },
   verbind: {
@@ -1148,13 +1235,14 @@ const JA: Record<GameKey, HowToPlayEntry> = {
   zonmaan: {
     label: "太陽と月",
     href: "/zonmaan",
-    summary: "ルールに従って各マスに太陽または月を配置しよう。",
+    summary: "行・列・辺のルールに従って各マスに ☀ または 🌙 を配置しよう。",
     rules: [
-      "マスをタップして循環: 空 → 太陽 → 月 → 空。",
-      "同じ記号が 3 つ以上連続してはいけない(縦・横とも)。",
-      "各行・列の太陽と月の数は等しい。",
-      "マス間の '=' は同じ記号を意味する。",
-      "マス間の '×' は反対の記号を意味する。",
+      "盤面の各マスに ☀ か 🌙 のどちらかを入れる。",
+      "同じ ☀ または 🌙 を縦にも横にも 3 つ以上並べてはいけない。",
+      "各行・各列で ☀ と 🌙 の数を等しくする。",
+      "= で区切られたマスは同じ種類になる。",
+      "× で区切られたマスは反対の種類になる。",
+      "各パズルには唯一の解があり、論理だけで解ける — 推測は不要。",
     ],
   },
   kronen: {
@@ -1167,6 +1255,30 @@ const JA: Record<GameKey, HowToPlayEntry> = {
       "各カラー領域にちょうど 1 つのクラウン。",
       "クラウン同士は接してはいけない — 斜めも不可。",
       "全クラウンが正しい位置になればクリア。",
+    ],
+  },
+  minesweeper: {
+    label: "マインスイーパ",
+    href: "/minesweeper",
+    summary: "安全なマスを開け、地雷に旗を立て、爆弾には触れないで。",
+    rules: [
+      "マウス: 左クリックで開く、右クリックで旗。",
+      "タッチ: タップで開く、長押しで旗（軽い振動で確認）。",
+      "数字はそのマスに接する地雷の数（最大 8）を示します。",
+      "正しい旗が立った数字をクリックすると残りを一気に開けます（chord）。",
+      "最初のクリックは必ず安全 — 中央から始めてください。",
+    ],
+  },
+  connections: {
+    label: "コネクションズ",
+    href: "/connections",
+    summary: "4 つの 4 つ組を見つけよう — 1 日 1 パズル。",
+    rules: [
+      "16 個の単語が 4 つの隠れたカテゴリー（各 4 単語）を作ります。",
+      "同じカテゴリーだと思う 4 単語を選んで送信。",
+      "間違えると 4 ミスのうち 1 を消費。4 ミスでゲームオーバー。",
+      "4 つのうち 3 つが同じグループにあると「あと 1 つ」が出ます。",
+      "単語は常に英語 — パズルは言葉遊びに依存します。",
     ],
   },
 };
@@ -1196,7 +1308,7 @@ export const UI_STRINGS: Record<Locale, {
 }> = {
   en: {
     howToPlayHeading: "How to play",
-    howToPlaySubtitle: "Quick rules for each of the twelve BrainArena games. Pick one and dive in.",
+    howToPlaySubtitle: "Quick rules for each BrainArena game. Pick one and dive in.",
     howToPlayPrefix: "How to play",
     seeFullGuide: "See full guide →",
     wantAllGames: "Want all the games?",
@@ -1204,7 +1316,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   nl: {
     howToPlayHeading: "Hoe te spelen",
-    howToPlaySubtitle: "Snelle regels voor elk van de twaalf BrainArena-games. Kies er een en duik erin.",
+    howToPlaySubtitle: "Snelle regels voor elke BrainArena-game. Kies er een en duik erin.",
     howToPlayPrefix: "Hoe speel je",
     seeFullGuide: "Volledige gids →",
     wantAllGames: "Alle games zien?",
@@ -1212,7 +1324,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   de: {
     howToPlayHeading: "Spielanleitung",
-    howToPlaySubtitle: "Schnelle Regeln für alle zwölf BrainArena-Spiele. Such dir eines aus und leg los.",
+    howToPlaySubtitle: "Schnelle Regeln für jedes BrainArena-Spiel. Such dir eines aus und leg los.",
     howToPlayPrefix: "So spielst du",
     seeFullGuide: "Vollständige Anleitung →",
     wantAllGames: "Alle Spiele sehen?",
@@ -1220,7 +1332,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   fr: {
     howToPlayHeading: "Comment jouer",
-    howToPlaySubtitle: "Les règles rapides des douze jeux BrainArena. Choisis-en un et lance-toi.",
+    howToPlaySubtitle: "Les règles rapides de chaque jeu BrainArena. Choisis-en un et lance-toi.",
     howToPlayPrefix: "Comment jouer à",
     seeFullGuide: "Voir le guide complet →",
     wantAllGames: "Voir tous les jeux ?",
@@ -1228,7 +1340,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   es: {
     howToPlayHeading: "Cómo jugar",
-    howToPlaySubtitle: "Reglas rápidas para los doce juegos de BrainArena. Elige uno y empieza.",
+    howToPlaySubtitle: "Reglas rápidas para cada juego de BrainArena. Elige uno y empieza.",
     howToPlayPrefix: "Cómo jugar a",
     seeFullGuide: "Ver guía completa →",
     wantAllGames: "¿Ver todos los juegos?",
@@ -1236,7 +1348,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   hi: {
     howToPlayHeading: "कैसे खेलें",
-    howToPlaySubtitle: "BrainArena के बारह खेलों के त्वरित नियम। एक चुनें और शुरू करें।",
+    howToPlaySubtitle: "BrainArena के प्रत्येक खेल के त्वरित नियम। एक चुनें और शुरू करें।",
     howToPlayPrefix: "कैसे खेलें",
     seeFullGuide: "पूरी गाइड देखें →",
     wantAllGames: "सभी खेल देखें?",
@@ -1244,7 +1356,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   "pt-BR": {
     howToPlayHeading: "Como jogar",
-    howToPlaySubtitle: "Regras rápidas para os doze jogos do BrainArena. Escolha um e comece.",
+    howToPlaySubtitle: "Regras rápidas para cada jogo do BrainArena. Escolha um e comece.",
     howToPlayPrefix: "Como jogar",
     seeFullGuide: "Ver guia completo →",
     wantAllGames: "Ver todos os jogos?",
@@ -1252,7 +1364,7 @@ export const UI_STRINGS: Record<Locale, {
   },
   ja: {
     howToPlayHeading: "遊び方",
-    howToPlaySubtitle: "BrainArena の 12 種類のゲームのクイックルール。1 つ選んで始めよう。",
+    howToPlaySubtitle: "BrainArena の各ゲームのクイックルール。1 つ選んで始めよう。",
     howToPlayPrefix: "遊び方",
     seeFullGuide: "ガイドを全部見る →",
     wantAllGames: "全ゲームを見る?",
@@ -1266,7 +1378,6 @@ export const HOW_TO_PLAY_ORDER: GameKey[] = [
   "sudoku",
   "typing",
   "tiledrop",
-  "wordbuild",
   "colormatch",
   "letterstack",
   "vlakken",

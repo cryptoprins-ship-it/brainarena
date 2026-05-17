@@ -1,10 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
+import { dayIndex } from "@/lib/dailyWord";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
+import CrossPromoCard from "@/components/CrossPromoCard";
+import { useLocale } from "@/lib/i18n";
 
 const W = 10;
 const H = 20;
@@ -81,6 +86,7 @@ function clearLines(board: Cell[][]): { board: Cell[][]; lines: number } {
 const LINE_POINTS = [0, 100, 300, 500, 800];
 
 export default function TileDropPage() {
+  const { t, locale } = useLocale();
   const [board, setBoard] = useState<Cell[][]>(newBoard);
   const [bag, setBag] = useState<Piece[]>(randomBag);
   const [piece, setPiece] = useState<{ p: Piece; x: number; y: number } | null>(null);
@@ -93,14 +99,16 @@ export default function TileDropPage() {
   const [paused, setPaused] = useState(false);
   const [highScore, setHighScore] = useState(0);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("tiledrop", todayIdx);
 
   const tickRef = useRef<number | null>(null);
   const dropMs = useMemo(() => Math.max(80, 800 - (level - 1) * 70), [level]);
 
   useEffect(() => {
     setHighScore(Number(localStorage.getItem("tiledrop-hi") ?? "0") || 0);
-    setNameState(getName());
   }, []);
 
   // Spawn helper.
@@ -149,6 +157,20 @@ export default function TileDropPage() {
   }, [dropMs]);
 
   const lockPiece = useCallback((p: { p: Piece; x: number; y: number }) => {
+    // Standard Tetris top-out: if any filled cell of the piece would land
+    // above row 0, the board is full for this shape. The vanilla `spawn`
+    // check at y=-1 misses this for 1-row pieces (the I-piece) because
+    // `fits` skips negative-row cells, so an I could "play" forever on a
+    // full board without ever triggering game-over.
+    for (let r = 0; r < p.p.shape.length; r++) {
+      for (let c = 0; c < p.p.shape[r].length; c++) {
+        if (p.p.shape[r][c] && p.y + r < 0) {
+          setOver(true);
+          setPiece(null);
+          return;
+        }
+      }
+    }
     const merged = merge(boardRef.current, p.p, p.x, p.y);
     const { board: cleared, lines: cleared_lines } = clearLines(merged);
     boardRef.current = cleared;
@@ -235,6 +257,34 @@ export default function TileDropPage() {
     return () => window.removeEventListener("keydown", handler);
   }, [hardDrop, move, rotateNow, step, swapHold]);
 
+  // Auto-repeat for the on-screen arrow buttons — without this, the
+  // player has to tap-tap-tap to walk a piece across the board. Initial
+  // 200ms delay matches the OS-level key-repeat feel; subsequent ticks
+  // at 60ms keep it fast enough for a 10-wide board.
+  const repeatTimeout = useRef<number | null>(null);
+  const repeatInterval = useRef<number | null>(null);
+
+  const stopRepeat = useCallback(() => {
+    if (repeatTimeout.current) {
+      window.clearTimeout(repeatTimeout.current);
+      repeatTimeout.current = null;
+    }
+    if (repeatInterval.current) {
+      window.clearInterval(repeatInterval.current);
+      repeatInterval.current = null;
+    }
+  }, []);
+
+  const startRepeat = useCallback((action: () => void) => {
+    stopRepeat();
+    action();
+    repeatTimeout.current = window.setTimeout(() => {
+      repeatInterval.current = window.setInterval(action, 60);
+    }, 200);
+  }, [stopRepeat]);
+
+  useEffect(() => () => stopRepeat(), [stopRepeat]);
+
   // Touch / swipe.
   const touchStart = useRef<{ x: number; y: number; t: number } | null>(null);
   const onTouchStart = (e: React.TouchEvent) => {
@@ -254,22 +304,27 @@ export default function TileDropPage() {
     else if (dy > 30) { hardDrop(); }
   };
 
-  // High score + submit on game over.
+  // High score + submit on game over, gated by the 3-attempt daily cap.
   useEffect(() => {
-    if (!over) return;
+    if (!over) { recordedRef.current = false; return; }
     if (score > highScore) {
       setHighScore(score);
       localStorage.setItem("tiledrop-hi", String(score));
     }
-    if (!submitted) {
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
       submitScore({
         game: "tiledrop",
         name: getName() || "Anonymous",
         score,
+        language: locale,
         meta: { lines, level },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [highScore, level, lines, over, score, submitted]);
+  }, [highScore, level, lines, locale, over, record, score, submitted]);
 
   // Compose render board with active piece + ghost.
   const renderBoard = useMemo(() => {
@@ -313,29 +368,25 @@ export default function TileDropPage() {
   };
 
   const next = bag[0];
-  const saveName = () => {
-    setName(name);
-    submitScore({
-      game: "tiledrop",
-      name: name || "Anonymous",
-      score,
-      meta: { lines, level },
-    }).then((r) => r && setSubmitted(r));
-  };
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 pb-28 md:pb-6">
       <StreakBanner />
       <HowToPlay game="tiledrop" />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black">TileDrop</h1>
-          <p className="text-xs text-gray-400">←→ / swipe · ↑ / tap rotate · Space / swipe ↓ to drop · C hold · P pause</p>
+          <p className="text-xs text-gray-400">
+            {t("td_controls")} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (over ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
+            </span>
+          </p>
         </div>
         <div className="flex gap-2 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">★ {score}</span>
-          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">Lv {level}</span>
-          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">Lines {lines}</span>
+          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">{t("td_level", { n: level })}</span>
+          <span className="rounded-md bg-[#1a1a1a] px-3 py-1">{t("td_lines", { n: lines })}</span>
         </div>
       </div>
 
@@ -354,7 +405,7 @@ export default function TileDropPage() {
 
         <aside className="space-y-3">
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3">
-            <p className="text-xs uppercase tracking-wider text-gray-500">Next</p>
+            <p className="text-xs uppercase tracking-wider text-gray-500">{t("next_number")}</p>
             <Mini shape={next?.shape ?? []} color={next?.color ?? "#fff"} />
           </div>
           <button
@@ -362,51 +413,89 @@ export default function TileDropPage() {
             onClick={swapHold}
             className="w-full rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-left transition hover:border-indigo-400/40 active:scale-[0.99]"
           >
-            <p className="text-xs uppercase tracking-wider text-gray-500">Hold (tap / C)</p>
-            {hold ? <Mini shape={hold.shape} color={hold.color} /> : <p className="mt-2 text-xs text-gray-600">empty</p>}
+            <p className="text-xs uppercase tracking-wider text-gray-500">{t("td_hold")}</p>
+            {hold ? <Mini shape={hold.shape} color={hold.color} /> : <p className="mt-2 text-xs text-gray-600">{t("label_empty")}</p>}
           </button>
           <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-3 text-xs text-gray-400">
-            High score<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-2 md:hidden">
-            <button onClick={() => move(-1)} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">←</button>
-            <button onClick={() => move(1)} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">→</button>
-            <button onClick={rotateNow} className="rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">⟳</button>
-            <button onClick={hardDrop} className="rounded-md bg-indigo-600 py-2 text-sm font-bold">Drop</button>
+            {t("td_high_score")}<br /><span className="text-lg font-bold text-white tabular-nums">{highScore}</span>
           </div>
           <button onClick={() => setPaused((p) => !p)} className="w-full rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]">
-            {paused ? "Resume" : "Pause"}
+            {paused ? t("td_resume") : t("td_pause")}
           </button>
         </aside>
       </div>
 
+      {/* Mobile-only control bar — pinned to the viewport bottom with
+          safe-area inset so the iOS home indicator doesn't eat the
+          tap target. Arrows auto-repeat on hold (200ms then 60ms);
+          rotate fires once per tap. Hard-drop is still available via
+          swipe-down over the board. */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 grid grid-cols-3 gap-2 border-t border-[#2a2a2a] bg-[#0a0a0a]/95 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur md:hidden">
+        <button
+          type="button"
+          aria-label={t("td_move_left")}
+          onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(-1)); }}
+          onPointerUp={stopRepeat}
+          onPointerLeave={stopRepeat}
+          onPointerCancel={stopRepeat}
+          className="h-14 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] text-3xl font-bold leading-none active:bg-[#222] select-none touch-none"
+        >
+          ←
+        </button>
+        <button
+          type="button"
+          aria-label={t("td_rotate")}
+          onClick={rotateNow}
+          className="h-14 rounded-xl border border-indigo-500/40 bg-indigo-600/20 text-3xl leading-none active:bg-indigo-600/40 select-none touch-none"
+        >
+          ⟳
+        </button>
+        <button
+          type="button"
+          aria-label={t("td_move_right")}
+          onPointerDown={(e) => { e.preventDefault(); startRepeat(() => move(1)); }}
+          onPointerUp={stopRepeat}
+          onPointerLeave={stopRepeat}
+          onPointerCancel={stopRepeat}
+          className="h-14 rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] text-3xl font-bold leading-none active:bg-[#222] select-none touch-none"
+        >
+          →
+        </button>
+      </div>
+
       {over ? (
-        <EndScreenAddon
-          game="tiledrop"
-          score={score}
-          rank={submitted?.rank}
-          meta={{ lines, level }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="tiledrop"
+            playerName={getName()}
+            playerScore={score}
+            submittedRank={submitted?.rank}
+          />
+          <EndScreenAddon
+            game="tiledrop"
+            score={score}
+            rank={submitted?.rank}
+            meta={{ lines, level }}
+          />
+          <CrossPromoCard game="tiledrop" />
+        </>
       ) : null}
 
       {over ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Game Over · {score} pts</h2>
-          {!submitted ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          <h2 className="text-xl font-black">{t("td_game_over", { score })}</h2>
+          {submitted ? (
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
           <button onClick={reset} className="mt-3 rounded-lg bg-[#0a0a0a] border border-[#2a2a2a] px-4 py-2 text-sm">
-            Play again
+            {t("win_play_again")}
           </button>
         </div>
       ) : null}

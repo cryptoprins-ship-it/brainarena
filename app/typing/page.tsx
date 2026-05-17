@@ -3,15 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale } from "@/lib/i18n";
 import { pickText } from "@/lib/typingTexts";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
+import { dayIndex } from "@/lib/dailyWord";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 
 const DURATION = 60;
 
 export default function TypingPage() {
-  const { locale } = useLocale();
+  const { locale, t } = useLocale();
   const [text, setText] = useState("");
   const [typed, setTyped] = useState("");
   const [time, setTime] = useState(DURATION);
@@ -19,7 +22,11 @@ export default function TypingPage() {
   const startedAt = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const recordedRef = useRef(false);
+  const todayIdx = useMemo(() => dayIndex(), []);
+  // Typing has no daily seed but we cap per locale — texts differ per language.
+  const { attempts: dailyAttempts, record } = useDailyAttempts("typing", todayIdx, locale);
 
   const reset = useCallback(() => {
     setText(pickText(locale));
@@ -27,7 +34,6 @@ export default function TypingPage() {
     setTime(DURATION);
     setDone(false);
     setSubmitted(null);
-    setNameState(getName());
     startedAt.current = null;
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [locale]);
@@ -70,39 +76,49 @@ export default function TypingPage() {
     return () => window.clearInterval(id);
   }, [done]);
 
-  // Submit on done.
+  // Submit on done, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "typing",
-      name: getName() || "Anonymous",
-      score: stats.wpm,
-      time: stats.elapsed,
-      language: locale,
-      meta: { accuracy: stats.accuracy },
-    }).then((r) => r && setSubmitted(r));
-  }, [done, locale, stats.accuracy, stats.elapsed, stats.wpm, submitted]);
-
-  const saveName = () => {
-    setName(name);
-    submitScore({
-      game: "typing",
-      name: name || "Anonymous",
-      score: stats.wpm,
-      time: stats.elapsed,
-      language: locale,
-      meta: { accuracy: stats.accuracy },
-    }).then((r) => r && setSubmitted(r));
-  };
+    if (!done) { recordedRef.current = false; return; }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "typing",
+        name: getName() || "Anonymous",
+        score: stats.wpm,
+        time: stats.elapsed,
+        language: locale,
+        meta: { accuracy: stats.accuracy },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [done, locale, record, stats.accuracy, stats.elapsed, stats.wpm, submitted]);
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6">
+      {/* Typing requires a physical keyboard. Mobile gets a short notice
+          instead of the playable UI; the route stays accessible (SEO,
+          deep links, locale switcher) but is unplayable. */}
+      <div className="md:hidden rounded-2xl border border-amber-500/40 bg-amber-500/10 p-5 text-sm">
+        <h1 className="text-xl font-black">{t("typing_title")}</h1>
+        <p className="mt-2 text-amber-100">
+          {t("typing_needs_keyboard")}
+        </p>
+      </div>
+
+      <div className="hidden md:block">
       <StreakBanner />
       <HowToPlay game="typing" />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black">Typing Speed</h1>
-          <p className="text-xs text-gray-400">{locale.toUpperCase()} · {DURATION}s test</p>
+          <h1 className="text-2xl font-black">{t("typing_title")}</h1>
+          <p className="text-xs text-gray-400">
+            {locale.toUpperCase()} · {t("typing_test_label", { seconds: DURATION })} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-3 text-sm font-mono">
           <span className="rounded-md bg-[#1a1a1a] px-3 py-1">⏱ {time}s</span>
@@ -113,10 +129,10 @@ export default function TypingPage() {
 
       <div className="mt-5 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 text-lg leading-relaxed font-mono tracking-tight" onClick={() => inputRef.current?.focus()}>
         {text.split("").map((ch, i) => {
-          const t = typed[i];
+          const typedCh = typed[i];
           const cls =
             i < typed.length
-              ? t === ch
+              ? typedCh === ch
                 ? "text-white"
                 : "text-red-400 underline decoration-red-500"
               : i === typed.length
@@ -137,44 +153,52 @@ export default function TypingPage() {
         autoCorrect="off"
         autoCapitalize="off"
         className="mt-3 w-full rounded-xl border border-[#2a2a2a] bg-[#0a0a0a] px-4 py-3 text-base font-mono"
-        placeholder="Click here and start typing…"
+        placeholder={t("typing_placeholder")}
       />
 
       <button onClick={reset} className="mt-3 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 text-sm">
-        Restart
+        {t("reset")}
       </button>
 
       {done ? (
-        <EndScreenAddon
-          game="typing"
-          score={stats.wpm}
-          time={stats.elapsed}
-          rank={submitted?.rank}
-          meta={{ accuracy: stats.accuracy }}
-        />
+        <>
+          <ScoreEndLeaderboard
+            game="typing"
+            playerName={getName()}
+            playerScore={stats.wpm}
+            submittedRank={submitted?.rank}
+            formatScore={(e) => `${e.score} WPM`}
+          />
+          <EndScreenAddon
+            game="typing"
+            score={stats.wpm}
+            time={stats.elapsed}
+            rank={submitted?.rank}
+            locale={locale}
+            meta={{ accuracy: stats.accuracy }}
+          />
+        </>
       ) : null}
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">Result</h2>
+          <h2 className="text-xl font-black">{t("typing_result")}</h2>
           <p className="mt-1 text-sm text-gray-300">
-            <span className="font-bold text-indigo-300">{stats.wpm} WPM</span> · {stats.accuracy}% accuracy · {stats.correct} correct chars
+            {t("typing_result_detail", { wpm: stats.wpm, accuracy: stats.accuracy, correct: stats.correct })}
           </p>
-          {!submitted ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-emerald-300">Ranked #{submitted.rank} globally.</p>
-          )}
+          {submitted ? (
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
+          ) : null}
+          {!eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
         </div>
       ) : null}
+      </div>
     </div>
   );
 }

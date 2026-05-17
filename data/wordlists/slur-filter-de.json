@@ -1,0 +1,22 @@
+{
+  "_meta": {
+    "purpose": "Words removed from the daily SOLUTIONS pool. Has no effect on the GUESSES list — players can still type anything that fits the alphabet.",
+    "filter_applies_to": "solutions",
+    "categories_filtered": [
+      "racial slurs",
+      "ethnic slurs"
+    ],
+    "categories_not_filtered": [
+      "profanity / swear words",
+      "sexual or anatomical terms",
+      "religious terms",
+      "general insults without ethnic component",
+      "drug names",
+      "names of people / places"
+    ],
+    "policy": "Conservative. When in doubt about whether a term is an ethnic slur, do NOT add it.",
+    "source_seed": "Manual curation. LDNOOBW (github.com/LDNOOBW/...) can be a starting point but its files mix profanity with slurs — do not import wholesale.",
+    "how_to_extend": "Append lowercase 5-letter strings (after normalisation per locale) to the `terms` array, then re-run scripts/generate-wordlists.mjs. The pipeline filters case-sensitively against the normalised solutions pool."
+  },
+  "terms": []
+}

@@ -4,8 +4,14 @@ import Script from "next/script";
 import Link from "next/link";
 import NavBar from "@/components/NavBar";
 import AchievementToast from "@/components/AchievementToast";
+import NameGate from "@/components/NameGate";
 import CookieBanner from "@/components/CookieBanner";
 import CookieSettingsLink from "@/components/CookieSettingsLink";
+import JsonLd from "@/components/JsonLd";
+import {
+  canonicalUrlFor,
+  generateHreflangAlternates,
+} from "@/lib/seo/hreflang";
 import "./globals.css";
 
 const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
@@ -28,20 +34,6 @@ const notoJp = Noto_Sans_JP({
   display: "swap",
 });
 
-// hreflang map. x-default points at English so search engines treat the
-// canonical English page as the fallback for any unmatched locale.
-const HREFLANG_MAP = {
-  en: BASE,
-  nl: BASE,
-  de: BASE,
-  fr: BASE,
-  es: BASE,
-  hi: BASE,
-  "pt-BR": BASE,
-  ja: BASE,
-  "x-default": BASE,
-};
-
 export const metadata: Metadata = {
   metadataBase: new URL(BASE),
   title: {
@@ -50,9 +42,12 @@ export const metadata: Metadata = {
   },
   description:
     "Play free Wordle, Boggle, Sudoku, logic puzzles and typing games. Compete globally in 8 languages.",
+  // Default metadata applies to the flat (English-canonical) home at /.
+  // Per-route layouts and /[locale]/* pages override these via their own
+  // generateMetadata / metadata exports.
   alternates: {
-    canonical: BASE,
-    languages: HREFLANG_MAP,
+    canonical: canonicalUrlFor("/", "en"),
+    languages: generateHreflangAlternates("/"),
   },
   openGraph: {
     title: "BrainArena — Free Daily Puzzles & Word Games",
@@ -77,9 +72,46 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`h-full antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
+      className={`antialiased ${notoDevanagari.variable} ${notoJp.variable}`}
+      // Inline style is render-blocking and applies before the external
+      // CSS bundle arrives — without this, mobile cold-load shows a
+      // ~1-2s white flash because the Tailwind classes on <body> (and
+      // the html/body rule in globals.css) only kick in once the CSS
+      // file is parsed. The inline color matches `--bg` in globals.css.
+      style={{ background: "#0a0a0a", colorScheme: "dark" }}
     >
-      <body className="min-h-full flex flex-col bg-[#0a0a0a] text-white">
+      <body
+        className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white"
+        style={{ background: "#0a0a0a", color: "#ffffff" }}
+      >
+        {/* Site-wide structured data — Organization + WebSite. Game-specific
+            VideoGame schemas live in each game's layout.tsx; homepage adds
+            an ItemList of games. */}
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@graph": [
+              {
+                "@type": "Organization",
+                "@id": `${BASE}#organization`,
+                name: "BrainArena",
+                url: BASE,
+                logo: `${BASE}/icon.png`,
+                sameAs: [],
+              },
+              {
+                "@type": "WebSite",
+                "@id": `${BASE}#website`,
+                url: BASE,
+                name: "BrainArena",
+                description:
+                  "Free daily puzzles and word games — Wordle, Boggle, Sudoku, logic puzzles and more.",
+                publisher: { "@id": `${BASE}#organization` },
+                inLanguage: ["en", "nl", "de", "fr", "es", "pt-BR"],
+              },
+            ],
+          }}
+        />
         {/* Plausible analytics — cookieless, GDPR-exempt by design (no
             cookies, no fingerprinting, IP anonymised before storage).
             Loads unconditionally; the "Analytics" toggle in CookieBanner
@@ -93,6 +125,9 @@ export default function RootLayout({
         <NavBar />
         <main className="flex-1">{children}</main>
         <AchievementToast />
+        {/* Prompts for player name on first score submission so leaderboard
+            entries have real identities instead of "Anonymous". */}
+        <NameGate />
         {/* CookieBanner mounts the AdSense loader only after the user
             opts in to advertising cookies. NEXT_PUBLIC_ADSENSE_CLIENT
             controls which publisher ID is used; until it's set, no

@@ -80,46 +80,52 @@ function placeSolution(size: number, rng: () => number): number[] | null {
   return pick(0) ? cols : null;
 }
 
-// Grow N regions from the crown anchors by repeatedly absorbing a random
-// unclaimed neighbour. Always picks a region uniformly at random among those
-// that still have growth room — this keeps regions roughly balanced.
+// Grow N regions from the crown anchors. To avoid puzzles that *look*
+// unsolvable (one tiny single-cell region forcing a placement, while another
+// region eats half the board), each step expands the SMALLEST region that
+// still has a growth option. Ties are broken randomly so the daily puzzle
+// stays varied. The result: region sizes hover within ±2 of N (= total /
+// regions), giving the player room to deduce instead of being squeezed by
+// forced placements.
 function growRegions(size: number, solution: number[], rng: () => number): number[] {
   const N = size * size;
   const regions: number[] = new Array(N).fill(-1);
-  // Anchor each region at the crown cell.
+  const counts = new Array(size).fill(1);
   solution.forEach((col, r) => {
     regions[r * size + col] = r;
   });
-  // Frontier = region id → list of cells in that region with unclaimed neighbours
+
   let claimed = size;
   while (claimed < N) {
-    // Pick a region with at least one growth option.
-    const order = Array.from({ length: size }, (_, i) => i);
-    shuffleInPlace(order, rng);
-    let placed = false;
-    for (const region of order) {
-      // collect all cells of this region that have unclaimed neighbours
-      const candidates: { cell: number; nb: number }[] = [];
+    // Per-region growth candidates. A region with no candidates is locked.
+    const growable: number[] = [];
+    const candidatesByRegion: number[][] = [];
+    for (let region = 0; region < size; region++) {
+      const cands: number[] = [];
       for (let i = 0; i < N; i++) {
         if (regions[i] !== region) continue;
         for (const nb of neighbours4(i, size)) {
-          if (regions[nb] === -1) candidates.push({ cell: i, nb });
+          if (regions[nb] === -1) cands.push(nb);
         }
       }
-      if (!candidates.length) continue;
-      const pick = candidates[Math.floor(rng() * candidates.length)];
-      regions[pick.nb] = region;
-      claimed++;
-      placed = true;
+      candidatesByRegion[region] = cands;
+      if (cands.length) growable.push(region);
+    }
+    if (!growable.length) {
+      // Disconnected leftovers — shouldn't happen on a connected grid, but
+      // sweep them into region 0 as a guard.
+      for (let i = 0; i < N; i++) if (regions[i] === -1) regions[i] = 0;
       break;
     }
-    if (!placed) {
-      // Should be impossible for connected grids, but guard.
-      for (let i = 0; i < N; i++) {
-        if (regions[i] === -1) regions[i] = 0;
-      }
-      break;
-    }
+    // Smallest first, ties broken by shuffled order.
+    shuffleInPlace(growable, rng);
+    growable.sort((a, b) => counts[a] - counts[b]);
+    const region = growable[0];
+    const cands = candidatesByRegion[region];
+    const pick = cands[Math.floor(rng() * cands.length)];
+    regions[pick] = region;
+    counts[region]++;
+    claimed++;
   }
   return regions;
 }
@@ -159,12 +165,77 @@ export function solveKronen(size: number, regions: number[], cap = 2): number[][
   return found;
 }
 
+// Returns true iff removing `removeCell` from its current region leaves the
+// rest of that region as one 4-connected component. Used by the refiner to
+// avoid moves that would split the source region into two disconnected
+// pieces — which manifests as "two separate areas with the same colour" on
+// the rendered board.
+function regionStaysConnectedWithout(
+  regions: number[],
+  removeCell: number,
+  size: number
+): boolean {
+  const region = regions[removeCell];
+  const N = size * size;
+  const remaining: number[] = [];
+  for (let i = 0; i < N; i++) {
+    if (regions[i] === region && i !== removeCell) remaining.push(i);
+  }
+  if (remaining.length === 0) return false;
+  const seen = new Set<number>([remaining[0]]);
+  const queue = [remaining[0]];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const nb of neighbours4(cur, size)) {
+      if (nb === removeCell) continue;
+      if (regions[nb] === region && !seen.has(nb)) {
+        seen.add(nb);
+        queue.push(nb);
+      }
+    }
+  }
+  return seen.size === remaining.length;
+}
+
+// Connectivity sweep over all regions — each region must form a single
+// 4-connected component. Cheap insurance against any future generator
+// change reintroducing the disconnected-region bug.
+function regionsAllConnected(regions: number[], size: number): boolean {
+  const N = size * size;
+  const groups = new Map<number, number[]>();
+  for (let i = 0; i < N; i++) {
+    const r = regions[i];
+    if (!groups.has(r)) groups.set(r, []);
+    groups.get(r)!.push(i);
+  }
+  for (const [region, cells] of groups) {
+    const seen = new Set<number>([cells[0]]);
+    const queue = [cells[0]];
+    while (queue.length) {
+      const cur = queue.shift()!;
+      for (const nb of neighbours4(cur, size)) {
+        if (regions[nb] === region && !seen.has(nb)) {
+          seen.add(nb);
+          queue.push(nb);
+        }
+      }
+    }
+    if (seen.size !== cells.length) return false;
+  }
+  return true;
+}
+
 // Mutation-based refinement: if solveKronen reports >1 solution, find a cell
 // that participates in an alternative solution and move it into a neighbouring
 // region. The embedded solution's region distribution stays intact (our crown
 // cells' regions are never touched), so each successful move can only ever
 // reduce the alternative-solution count. Continues until uniqueness or until
 // no move helps.
+//
+// Critical: a move is only accepted if the source region stays 4-connected
+// after the cell leaves. Without this check, a "bridge" cell can be plucked
+// out, splitting its region into two visually-disconnected pieces (same
+// colour, two separate areas — a UX bug).
 function refineForUniqueness(
   size: number,
   regions: number[],
@@ -195,8 +266,8 @@ function refineForUniqueness(
       if (solution[r] === c) continue;
       shuffleInPlace(nbs, rng);
       for (const nb of nbs) {
-        // Skip if the neighbour's region already contains our row's solution
-        // crown for this same row — wouldn't help.
+        // Refuse moves that would disconnect the source region.
+        if (!regionStaysConnectedWithout(regions, cell, size)) continue;
         regions[cell] = regions[nb];
         moved = true;
         break;
@@ -219,12 +290,20 @@ export function generateKronen(size: number, seed: number): KronenPuzzle {
     }
     for (let inner = 0; inner < 80; inner++) {
       const regions = growRegions(size, solution, rng);
-      // Quick check first.
-      if (solveKronen(size, regions, 2).length === 1) {
+      // Quick check first. growRegions is BFS-grow so always connected,
+      // but we re-check anyway to keep the contract explicit.
+      if (
+        solveKronen(size, regions, 2).length === 1 &&
+        regionsAllConnected(regions, size)
+      ) {
         return { size, regions, solution, seed };
       }
-      // Otherwise refine.
-      if (refineForUniqueness(size, regions, solution, rng)) {
+      // Otherwise refine. The refiner now guards source-region connectivity
+      // per move, so a successful refine implies all regions are connected.
+      if (
+        refineForUniqueness(size, regions, solution, rng) &&
+        regionsAllConnected(regions, size)
+      ) {
         return { size, regions, solution, seed };
       }
     }

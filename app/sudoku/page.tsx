@@ -3,15 +3,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generateDaily, type Cell, type Difficulty } from "@/lib/sudoku";
 import { dayIndex } from "@/lib/dailyWord";
-import { getName, setName, submitScore } from "@/lib/scores";
+import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
+import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
+import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
+import { useLocale } from "@/lib/i18n";
 
 const DIFFS: Difficulty[] = ["easy", "medium", "hard"];
 const N = 9;
 
 export default function SudokuPage() {
+  const { t, locale } = useLocale();
   const [diff, setDiff] = useState<Difficulty>("easy");
   const [board, setBoard] = useState<Cell[][]>([]);
   const [solution, setSolution] = useState<number[][]>([]);
@@ -21,8 +25,13 @@ export default function SudokuPage() {
   const [time, setTime] = useState(0);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
-  const [name, setNameState] = useState("");
+  const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const startedAt = useRef<number | null>(null);
+
+  // Each difficulty has its own daily puzzle, so attempts are tracked
+  // per (sudoku, dayIdx, difficulty).
+  const todayIdx = useMemo(() => dayIndex(), []);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("sudoku", todayIdx, diff);
 
   // Seed: dayIndex × difficulty index → unique daily puzzle per difficulty.
   useEffect(() => {
@@ -36,7 +45,7 @@ export default function SudokuPage() {
     setTime(0);
     setDone(false);
     setSubmitted(null);
-    setNameState(getName());
+    setEligibleToSubmit(false);
     startedAt.current = null;
   }, [diff]);
 
@@ -102,21 +111,49 @@ export default function SudokuPage() {
     }
   }, [board, done, solution, time]);
 
-  // Submit on completion.
+  // Submit on completion — but only if this play still qualifies for the
+  // daily leaderboard (first MAX_LEADERBOARD_ATTEMPTS attempts per
+  // difficulty). `record()` is single-shot per useEffect run, so we guard
+  // with a ref-style early-return on `submitted` to avoid double-counting
+  // under StrictMode's double-invoke.
+  const recordedRef = useRef(false);
   useEffect(() => {
-    if (!done || submitted) return;
-    submitScore({
-      game: "sudoku",
-      name: getName() || "Anonymous",
-      score: 1, // sortable by time anyway
-      time,
-      meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
-    }).then((r) => r && setSubmitted(r));
-  }, [diff, done, hintsLeft, submitted, time]);
+    if (!done) {
+      recordedRef.current = false;
+      return;
+    }
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    const { shouldSubmit } = record();
+    setEligibleToSubmit(shouldSubmit);
+    if (shouldSubmit && !submitted) {
+      submitScore({
+        game: "sudoku",
+        name: getName() || "Anonymous",
+        score: 1, // sortable by time anyway
+        time,
+        language: locale,
+        meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
+      }).then((r) => r && setSubmitted(r));
+    }
+  }, [diff, done, hintsLeft, locale, record, submitted, time]);
 
   // Keyboard input.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Don't hijack keystrokes when focus is in a text input — most
+      // importantly the post-win name field. Without this, digits typed
+      // into the name field also fill whichever cell was last clicked,
+      // and arrow keys move both the input caret and the selection.
+      const tgt = e.target as Element | null;
+      if (
+        tgt &&
+        (tgt.tagName === "INPUT" ||
+          tgt.tagName === "TEXTAREA" ||
+          (tgt as HTMLElement).isContentEditable)
+      ) {
+        return;
+      }
       if (!selected) return;
       if (/^[1-9]$/.test(e.key)) setVal(selected.r, selected.c, Number(e.key));
       if (e.key === "Backspace" || e.key === "0" || e.key === "Delete") setVal(selected.r, selected.c, 0);
@@ -134,19 +171,6 @@ export default function SudokuPage() {
     return board[selected.r][selected.c].value || null;
   }, [board, selected]);
 
-  const saveName = () => {
-    setName(name);
-    if (done) {
-      submitScore({
-        game: "sudoku",
-        name: name || "Anonymous",
-        score: 1,
-        time,
-        meta: { difficulty: diff, hintsUsed: 3 - hintsLeft },
-      }).then((r) => r && setSubmitted(r));
-    }
-  };
-
   return (
     <div className="mx-auto w-full max-w-xl px-4 py-6">
       <StreakBanner />
@@ -154,16 +178,21 @@ export default function SudokuPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-black">Sudoku</h1>
-          <p className="text-xs text-gray-400">Daily · ⏱ <span className="tabular-nums">{time}s</span> · 💡 {hintsLeft} hints</p>
+          <p className="text-xs text-gray-400">
+            {t("sudoku_status", { time, hints: hintsLeft })} ·{" "}
+            <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
+              {Math.min(dailyAttempts + (done ? 0 : 1), MAX_LEADERBOARD_ATTEMPTS)}/{MAX_LEADERBOARD_ATTEMPTS} {t("ranked_label")}
+            </span>
+          </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-1 text-xs">
           {DIFFS.map((d) => (
             <button
               key={d}
               onClick={() => setDiff(d)}
-              className={`rounded-md px-3 py-1.5 capitalize ${diff === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
+              className={`rounded-md px-3 py-1.5 ${diff === d ? "bg-indigo-600 text-white" : "text-gray-300 hover:bg-[#2a2a2a]"}`}
             >
-              {d}
+              {t(d)}
             </button>
           ))}
         </div>
@@ -214,14 +243,14 @@ export default function SudokuPage() {
           onClick={() => selected && setVal(selected.r, selected.c, 0)}
           className="flex-1 rounded-md bg-[#1a1a1a] py-2 text-sm border border-[#2a2a2a]"
         >
-          Erase
+          {t("clear")}
         </button>
         <button
           onClick={giveHint}
           disabled={hintsLeft <= 0}
           className="flex-1 rounded-md bg-indigo-600 py-2 text-sm font-bold disabled:opacity-50"
         >
-          Hint ({hintsLeft})
+          {t("hint")} ({hintsLeft})
         </button>
       </div>
 
@@ -237,20 +266,26 @@ export default function SudokuPage() {
 
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-          <h2 className="text-xl font-black">🎉 Solved in <span className="tabular-nums">{time}s</span>!</h2>
-          {!submitted ? (
-            <div className="mt-3 flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setNameState(e.target.value)}
-                placeholder="Your name"
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] px-3 py-2 text-sm"
-              />
-              <button onClick={saveName} className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-bold">Submit</button>
-            </div>
-          ) : (
-            <p className="mt-2 text-sm text-emerald-300">You ranked #{submitted.rank} on the {diff} board.</p>
-          )}
+          <h2 className="text-xl font-black">{t("sudoku_solved_in", { time })}</h2>
+          {submitted ? (
+            <p className="mt-2 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}
+            </p>
+          ) : null}
+          {done && !eligibleToSubmit && !submitted ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
+          <TimeEndLeaderboard
+            game="sudoku"
+            playerName={getName()}
+            playerTime={time}
+            submittedRank={submitted?.rank}
+            metaFilter={(e) =>
+              (e.meta as { difficulty?: string } | undefined)?.difficulty === diff
+            }
+          />
         </div>
       ) : null}
     </div>

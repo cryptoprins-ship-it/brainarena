@@ -96,7 +96,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "You can erase all on-device data by clearing site data in your browser. For leaderboard removal or any data-protection question (access, deletion, correction), email us at the address below.",
     contact_h: "Contact",
-    contact: "For privacy questions: privacy@brainarena.fun — or visit the",
+    contact: "For privacy questions: info@brainarena.fun — or visit the",
     contactPageLink: "contact page",
   },
   nl: {
@@ -145,7 +145,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "Je kunt alle on-device data wissen door de site-data te verwijderen in je browser. Voor leaderboard-verwijdering of een data-beschermingsvraag (inzage, verwijdering, correctie): mail ons op het adres hieronder.",
     contact_h: "Contact",
-    contact: "Voor privacyvragen: privacy@brainarena.fun — of bezoek de",
+    contact: "Voor privacyvragen: info@brainarena.fun — of bezoek de",
     contactPageLink: "contactpagina",
   },
   de: {
@@ -194,7 +194,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "Du kannst alle gerätegebundenen Daten löschen, indem du die Site-Daten im Browser löschst. Für Leaderboard-Löschung oder Datenschutzfragen (Auskunft, Löschung, Berichtigung) schreib uns an die unten genannte Adresse.",
     contact_h: "Kontakt",
-    contact: "Für Datenschutzfragen: privacy@brainarena.fun — oder besuche die",
+    contact: "Für Datenschutzfragen: info@brainarena.fun — oder besuche die",
     contactPageLink: "Kontaktseite",
   },
   fr: {
@@ -243,7 +243,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "Tu peux effacer toutes les données locales en supprimant les données de site dans ton navigateur. Pour le retrait du classement ou toute question de protection des données (accès, suppression, rectification), écris-nous à l'adresse ci-dessous.",
     contact_h: "Contact",
-    contact: "Pour les questions de confidentialité : privacy@brainarena.fun — ou visite la",
+    contact: "Pour les questions de confidentialité : info@brainarena.fun — ou visite la",
     contactPageLink: "page contact",
   },
   es: {
@@ -292,7 +292,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "Puedes borrar todos los datos del dispositivo limpiando los datos de sitio en tu navegador. Para eliminar entradas del ranking o cualquier pregunta de protección de datos (acceso, supresión, rectificación), escríbenos al correo de abajo.",
     contact_h: "Contacto",
-    contact: "Para temas de privacidad: privacy@brainarena.fun — o visita la",
+    contact: "Para temas de privacidad: info@brainarena.fun — o visita la",
     contactPageLink: "página de contacto",
   },
   "pt-BR": {
@@ -341,7 +341,7 @@ const COPY: Record<LocaleKey, Strings> = {
     rights:
       "Você pode apagar todos os dados do dispositivo limpando os dados do site no navegador. Para remoção do ranking ou qualquer questão de proteção de dados (acesso, exclusão, retificação), envie e-mail para o endereço abaixo.",
     contact_h: "Contato",
-    contact: "Para questões de privacidade: privacy@brainarena.fun — ou visite a",
+    contact: "Para questões de privacidade: info@brainarena.fun — ou visite a",
     contactPageLink: "página de contato",
   },
 };
@@ -414,8 +414,8 @@ export default function PrivacyPage() {
 
         <Section title={t.contact_h} id="contact">
           {t.contact}{" "}
-          <a href="mailto:privacy@brainarena.fun" className="underline hover:text-indigo-300">
-            privacy@brainarena.fun
+          <a href="mailto:info@brainarena.fun" className="underline hover:text-indigo-300">
+            info@brainarena.fun
           </a>{" "}
           —{" "}
           <Link href="/contact" className="underline hover:text-indigo-300">
