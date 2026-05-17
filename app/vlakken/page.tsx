@@ -15,7 +15,9 @@ import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { safeGetItem, safeSetItem } from "@/lib/safeStorage";
 
 type Difficulty = "easy" | "medium" | "hard";
-const SIZE_FOR: Record<Difficulty, number> = { easy: 7, medium: 8, hard: 10 };
+// LinkedIn-Patches-sized grids: easy 5×5 matches LinkedIn directly, medium
+// and hard scale up for variety without losing the fast-pace feel.
+const SIZE_FOR: Record<Difficulty, number> = { easy: 5, medium: 6, hard: 7 };
 const DIFF_INDEX: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 // Number of anchors hidden ("?"-style) per difficulty. The generator only
@@ -24,11 +26,21 @@ const HINTS_FOR: Record<Difficulty, number> = { easy: 3, medium: 3, hard: 5 };
 const HIDE_FOR: Record<Difficulty, number> = { easy: 0, medium: 1, hard: 2 };
 const BEST_KEY = (d: Difficulty) => `brainarena-vlakken-best-${d}`;
 
-// Vivid, well-separated hues so adjacent shapes are easy to distinguish.
+// LinkedIn-Patches-style pastel palette: muted enough that filled rects sit
+// behind the player's eye, vivid enough to distinguish adjacent shapes.
 const VLAKKEN_PALETTE = [
-  "#ef4444", "#f97316", "#eab308", "#22c55e", "#14b8a6",
-  "#06b6d4", "#3b82f6", "#8b5cf6", "#ec4899", "#a855f7",
-  "#f59e0b", "#10b981",
+  "#f4a8a8", // coral
+  "#f7c08a", // peach
+  "#f5d97a", // soft yellow
+  "#a8d99b", // sage
+  "#9bd1c8", // mint
+  "#a8c8e8", // sky
+  "#c4a8e0", // lavender
+  "#e8a8c4", // rose
+  "#c8c8c8", // warm grey
+  "#d4c97a", // olive
+  "#e8b87a", // terracotta
+  "#9bbfd1", // dusty blue
 ];
 
 type Rect = { topLeft: number; w: number; h: number };
@@ -516,6 +528,7 @@ export default function VlakkenPage() {
                 size={size}
                 color={VLAKKEN_PALETTE[aIdx % VLAKKEN_PALETTE.length]}
                 locked={st.locked}
+                won={done}
               />
             );
           })}
@@ -576,18 +589,6 @@ export default function VlakkenPage() {
         {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
       </p>
 
-      {/* Legend card — explains the four mode glyphs that appear on anchor seeds */}
-      <div className="mt-5 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-        <p className="text-center text-sm font-bold text-gray-200">{t("vlakken_legend_title")}</p>
-        <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-gray-300">
-          <LegendItem mode="square" label={t("vlakken_mode_square")} />
-          <LegendItem mode="tall" label={t("vlakken_mode_tall")} />
-          <LegendItem mode="wide" label={t("vlakken_mode_wide")} />
-          <LegendItem mode="any" label={t("vlakken_mode_any")} />
-        </div>
-        <p className="mt-3 text-center text-xs text-gray-500">{t("vlakken_legend_help")}</p>
-      </div>
-
       {done ? (
         <>
           <div className="mt-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
@@ -636,19 +637,26 @@ function modeMatches(w: number, h: number, mode: AnchorMode): boolean {
   return false;
 }
 
-// Anchor seed — small colored badge in the cell's top-left corner. Always
-// visible (also under a locked overlay, since the overlay is translucent),
-// so the player keeps the size/mode reference even after solving.
-// Square mode is only geometrically possible when the cell-count is a
-// perfect square (1, 4, 9, 16…). The generator never assigns mode
-// "square" to a non-square-area anchor, but a defensive check here means
-// any future bug — or a misbehaving solver pass — can't surface a
-// misleading "square" glyph on, say, a size-3 anchor where a square is
-// mathematically impossible.
-function effectiveMode(size: number, mode: AnchorMode): AnchorMode {
-  if (mode !== "square") return mode;
-  const root = Math.round(Math.sqrt(size));
-  return root * root === size ? "square" : "any";
+// LinkedIn-Patches anchor: a proportional rectangle drawn inside the
+// anchor's cell whose w:h ratio matches the intended rectangle, with the
+// area number centered on top. The shape itself replaces the abstract
+// mode glyph + legend pairing — players read orientation directly off the
+// preview. "any" mode and hidden anchors use a dashed square instead since
+// they carry no specific orientation.
+function shapeFor(size: number, mode: AnchorMode): { w: number; h: number } | null {
+  if (mode === "square") {
+    if (size === 4) return { w: 2, h: 2 };
+    if (size === 9) return { w: 3, h: 3 };
+  }
+  if (mode === "tall") {
+    if (size === 3) return { w: 1, h: 3 };
+    if (size === 6) return { w: 2, h: 3 };
+  }
+  if (mode === "wide") {
+    if (size === 3) return { w: 3, h: 1 };
+    if (size === 6) return { w: 3, h: 2 };
+  }
+  return null;
 }
 
 function AnchorSeed({
@@ -659,16 +667,47 @@ function AnchorSeed({
   colorIdx: number;
 }) {
   const color = VLAKKEN_PALETTE[colorIdx % VLAKKEN_PALETTE.length];
-  const mode = effectiveMode(anchor.size, anchor.mode);
+  const shape = shapeFor(anchor.size, anchor.mode);
+  const ambiguous = anchor.hidden || anchor.mode === "any" || !shape;
+  if (ambiguous) {
+    return (
+      <span className="pointer-events-none absolute inset-0 grid place-items-center">
+        <span
+          className="grid place-items-center rounded-sm border-2 border-dashed font-black"
+          style={{
+            width: "68%",
+            height: "68%",
+            borderColor: color,
+            color: "#0a0a0a",
+            background: `${color}22`,
+            fontSize: "min(60%, 1.2rem)",
+          }}
+        >
+          {anchor.hidden ? "?" : anchor.size}
+        </span>
+      </span>
+    );
+  }
+  // Scale shape to ~78% of cell, preserving the w:h aspect ratio.
+  const maxDim = Math.max(shape.w, shape.h);
+  const scale = 78;
+  const widthPct = (shape.w / maxDim) * scale;
+  const heightPct = (shape.h / maxDim) * scale;
   return (
-    <span
-      className="pointer-events-none absolute left-1 top-1 z-[1] flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-black text-white shadow-[0_1px_2px_rgba(0,0,0,0.45)]"
-      style={{ background: color }}
-    >
-      <span className="leading-none">{anchor.hidden ? "?" : anchor.size}</span>
-      {!anchor.hidden && mode !== "any" ? (
-        <ModeGlyph mode={mode} compact />
-      ) : null}
+    <span className="pointer-events-none absolute inset-0 grid place-items-center">
+      <span
+        className="grid place-items-center rounded-sm font-black"
+        style={{
+          width: `${widthPct}%`,
+          height: `${heightPct}%`,
+          background: color,
+          color: "#0a0a0a",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.35)",
+          fontSize: "min(60%, 1.2rem)",
+        }}
+      >
+        {anchor.size}
+      </span>
     </span>
   );
 }
@@ -680,11 +719,13 @@ function RectOverlay({
   size,
   color,
   locked,
+  won,
 }: {
   rect: Rect;
   size: number;
   color: string;
   locked: boolean;
+  won?: boolean;
 }) {
   const top = Math.floor(rect.topLeft / size);
   const left = rect.topLeft % size;
@@ -700,6 +741,7 @@ function RectOverlay({
   if (locked) {
     return (
       <div
+        className={won ? "animate-pulse" : ""}
         style={{
           ...baseStyle,
           background: `${color}33`,
@@ -801,60 +843,6 @@ function ErrorTooltip({
         </button>
       </div>
     </div>
-  );
-}
-
-function LegendItem({ mode, label }: { mode: AnchorMode; label: string }) {
-  return (
-    <div className="flex items-center gap-2">
-      <span
-        className="inline-flex h-6 w-6 items-center justify-center rounded border border-[#2a2a2a] bg-[#0e0e0e]"
-      >
-        <ModeGlyph mode={mode} />
-      </span>
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function ModeGlyph({ mode, compact = false }: { mode: AnchorMode; compact?: boolean }) {
-  // 16×16 viewBox, white-ish filled rectangle whose proportions clearly signal
-  // orientation. Stroke uses a translucent white so the glyph reads on both
-  // colored seed-backgrounds and the dark legend panel.
-  const s = compact ? 12 : 14;
-  const stroke = "rgba(255,255,255,0.55)";
-  const fill = "rgba(255,255,255,0.95)";
-  if (mode === "square") {
-    return (
-      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
-        <rect x="3" y="3" width="10" height="10" fill={fill} stroke={stroke} strokeWidth="1" />
-      </svg>
-    );
-  }
-  if (mode === "tall") {
-    return (
-      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
-        <rect x="5" y="1" width="6" height="14" fill={fill} stroke={stroke} strokeWidth="1" />
-      </svg>
-    );
-  }
-  if (mode === "wide") {
-    return (
-      <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
-        <rect x="1" y="5" width="14" height="6" fill={fill} stroke={stroke} strokeWidth="1" />
-      </svg>
-    );
-  }
-  // "any": dashed square with crossed bars
-  return (
-    <svg width={s} height={s} viewBox="0 0 16 16" aria-hidden>
-      <rect
-        x="2.5" y="2.5" width="11" height="11"
-        fill="none" stroke={fill} strokeWidth="1.5" strokeDasharray="2 1.5"
-      />
-      <line x1="2.5" y1="8" x2="13.5" y2="8" stroke={fill} strokeWidth="1" />
-      <line x1="8" y1="2.5" x2="8" y2="13.5" stroke={fill} strokeWidth="1" />
-    </svg>
   );
 }
 
