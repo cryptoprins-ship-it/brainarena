@@ -37,7 +37,7 @@ export default function ConnectionsPage() {
   // player request a fresh puzzle from the same pool without waiting
   // 24h — useful when they've already played today's.
   const seed = useMemo(() => dayIndex() + seedNonce, [seedNonce]);
-  const puzzle: ConnectionsPuzzle = useMemo(() => pickPuzzle(seed), [seed]);
+  const puzzle: ConnectionsPuzzle = useMemo(() => pickPuzzle(seed, locale), [seed, locale]);
 
   const [order, setOrder] = useState<string[]>(() => shuffleSeeded(allWords(puzzle), seed));
   const [selected, setSelected] = useState<Set<string>>(() => new Set());
