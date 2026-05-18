@@ -81,7 +81,7 @@ type TranslationKey =
   | "end_social_comparison" | "end_todays_ranking" | "end_rank_global"
   | "end_streak_label" | "end_streak_days"
   | "end_new_achievement" | "end_new_achievements" | "end_view_achievements"
-  | "end_try_another" | "end_view_leaderboard" | "end_exit_game"
+  | "end_try_another" | "end_view_leaderboard" | "end_exit_game" | "end_game_now"
   | "end_missing_game" | "end_let_us_know"
   | "share_copied" | "share_copy_dialog" | "share_copy_failed"
   | "share_copy_text" | "share_to_aria"
@@ -280,6 +280,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Try another game →",
     end_view_leaderboard: "View leaderboard →",
     end_exit_game: "Goodbye 👋",
+    end_game_now: "End game",
     end_missing_game: "Missing a game?",
     end_let_us_know: "Let us know →",
     share_copied: "Copied!",
@@ -557,6 +558,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Probeer een ander spel →",
     end_view_leaderboard: "Bekijk ranglijst →",
     end_exit_game: "Tot ziens 👋",
+    end_game_now: "Einde spel",
     end_missing_game: "Mis je een spel?",
     end_let_us_know: "Laat het ons weten →",
     share_copied: "Gekopieerd!",
@@ -835,6 +837,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Anderes Spiel probieren →",
     end_view_leaderboard: "Bestenliste ansehen →",
     end_exit_game: "Tschüss 👋",
+    end_game_now: "Spiel beenden",
     end_missing_game: "Fehlt ein Spiel?",
     end_let_us_know: "Sag uns Bescheid →",
     share_copied: "Kopiert!",
@@ -1113,6 +1116,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Essayer un autre jeu →",
     end_view_leaderboard: "Voir le classement →",
     end_exit_game: "Au revoir 👋",
+    end_game_now: "Quitter",
     end_missing_game: "Un jeu manque ?",
     end_let_us_know: "Dis-le-nous →",
     share_copied: "Copié !",
@@ -1391,6 +1395,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Prueba otro juego →",
     end_view_leaderboard: "Ver clasificación →",
     end_exit_game: "Hasta luego 👋",
+    end_game_now: "Salir",
     end_missing_game: "¿Falta un juego?",
     end_let_us_know: "Cuéntanos →",
     share_copied: "¡Copiado!",
@@ -1669,6 +1674,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "दूसरा खेल आज़माएँ →",
     end_view_leaderboard: "लीडरबोर्ड देखें →",
     end_exit_game: "अलविदा 👋",
+    end_game_now: "खेल समाप्त",
     end_missing_game: "कोई खेल छूट गया?",
     end_let_us_know: "हमें बताएँ →",
     share_copied: "कॉपी हो गया!",
@@ -1949,6 +1955,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "Tente outro jogo →",
     end_view_leaderboard: "Ver ranking →",
     end_exit_game: "Até logo 👋",
+    end_game_now: "Sair do jogo",
     end_missing_game: "Falta um jogo?",
     end_let_us_know: "Conte para nós →",
     share_copied: "Copiado!",
@@ -2227,6 +2234,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     end_try_another: "別のゲームを試す →",
     end_view_leaderboard: "ランキングを見る →",
     end_exit_game: "またね 👋",
+    end_game_now: "ゲーム終了",
     end_missing_game: "ゲームが足りない?",
     end_let_us_know: "教えてください →",
     share_copied: "コピーしました!",

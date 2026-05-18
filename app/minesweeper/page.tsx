@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
@@ -68,6 +69,7 @@ export default function MinesweeperPage() {
   // between long-press-to-flag (touch) and right-click-to-flag (mouse),
   // following each platform's native paradigm.
   const [isTouch, setIsTouch] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mq = window.matchMedia("(pointer: coarse)");
@@ -95,6 +97,7 @@ export default function MinesweeperPage() {
     setNewBest(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setWinModalDismissed(false);
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -370,6 +373,7 @@ export default function MinesweeperPage() {
           >
             {t("reset")}
           </button>
+          <EndGameLink />
         </div>
         <p className="text-xs text-gray-500">
           {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
@@ -413,7 +417,7 @@ export default function MinesweeperPage() {
         </>
       ) : null}
 
-      {state === "won" ? (
+      {state === "won" && !winModalDismissed ? (
         <WinModal
           elapsed={elapsed}
           flagsPlaced={flagged.size}
@@ -421,8 +425,9 @@ export default function MinesweeperPage() {
           difficulty={difficulty}
           bestSeconds={bestSeconds}
           isNewBest={newBest}
-          onPlayAgain={onReset}
-          onNewPuzzle={onNewGame}
+          onPlayAgain={() => { onReset(); setWinModalDismissed(true); }}
+          onNewPuzzle={() => { onNewGame(); setWinModalDismissed(true); }}
+          onClose={() => setWinModalDismissed(true)}
         />
       ) : null}
     </div>
@@ -438,6 +443,7 @@ function WinModal({
   isNewBest,
   onPlayAgain,
   onNewPuzzle,
+  onClose,
 }: {
   elapsed: number;
   flagsPlaced: number;
@@ -447,16 +453,38 @@ function WinModal({
   isNewBest: boolean;
   onPlayAgain: () => void;
   onNewPuzzle: () => void;
+  onClose: () => void;
 }) {
   const { t } = useLocale();
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6">
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       <div
         role="dialog"
         aria-modal="true"
-        className="w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
+        className="relative w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
+        >
+          ×
+        </button>
         <h2 className="text-2xl font-black text-emerald-300">{t("win_title")}</h2>
         <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
           <dt className="text-gray-400">{t("win_your_time")}</dt>

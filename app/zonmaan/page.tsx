@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import ShareButton from "@/components/ShareButton";
 import { useLocale } from "@/lib/i18n";
@@ -448,6 +449,7 @@ export default function ZonMaanPage() {
           >
             {t("reset")}
           </button>
+          <EndGameLink />
         </div>
         <p className="text-xs text-gray-500">
           {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>

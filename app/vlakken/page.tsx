@@ -5,6 +5,7 @@ import type { CSSProperties } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import CrossPromoCard from "@/components/CrossPromoCard";
 import { useLocale } from "@/lib/i18n";
@@ -588,6 +589,7 @@ export default function VlakkenPage() {
         >
           {t("new_game")}
         </button>
+        <EndGameLink />
       </div>
 
       <p className="mt-3 text-center text-xs text-gray-500">

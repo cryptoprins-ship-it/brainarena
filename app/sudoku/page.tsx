@@ -6,6 +6,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { getName, submitScore } from "@/lib/scores";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import HowToPlay from "@/components/HowToPlay";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
@@ -252,6 +253,7 @@ export default function SudokuPage() {
         >
           {t("hint")} ({hintsLeft})
         </button>
+        <EndGameLink />
       </div>
 
       {done ? (

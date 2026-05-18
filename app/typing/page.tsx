@@ -8,6 +8,7 @@ import { dayIndex } from "@/lib/dailyWord";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 
@@ -156,9 +157,12 @@ export default function TypingPage() {
         placeholder={t("typing_placeholder")}
       />
 
-      <button onClick={reset} className="mt-3 rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 text-sm">
-        {t("reset")}
-      </button>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button onClick={reset} className="rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-2 text-sm">
+          {t("reset")}
+        </button>
+        <EndGameLink />
+      </div>
 
       {done ? (
         <>

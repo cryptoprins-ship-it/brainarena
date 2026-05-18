@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import { useLocale } from "@/lib/i18n";
 import {
@@ -287,6 +288,7 @@ export default function ConnectionsPage() {
         >
           {t("new_game")}
         </button>
+        <EndGameLink />
       </div>
 
       {won ? (

@@ -397,7 +397,15 @@ export default function WordlePage() {
 
       {showModal ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={() => setShowModal(false)}>
-          <div className="w-full max-w-sm rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-6 text-center" onClick={(e) => e.stopPropagation()}>
+          <div className="relative w-full max-w-sm rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setShowModal(false)}
+              aria-label="Close"
+              className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-gray-400 hover:bg-[#2a2a2a] hover:text-white"
+            >
+              ×
+            </button>
             <h2 className="text-2xl font-black">{done === "win" ? t("wordle_win_title") : t("wordle_lose_title")}</h2>
             {done === "win" ? (
               <p className="mt-2 text-sm text-gray-300">

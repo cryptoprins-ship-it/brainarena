@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
+import EndGameLink from "@/components/EndGameLink";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import { useLocale } from "@/lib/i18n";
 import { generateVerbind, type VerbindPuzzle } from "@/lib/games/verbind";
@@ -439,6 +440,7 @@ export default function VerbindPage() {
         >
           {t("new_game")}
         </button>
+        <EndGameLink />
       </div>
 
       <p className="mt-3 text-center text-xs text-gray-500">
