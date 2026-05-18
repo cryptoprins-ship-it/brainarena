@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { getHowToPlay, HOW_TO_PLAY_ORDER, UI_STRINGS } from "@/lib/howToPlay";
 import { useLocale } from "@/lib/i18n";
+import { localizedHref } from "@/lib/seo/hreflang";
 
 export default function HowToPlayPage() {
   const { locale } = useLocale();
@@ -37,7 +38,7 @@ export default function HowToPlayPage() {
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className="text-xl font-bold">{e.label}</h2>
                 <Link
-                  href={e.href}
+                  href={localizedHref(locale, e.href)}
                   className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-bold hover:bg-indigo-500"
                 >
                   {ui.play}

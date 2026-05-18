@@ -6,6 +6,7 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import { medalCount, loadStats } from "@/lib/achievements";
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
+import { localizedHref } from "@/lib/seo/hreflang";
 import type { GameKey } from "@/lib/scores";
 
 // Nav order for the game-link strip. Labels + hrefs come from
@@ -31,13 +32,13 @@ export default function NavBar() {
   return (
     <header className="border-b border-[#2a2a2a] bg-[#0a0a0a]">
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-        <Link href="/" className="text-lg font-bold tracking-tight">
+        <Link href={localizedHref(locale, "/")} className="text-lg font-bold tracking-tight">
           <span className="text-white">Brain</span>
           <span className="text-indigo-400">Arena</span>
         </Link>
         <div className="order-3 w-full md:order-2 md:w-auto md:flex-1 flex flex-wrap items-center justify-center gap-1 text-sm">
           {GAME_ORDER.map((g) => (
-            <Link key={g} href={howTo[g].href} className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">
+            <Link key={g} href={localizedHref(locale, howTo[g].href)} className="rounded-lg px-3 py-1.5 hover:bg-[#1a1a1a]">
               {howTo[g].label}
             </Link>
           ))}

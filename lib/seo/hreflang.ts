@@ -96,4 +96,19 @@ export function canonicalUrlFor(
   return urlFor(locale, normalizePath(pathname));
 }
 
+/**
+ * Path (not full URL) to link to for a given locale. Use this whenever you
+ * render an internal `<Link href>` so that clicking from /nl keeps the
+ * visitor in /nl/<game> instead of dropping them on the flat /<game> page,
+ * which would force them to re-detect the locale (and briefly flash
+ * English labels). English locale and unlocalized paths return unchanged.
+ */
+export function localizedHref(locale: Locale, pathname: string): string {
+  const path = normalizePath(pathname);
+  if (locale === DEFAULT_LOCALE) return path;
+  if (!LOCALIZED_PATHS.has(path)) return path;
+  if (path === "/") return `/${locale}`;
+  return `/${locale}${path}`;
+}
+
 export { LOCALIZED_PATHS, DEFAULT_LOCALE };

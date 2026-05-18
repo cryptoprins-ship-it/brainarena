@@ -6,6 +6,7 @@ import type { GameKey } from "@/lib/scores";
 import { recordGame, type Achievement } from "@/lib/achievements";
 import { getComparisonMessage, percentileFor, rankBracketMessage } from "@/lib/benchmarks";
 import { useLocale } from "@/lib/i18n";
+import { localizedHref } from "@/lib/seo/hreflang";
 import { pushAchievementToast } from "./AchievementToast";
 import ShareButton from "./ShareButton";
 
@@ -37,7 +38,7 @@ const NEXT_GAME: Record<GameKey, GameKey> = {
 };
 
 export default function EndScreenAddon({ game, score, time, meta, rank, locale }: Props) {
-  const { t } = useLocale();
+  const { locale: uiLocale, t } = useLocale();
   const [percentile] = useState(() => percentileFor({ game, score, time, meta }));
   const [comparison] = useState(() => getComparisonMessage(game, percentile));
   const [streakMessage, setStreakMessage] = useState<string | null>(null);
@@ -92,9 +93,9 @@ export default function EndScreenAddon({ game, score, time, meta, rank, locale }
       ) : null}
 
       <div className="flex flex-wrap gap-2">
-        <Link href={`/${game}`} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("win_play_again")}</Link>
+        <Link href={localizedHref(uiLocale, `/${game}`)} className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold">{t("win_play_again")}</Link>
         <ShareButton game={game} score={score} time={time} meta={meta} rank={rank} locale={locale} />
-        <Link href={`/${NEXT_GAME[game]}`} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_try_another")}</Link>
+        <Link href={localizedHref(uiLocale, `/${NEXT_GAME[game]}`)} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_try_another")}</Link>
         <Link href="/leaderboard" className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_view_leaderboard")}</Link>
       </div>
 

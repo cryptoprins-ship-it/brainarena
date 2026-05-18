@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { GameKey } from "@/lib/scores";
 import { getHowToPlay, UI_STRINGS } from "@/lib/howToPlay";
 import { useLocale } from "@/lib/i18n";
+import { localizedHref } from "@/lib/seo/hreflang";
 
 export default function HowToPlay({ game }: { game: GameKey }) {
   const { locale } = useLocale();
@@ -26,7 +27,7 @@ export default function HowToPlay({ game }: { game: GameKey }) {
         </ul>
         <p className="mt-3 text-xs text-gray-500">
           {ui.wantAllGames}{" "}
-          <Link href="/how-to-play" className="underline hover:text-indigo-300">{ui.seeFullGuide}</Link>
+          <Link href={localizedHref(locale, "/how-to-play")} className="underline hover:text-indigo-300">{ui.seeFullGuide}</Link>
         </p>
       </div>
     </details>
