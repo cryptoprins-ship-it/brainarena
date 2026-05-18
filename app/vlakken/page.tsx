@@ -377,6 +377,21 @@ export default function VlakkenPage() {
     setError(null);
   }, [done]);
 
+  const onRemoveRect = useCallback(
+    (aIdx: number) => {
+      if (done) return;
+      setStates((prev) => {
+        if (!prev[aIdx]) return prev;
+        setHistory((h) => [...h, prev]);
+        const next = { ...prev };
+        delete next[aIdx];
+        return next;
+      });
+      setError(null);
+    },
+    [done]
+  );
+
   const onHint = useCallback(() => {
     if (done || !puzzle || hintsLeft <= 0) return;
     // Pick a not-yet-locked anchor and lock it with its solution rect.
@@ -517,6 +532,8 @@ export default function VlakkenPage() {
                 color={VLAKKEN_PALETTE[aIdx % VLAKKEN_PALETTE.length]}
                 locked={st.locked}
                 won={done}
+                onRemove={done ? undefined : () => onRemoveRect(aIdx)}
+                removeLabel={t("vlakken_remove_aria")}
               />
             );
           })}
@@ -708,12 +725,16 @@ function RectOverlay({
   color,
   locked,
   won,
+  onRemove,
+  removeLabel,
 }: {
   rect: Rect;
   size: number;
   color: string;
   locked: boolean;
   won?: boolean;
+  onRemove?: () => void;
+  removeLabel?: string;
 }) {
   const top = Math.floor(rect.topLeft / size);
   const left = rect.topLeft % size;
@@ -737,6 +758,25 @@ function RectOverlay({
           borderRadius: 2,
         }}
       >
+        {onRemove ? (
+          <button
+            type="button"
+            aria-label={removeLabel}
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onRemove();
+            }}
+            className="pointer-events-auto absolute left-0 top-0 flex h-5 w-5 items-center justify-center rounded-br bg-black/65 text-[12px] font-bold leading-none text-white hover:bg-red-500/80"
+            style={{ touchAction: "none" }}
+          >
+            ×
+          </button>
+        ) : null}
         <span
           className="absolute right-1 bottom-1 rounded bg-black/55 px-1 text-[10px] font-bold leading-tight text-white"
         >

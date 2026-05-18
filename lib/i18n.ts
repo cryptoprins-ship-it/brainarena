@@ -50,7 +50,7 @@ type TranslationKey =
   | "zonmaan_solved_in"
   | "kronen_conflict_row" | "kronen_conflict_col"
   | "kronen_conflict_region" | "kronen_conflict_adjacent"
-  | "vlakken_drag_hint" | "vlakken_err_no_seed" | "vlakken_err_multi_seed"
+  | "vlakken_drag_hint" | "vlakken_remove_aria" | "vlakken_err_no_seed" | "vlakken_err_multi_seed"
   | "vlakken_err_overlap" | "vlakken_err_size"
   | "vlakken_err_must_square" | "vlakken_err_must_tall" | "vlakken_err_must_wide"
   | "vlakken_err_hidden_wrong"
@@ -192,6 +192,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Max 3 suns or moons per row or column.",
     zonmaan_edge_violation: "⚠ Cells joined by = must match, by × must differ.",
     vlakken_drag_hint: "Drag a rectangle that contains exactly one numbered seed.",
+    vlakken_remove_aria: "Remove this rectangle",
     vlakken_err_no_seed: "No numbered seed in that selection.",
     vlakken_err_multi_seed: "More than one seed in that selection.",
     vlakken_err_overlap: "Overlaps a solved shape.",
@@ -458,6 +459,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Maximaal 3 zonnen of manen per rij of kolom.",
     zonmaan_edge_violation: "⚠ Cellen met = moeten gelijk zijn, met × juist verschillend.",
     vlakken_drag_hint: "Sleep een rechthoek met precies één genummerde zaadcel.",
+    vlakken_remove_aria: "Verwijder deze rechthoek",
     vlakken_err_no_seed: "Geen zaadcel in deze selectie.",
     vlakken_err_multi_seed: "Meer dan één zaadcel in deze selectie.",
     vlakken_err_overlap: "Overlapt een opgeloste vorm.",
@@ -725,6 +727,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Maximal 3 Sonnen oder Monde pro Zeile oder Spalte.",
     zonmaan_edge_violation: "⚠ Zellen mit = müssen gleich, mit × verschieden sein.",
     vlakken_drag_hint: "Ziehe ein Rechteck, das genau einen nummerierten Anker enthält.",
+    vlakken_remove_aria: "Dieses Rechteck entfernen",
     vlakken_err_no_seed: "Kein Anker in der Auswahl.",
     vlakken_err_multi_seed: "Mehr als ein Anker in der Auswahl.",
     vlakken_err_overlap: "Überlappt eine gelöste Form.",
@@ -992,6 +995,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Max 3 soleils ou lunes par ligne ou colonne.",
     zonmaan_edge_violation: "⚠ Cellules liées par = doivent être identiques, par × différentes.",
     vlakken_drag_hint: "Trace un rectangle contenant exactement un point numéroté.",
+    vlakken_remove_aria: "Supprimer ce rectangle",
     vlakken_err_no_seed: "Aucun point numéroté dans la sélection.",
     vlakken_err_multi_seed: "Plus d'un point dans la sélection.",
     vlakken_err_overlap: "Chevauche une forme déjà résolue.",
@@ -1259,6 +1263,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Máx 3 soles o lunas por fila o columna.",
     zonmaan_edge_violation: "⚠ Las celdas unidas por = deben coincidir, por × deben diferir.",
     vlakken_drag_hint: "Arrastra un rectángulo que contenga exactamente un número.",
+    vlakken_remove_aria: "Eliminar este rectángulo",
     vlakken_err_no_seed: "Ningún número en la selección.",
     vlakken_err_multi_seed: "Más de un número en la selección.",
     vlakken_err_overlap: "Se superpone con una forma ya resuelta.",
@@ -1526,6 +1531,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ प्रति पंक्ति या स्तंभ अधिकतम 3 सूर्य या चंद्रमा।",
     zonmaan_edge_violation: "⚠ = से जुड़ी कोशिकाएँ समान हों, × से जुड़ी भिन्न।",
     vlakken_drag_hint: "ऐसा आयत खींचें जिसमें ठीक एक संख्या हो।",
+    vlakken_remove_aria: "इस आयत को हटाएँ",
     vlakken_err_no_seed: "चयन में कोई संख्या नहीं।",
     vlakken_err_multi_seed: "चयन में एक से अधिक संख्या।",
     vlakken_err_overlap: "हल की गई आकृति से ओवरलैप।",
@@ -1795,6 +1801,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ Máx 3 sóis ou luas por linha ou coluna.",
     zonmaan_edge_violation: "⚠ Células ligadas por = devem ser iguais, por × diferentes.",
     vlakken_drag_hint: "Arraste um retângulo com exatamente uma semente numerada.",
+    vlakken_remove_aria: "Remover este retângulo",
     vlakken_err_no_seed: "Nenhuma semente na seleção.",
     vlakken_err_multi_seed: "Mais de uma semente na seleção.",
     vlakken_err_overlap: "Sobrepõe uma forma já resolvida.",
@@ -2062,6 +2069,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     zonmaan_max_three: "⚠ 1 行または 1 列につき太陽または月は最大 3 つ。",
     zonmaan_edge_violation: "⚠ = で結ばれたマスは同じ、× で結ばれたマスは異なる必要があります。",
     vlakken_drag_hint: "番号付きの種を 1 つだけ含む長方形をドラッグしてください。",
+    vlakken_remove_aria: "この長方形を削除",
     vlakken_err_no_seed: "選択範囲に番号がありません。",
     vlakken_err_multi_seed: "選択範囲に複数の番号があります。",
     vlakken_err_overlap: "解決済みの形と重なっています。",
