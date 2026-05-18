@@ -96,6 +96,7 @@ export default function EndScreenAddon({ game, score, time, meta, rank, locale }
         <ShareButton game={game} score={score} time={time} meta={meta} rank={rank} locale={locale} />
         <Link href={`/${NEXT_GAME[game]}`} className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_try_another")}</Link>
         <Link href="/leaderboard" className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_view_leaderboard")}</Link>
+        <Link href="/" className="rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2 text-sm">{t("end_exit_game")}</Link>
       </div>
 
       <p className="pt-1 text-xs text-gray-500">
