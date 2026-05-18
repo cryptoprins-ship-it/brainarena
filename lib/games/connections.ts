@@ -1,15 +1,16 @@
 // Connections — NYT-style "find 4 groups of 4" word puzzle.
 //
-// MVP design: hand-curated pool of 10 puzzles, cycled by daily index. We
-// deliberately ship English-only words even on non-English locales because
-// the puzzle relies on category recognition and wordplay that doesn't
-// machine-translate cleanly. UI strings *are* localised; the 16 tiles
-// always show the same English words on every locale.
+// Per-locale puzzle pools. Wordplay-based puzzles don't machine-translate,
+// so each locale carries its own hand-curated pool. Locales without a
+// dedicated pool fall back to English so the game still works there until
+// native content is authored.
 //
-// Future: replace the pool with an LLM-generated daily once we have real
+// Future: replace the pools with LLM-generated dailies once we have real
 // traffic to amortise the per-day generation cost. The function surface
 // (`pickPuzzle`, `allWords`, `shuffleSeeded`) is designed so the page can
 // stay unchanged when that swap happens.
+
+import type { Locale } from "@/lib/i18n";
 
 export type GroupColor = "yellow" | "green" | "blue" | "purple";
 
@@ -26,7 +27,7 @@ export type ConnectionsPuzzle = {
 
 // Tip: when adding new puzzles, intentionally include words that *could*
 // fit multiple categories — overlap is what makes Connections fun.
-const PUZZLES: ConnectionsPuzzle[] = [
+const EN_PUZZLES: ConnectionsPuzzle[] = [
   {
     id: 1,
     groups: [
@@ -119,13 +120,163 @@ const PUZZLES: ConnectionsPuzzle[] = [
   },
 ];
 
-export function pickPuzzle(seed: number): ConnectionsPuzzle {
-  const idx = ((seed % PUZZLES.length) + PUZZLES.length) % PUZZLES.length;
-  return PUZZLES[idx];
+const NL_PUZZLES: ConnectionsPuzzle[] = [
+  {
+    id: 101,
+    groups: [
+      { color: "yellow", category: "Vogels", words: ["UIL", "MEES", "EEND", "KIP"] },
+      { color: "green",  category: "Bloemen", words: ["ROOS", "TULP", "IRIS", "LELIE"] },
+      { color: "blue",   category: "Metalen", words: ["GOUD", "ZILVER", "KOPER", "TIN"] },
+      { color: "purple", category: "Sporten", words: ["GOLF", "JUDO", "RUGBY", "SCHAKEN"] },
+    ],
+  },
+  {
+    id: 102,
+    groups: [
+      { color: "yellow", category: "Bomen", words: ["EIK", "BEUK", "BERK", "IEP"] },
+      { color: "green",  category: "Fruit", words: ["APPEL", "PEER", "KERS", "DRUIF"] },
+      { color: "blue",   category: "Drank", words: ["BIER", "WIJN", "MELK", "COLA"] },
+      { color: "purple", category: "Kleuren", words: ["ROOD", "BLAUW", "GROEN", "GEEL"] },
+    ],
+  },
+  {
+    id: 103,
+    groups: [
+      { color: "yellow", category: "Maanden", words: ["MAART", "MEI", "JUNI", "JULI"] },
+      { color: "green",  category: "Weer", words: ["REGEN", "SNEEUW", "MIST", "ZON"] },
+      { color: "blue",   category: "Sterrenbeelden", words: ["LEEUW", "RAM", "STIER", "KREEFT"] },
+      { color: "purple", category: "Lichaamsdelen", words: ["HOOFD", "ARM", "BEEN", "VOET"] },
+    ],
+  },
+  {
+    id: 104,
+    groups: [
+      { color: "yellow", category: "Gereedschap", words: ["HAMER", "ZAAG", "BOOR", "BEITEL"] },
+      { color: "green",  category: "Instrumenten", words: ["PIANO", "GITAAR", "FLUIT", "VIOOL"] },
+      { color: "blue",   category: "Voertuigen", words: ["AUTO", "FIETS", "BUS", "TREIN"] },
+      { color: "purple", category: "Tijd", words: ["UUR", "MINUUT", "SECONDE", "DAG"] },
+    ],
+  },
+  {
+    id: 105,
+    groups: [
+      { color: "yellow", category: "Geld", words: ["EURO", "DOLLAR", "POND", "YEN"] },
+      { color: "green",  category: "Beroepen", words: ["BAKKER", "KAPPER", "LERAAR", "BOER"] },
+      { color: "blue",   category: "Stad", words: ["HUIS", "STRAAT", "PLEIN", "PARK"] },
+      { color: "purple", category: "Familie", words: ["PAPA", "MAMA", "OOM", "TANTE"] },
+    ],
+  },
+];
+
+const DE_PUZZLES: ConnectionsPuzzle[] = [
+  {
+    id: 201,
+    groups: [
+      { color: "yellow", category: "Tiere", words: ["HUND", "KATZE", "MAUS", "PFERD"] },
+      { color: "green",  category: "Farben", words: ["ROT", "BLAU", "GRÜN", "GELB"] },
+      { color: "blue",   category: "Monate", words: ["MAI", "JUNI", "JULI", "MÄRZ"] },
+      { color: "purple", category: "Sport", words: ["TENNIS", "GOLF", "RUGBY", "JUDO"] },
+    ],
+  },
+  {
+    id: 202,
+    groups: [
+      { color: "yellow", category: "Obst", words: ["APFEL", "BIRNE", "KIRSCHE", "TRAUBE"] },
+      { color: "green",  category: "Bäume", words: ["EICHE", "BUCHE", "BIRKE", "AHORN"] },
+      { color: "blue",   category: "Berufe", words: ["BÄCKER", "LEHRER", "ARZT", "KOCH"] },
+      { color: "purple", category: "Getränke", words: ["BIER", "WEIN", "MILCH", "COLA"] },
+    ],
+  },
+];
+
+const FR_PUZZLES: ConnectionsPuzzle[] = [
+  {
+    id: 301,
+    groups: [
+      { color: "yellow", category: "Animaux", words: ["CHIEN", "CHAT", "CHEVAL", "SOURIS"] },
+      { color: "green",  category: "Couleurs", words: ["ROUGE", "BLEU", "VERT", "JAUNE"] },
+      { color: "blue",   category: "Mois", words: ["MAI", "JUIN", "JUILLET", "MARS"] },
+      { color: "purple", category: "Fruits", words: ["POMME", "POIRE", "CERISE", "RAISIN"] },
+    ],
+  },
+  {
+    id: 302,
+    groups: [
+      { color: "yellow", category: "Sport", words: ["TENNIS", "GOLF", "RUGBY", "JUDO"] },
+      { color: "green",  category: "Arbres", words: ["CHÊNE", "HÊTRE", "BOULEAU", "SAPIN"] },
+      { color: "blue",   category: "Métiers", words: ["BOULANGER", "PROF", "MÉDECIN", "CHEF"] },
+      { color: "purple", category: "Boissons", words: ["BIÈRE", "VIN", "LAIT", "EAU"] },
+    ],
+  },
+];
+
+const ES_PUZZLES: ConnectionsPuzzle[] = [
+  {
+    id: 401,
+    groups: [
+      { color: "yellow", category: "Animales", words: ["PERRO", "GATO", "RATÓN", "CABALLO"] },
+      { color: "green",  category: "Colores", words: ["ROJO", "AZUL", "VERDE", "AMARILLO"] },
+      { color: "blue",   category: "Meses", words: ["MAYO", "JUNIO", "JULIO", "MARZO"] },
+      { color: "purple", category: "Frutas", words: ["MANZANA", "PERA", "CEREZA", "UVA"] },
+    ],
+  },
+  {
+    id: 402,
+    groups: [
+      { color: "yellow", category: "Deportes", words: ["TENIS", "GOLF", "RUGBY", "JUDO"] },
+      { color: "green",  category: "Árboles", words: ["ROBLE", "HAYA", "PINO", "ABEDUL"] },
+      { color: "blue",   category: "Oficios", words: ["PANADERO", "MAESTRO", "MÉDICO", "CHEF"] },
+      { color: "purple", category: "Bebidas", words: ["CERVEZA", "VINO", "LECHE", "AGUA"] },
+    ],
+  },
+];
+
+const PT_BR_PUZZLES: ConnectionsPuzzle[] = [
+  {
+    id: 501,
+    groups: [
+      { color: "yellow", category: "Animais", words: ["CACHORRO", "GATO", "RATO", "CAVALO"] },
+      { color: "green",  category: "Cores", words: ["VERMELHO", "AZUL", "VERDE", "AMARELO"] },
+      { color: "blue",   category: "Meses", words: ["MAIO", "JUNHO", "JULHO", "MARÇO"] },
+      { color: "purple", category: "Frutas", words: ["MAÇÃ", "PERA", "CEREJA", "UVA"] },
+    ],
+  },
+  {
+    id: 502,
+    groups: [
+      { color: "yellow", category: "Esportes", words: ["TÊNIS", "GOLFE", "RUGBY", "JUDÔ"] },
+      { color: "green",  category: "Árvores", words: ["CARVALHO", "PINHEIRO", "IPÊ", "CEDRO"] },
+      { color: "blue",   category: "Profissões", words: ["PADEIRO", "PROFESSOR", "MÉDICO", "CHEF"] },
+      { color: "purple", category: "Bebidas", words: ["CERVEJA", "VINHO", "LEITE", "ÁGUA"] },
+    ],
+  },
+];
+
+// Locales without a dedicated pool fall back to English. Hindi and
+// Japanese aren't curated here yet — their wordplay needs native authors
+// to set categories that actually overlap.
+const POOLS: Partial<Record<Locale, ConnectionsPuzzle[]>> = {
+  en: EN_PUZZLES,
+  nl: NL_PUZZLES,
+  de: DE_PUZZLES,
+  fr: FR_PUZZLES,
+  es: ES_PUZZLES,
+  "pt-BR": PT_BR_PUZZLES,
+};
+
+function poolFor(locale?: Locale): ConnectionsPuzzle[] {
+  if (locale && POOLS[locale] && POOLS[locale]!.length > 0) return POOLS[locale]!;
+  return EN_PUZZLES;
 }
 
-export function puzzleCount(): number {
-  return PUZZLES.length;
+export function pickPuzzle(seed: number, locale?: Locale): ConnectionsPuzzle {
+  const pool = poolFor(locale);
+  const idx = ((seed % pool.length) + pool.length) % pool.length;
+  return pool[idx];
+}
+
+export function puzzleCount(locale?: Locale): number {
+  return poolFor(locale).length;
 }
 
 export function allWords(puzzle: ConnectionsPuzzle): string[] {
