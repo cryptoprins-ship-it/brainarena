@@ -133,23 +133,23 @@ const LOCALE_HOME_COUNTRY: Record<string, string> = {
 };
 
 function detectCountry(locale?: string): string | undefined {
-  // Priority order matters: a Dutch player browsing on a system that
-  // also lists "en-GB" as a secondary preference must not be flagged GB.
-  //   1. Primary navigator.language with explicit region (nl-NL → NL).
-  //   2. App locale's home country (locale=nl → NL) — trusts the user's
-  //      explicit site-language choice over lower-preference OS tags.
-  //   3. Remaining navigator.languages tags with an explicit region,
-  //      so an English-locale visitor whose system reports en-CA still
-  //      gets CA instead of the 🌍 fallback.
+  // Priority:
+  //   1. App locale home country (locale=nl -> NL). Player's explicit
+  //      site-language pick wins over OS region: a Dutch player on an
+  //      en-US Windows install should not be flagged US after picking nl.
+  //   2. Primary navigator.language with explicit region (en-CA -> CA).
+  //   3. Remaining navigator.languages tags with explicit region.
   const regionRegex = /^[A-Za-z]{2,3}-([A-Za-z]{2})(?:-|$)/;
+  if (locale && locale !== "en" && LOCALE_HOME_COUNTRY[locale]) {
+    return LOCALE_HOME_COUNTRY[locale];
+  }
   if (typeof navigator !== "undefined" && navigator.language) {
-    const m = regionRegex.exec(navigator.language);
+    const m = navigator.language.match(regionRegex);
     if (m) return m[1].toUpperCase();
   }
-  if (locale && LOCALE_HOME_COUNTRY[locale]) return LOCALE_HOME_COUNTRY[locale];
   if (typeof navigator !== "undefined" && Array.isArray(navigator.languages)) {
     for (const tag of navigator.languages) {
-      const m = regionRegex.exec(tag);
+      const m = tag.match(regionRegex);
       if (m) return m[1].toUpperCase();
     }
   }

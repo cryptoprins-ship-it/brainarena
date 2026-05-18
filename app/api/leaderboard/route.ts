@@ -126,6 +126,13 @@ export async function POST(req: Request) {
     logger.error({ err, game }, "leaderboard_write_failed");
     return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
-  const rank = trimmed.findIndex((e) => e === entry) + 1;
+  // Rank within today's submissions — this is the rank the player sees
+  // in the end-game leaderboard (period=today). Returning the all-time
+  // rank instead made "you ranked 2" disagree with the table that showed
+  // them at rank 1 because today only had two entries total.
+  const todayEntries = trimmed
+    .filter((e) => withinPeriod(e.date, "today"))
+    .sort(sortFor(game));
+  const rank = todayEntries.findIndex((e) => e === entry) + 1;
   return NextResponse.json({ ok: true, rank });
 }
