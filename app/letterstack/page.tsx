@@ -9,6 +9,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
+import GameWinModal from "@/components/GameWinModal";
 
 const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTTTTUUUVVWWXYYZ";
 const STACK_LIMIT = 10;
@@ -24,6 +25,7 @@ export default function LetterStackPage() {
   const [missed, setMissed] = useState(0);
   const [over, setOver] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const [input, setInput] = useState("");
   const [shakeKey, setShakeKey] = useState(0);
   const [slowMs, setSlowMs] = useState(0);
@@ -268,21 +270,23 @@ export default function LetterStackPage() {
         </>
       ) : null}
 
-      {over ? (
-        <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">{t("ls_game_over", { score })}</h2>
-          {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-            </p>
-          ) : null}
-          {!eligibleToSubmit && !submitted ? (
-            <p className="mt-3 text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <GameWinModal
+        open={over && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("ls_game_over", { score })}
+        status="win"
+      >
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+      </GameWinModal>
     </div>
   );
 }

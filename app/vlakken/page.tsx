@@ -7,6 +7,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import CrossPromoCard from "@/components/CrossPromoCard";
+import GameWinModal, { WinActions, WinStatsGrid } from "@/components/GameWinModal";
 import { useLocale } from "@/lib/i18n";
 import { generateVlakken, type VlakkenPuzzle, type AnchorMode } from "@/lib/games/vlakken";
 import { dayIndex } from "@/lib/games/kronen";
@@ -90,6 +91,7 @@ export default function VlakkenPage() {
   const [drag, setDrag] = useState<DragState | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
   const errorTimerRef = useRef<number | null>(null);
@@ -116,6 +118,7 @@ export default function VlakkenPage() {
     setDrag(null);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setWinModalDismissed(false);
     startedAt.current = null;
   }, [difficulty, seed]);
 
@@ -438,6 +441,7 @@ export default function VlakkenPage() {
     setElapsed(0);
     setError(null);
     setDrag(null);
+    setWinModalDismissed(false);
     startedAt.current = null;
   }, [puzzle]);
 
@@ -582,33 +586,55 @@ export default function VlakkenPage() {
         {t("best_time")}: <span className="font-mono text-gray-300">{bestSeconds ? `${bestSeconds}s` : "—"}</span>
       </p>
 
+      <GameWinModal
+        open={done && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("solved")}
+        status="win"
+      >
+        <WinStatsGrid
+          items={[
+            { label: t("your_time"), value: `${elapsed}s` },
+            { label: t("best_time"), value: bestSeconds ? `${bestSeconds}s` : "—" },
+          ]}
+        />
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        <TimeEndLeaderboard
+          game="vlakken"
+          playerName={getName()}
+          playerTime={elapsed}
+          submittedRank={submitted?.rank}
+          metaFilter={(e) =>
+            (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
+          }
+        />
+        <WinActions>
+          <button
+            onClick={() => { onReset(); setWinModalDismissed(true); }}
+            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold"
+          >
+            {t("win_play_again")}
+          </button>
+          <button
+            onClick={() => { onNewGame(); setWinModalDismissed(true); }}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
+            {t("win_new_puzzle")}
+          </button>
+        </WinActions>
+      </GameWinModal>
+
       {done ? (
         <>
-          <div className="mt-5 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
-            <p className="font-bold text-emerald-200">{t("solved")}</p>
-            <p className="mt-1 text-emerald-100">
-              {t("your_time")}: <span className="font-mono">{elapsed}s</span>
-            </p>
-            {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">
-                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-              </p>
-            ) : null}
-            {!eligibleToSubmit && !submitted ? (
-              <p className="mt-3 text-xs text-amber-300">
-                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-              </p>
-            ) : null}
-            <TimeEndLeaderboard
-              game="vlakken"
-              playerName={getName()}
-              playerTime={elapsed}
-              submittedRank={submitted?.rank}
-              metaFilter={(e) =>
-                (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
-              }
-            />
-          </div>
           <EndScreenAddon
             game="vlakken"
             score={Math.max(1, 100000 - elapsed)}

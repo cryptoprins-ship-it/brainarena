@@ -14,6 +14,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
+import GameWinModal from "@/components/GameWinModal";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 
 const SIZE = 4;
@@ -82,6 +83,7 @@ export default function BogglePage() {
   const [invalidMsg, setInvalidMsg] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const recordedRef = useRef(false);
   const todayIdx = useMemo(() => dayIndex(), []);
   // Grid is the same for everyone today, but each locale draws from its
@@ -371,22 +373,24 @@ export default function BogglePage() {
         </>
       ) : null}
 
-      {done ? (
-        <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">{t("boggle_final_score", { score })}</h2>
-          <p className="mt-1 text-sm text-gray-400">{t("boggle_words_found", { n: found.length })}</p>
-          {submitted ? (
-            <p className="mt-3 text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-            </p>
-          ) : null}
-          {done && !eligibleToSubmit && !submitted ? (
-            <p className="mt-3 text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      <GameWinModal
+        open={done && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("boggle_final_score", { score })}
+        status="win"
+      >
+        <p className="mt-2 text-sm text-gray-300">{t("boggle_words_found", { n: found.length })}</p>
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+      </GameWinModal>
     </div>
   );
 }

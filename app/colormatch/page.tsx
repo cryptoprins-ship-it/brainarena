@@ -9,6 +9,7 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
+import GameWinModal from "@/components/GameWinModal";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { useLocale } from "@/lib/i18n";
 
@@ -73,6 +74,7 @@ export default function ColorMatchPage() {
   const [remaining, setRemaining] = useState(ROUND_MS);
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
@@ -147,19 +149,6 @@ export default function ColorMatchPage() {
         <h1 className="text-3xl font-black">{t("cm_final_score", { score })}</h1>
         <p className="mt-1 text-sm text-gray-300">{t("cm_correct", { n: correct, total: ROUNDS })} · <span className="text-indigo-300">{t(ratingFor(correct))}</span></p>
 
-        <div className="mt-4 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-4">
-          {submitted ? (
-            <p className="text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-            </p>
-          ) : null}
-          {!submitted && !eligibleToSubmit ? (
-            <p className="text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-        </div>
-
         <ScoreEndLeaderboard
           game="colormatch"
           playerName={getName()}
@@ -180,6 +169,27 @@ export default function ColorMatchPage() {
           Powered by{" "}
           <a className="hover:text-indigo-300" href="https://renisual.com" target="_blank" rel="noopener noreferrer">Renisual</a>
         </p>
+
+        <GameWinModal
+          open={!winModalDismissed}
+          onClose={() => setWinModalDismissed(true)}
+          title={t("cm_final_score", { score })}
+          status="win"
+        >
+          <p className="mt-2 text-sm text-gray-300">
+            {t("cm_correct", { n: correct, total: ROUNDS })} · <span className="text-indigo-300">{t(ratingFor(correct))}</span>
+          </p>
+          {submitted ? (
+            <p className="mt-3 text-sm text-emerald-300">
+              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+            </p>
+          ) : null}
+          {!submitted && !eligibleToSubmit ? (
+            <p className="mt-3 text-xs text-amber-300">
+              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+            </p>
+          ) : null}
+        </GameWinModal>
       </div>
     );
   }

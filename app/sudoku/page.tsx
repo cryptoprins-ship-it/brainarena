@@ -8,6 +8,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import HowToPlay from "@/components/HowToPlay";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
+import GameWinModal from "@/components/GameWinModal";
 import { MAX_LEADERBOARD_ATTEMPTS, useDailyAttempts } from "@/lib/dailyLock";
 import { useLocale } from "@/lib/i18n";
 
@@ -26,6 +27,7 @@ export default function SudokuPage() {
   const [done, setDone] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const startedAt = useRef<number | null>(null);
 
   // Each difficulty has its own daily puzzle, so attempts are tracked
@@ -46,6 +48,7 @@ export default function SudokuPage() {
     setDone(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setWinModalDismissed(false);
     startedAt.current = null;
   }, [diff]);
 
@@ -264,30 +267,32 @@ export default function SudokuPage() {
         />
       ) : null}
 
-      {done ? (
-        <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-          <h2 className="text-xl font-black">{t("sudoku_solved_in", { time })}</h2>
-          {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}
-            </p>
-          ) : null}
-          {done && !eligibleToSubmit && !submitted ? (
-            <p className="mt-3 text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-          <TimeEndLeaderboard
-            game="sudoku"
-            playerName={getName()}
-            playerTime={time}
-            submittedRank={submitted?.rank}
-            metaFilter={(e) =>
-              (e.meta as { difficulty?: string } | undefined)?.difficulty === diff
-            }
-          />
-        </div>
-      ) : null}
+      <GameWinModal
+        open={done && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("sudoku_solved_in", { time })}
+        status="win"
+      >
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("sudoku_ranked_board", { rank: submitted.rank, diff: t(diff) })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        <TimeEndLeaderboard
+          game="sudoku"
+          playerName={getName()}
+          playerTime={time}
+          submittedRank={submitted?.rank}
+          metaFilter={(e) =>
+            (e.meta as { difficulty?: string } | undefined)?.difficulty === diff
+          }
+        />
+      </GameWinModal>
     </div>
   );
 }

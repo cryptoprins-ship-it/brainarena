@@ -9,6 +9,7 @@ import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
 import CrossPromoCard from "@/components/CrossPromoCard";
+import GameWinModal, { WinActions } from "@/components/GameWinModal";
 import { useLocale } from "@/lib/i18n";
 
 const W = 10;
@@ -100,6 +101,7 @@ export default function TileDropPage() {
   const [highScore, setHighScore] = useState(0);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const recordedRef = useRef(false);
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("tiledrop", todayIdx);
@@ -364,6 +366,7 @@ export default function TileDropPage() {
     setLevel(1);
     setOver(false);
     setSubmitted(null);
+    setWinModalDismissed(false);
     setTimeout(() => spawn(), 0);
   };
 
@@ -481,24 +484,34 @@ export default function TileDropPage() {
         </>
       ) : null}
 
-      {over ? (
-        <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">{t("td_game_over", { score })}</h2>
-          {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-            </p>
-          ) : null}
-          {!eligibleToSubmit && !submitted ? (
-            <p className="mt-3 text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-          <button onClick={reset} className="mt-3 rounded-lg bg-[#0a0a0a] border border-[#2a2a2a] px-4 py-2 text-sm">
+      <GameWinModal
+        open={over && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("td_game_over", { score })}
+        status="win"
+      >
+        <p className="mt-2 text-sm text-gray-300">
+          {t("td_lines", { n: lines })} · {t("td_level", { n: level })}
+        </p>
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        <WinActions>
+          <button
+            onClick={() => { reset(); setWinModalDismissed(true); }}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
             {t("win_play_again")}
           </button>
-        </div>
-      ) : null}
+        </WinActions>
+      </GameWinModal>
     </div>
   );
 }

@@ -10,6 +10,7 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
 import HowToPlay from "@/components/HowToPlay";
+import GameWinModal, { WinActions } from "@/components/GameWinModal";
 
 const DURATION = 60;
 
@@ -19,6 +20,7 @@ export default function TypingPage() {
   const [typed, setTyped] = useState("");
   const [time, setTime] = useState(DURATION);
   const [done, setDone] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   const startedAt = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
@@ -34,6 +36,7 @@ export default function TypingPage() {
     setTime(DURATION);
     setDone(false);
     setSubmitted(null);
+    setWinModalDismissed(false);
     startedAt.current = null;
     setTimeout(() => inputRef.current?.focus(), 0);
   }, [locale]);
@@ -180,24 +183,34 @@ export default function TypingPage() {
         </>
       ) : null}
 
-      {done ? (
-        <div className="mt-6 rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5">
-          <h2 className="text-xl font-black">{t("typing_result")}</h2>
-          <p className="mt-1 text-sm text-gray-300">
-            {t("typing_result_detail", { wpm: stats.wpm, accuracy: stats.accuracy, correct: stats.correct })}
+      <GameWinModal
+        open={done && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={t("typing_result")}
+        status="win"
+      >
+        <p className="mt-2 text-sm text-gray-300">
+          {t("typing_result_detail", { wpm: stats.wpm, accuracy: stats.accuracy, correct: stats.correct })}
+        </p>
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
           </p>
-          {submitted ? (
-            <p className="mt-2 text-sm text-emerald-300">
-              <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-            </p>
-          ) : null}
-          {!eligibleToSubmit && !submitted ? (
-            <p className="mt-3 text-xs text-amber-300">
-              {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        <WinActions>
+          <button
+            onClick={() => { reset(); setWinModalDismissed(true); }}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
+            {t("win_play_again")}
+          </button>
+        </WinActions>
+      </GameWinModal>
       </div>
     </div>
   );

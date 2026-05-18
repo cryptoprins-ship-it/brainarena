@@ -5,6 +5,7 @@ import HowToPlay from "@/components/HowToPlay";
 import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import ScoreEndLeaderboard from "@/components/ScoreEndLeaderboard";
+import GameWinModal, { WinActions } from "@/components/GameWinModal";
 import { useLocale } from "@/lib/i18n";
 import {
   allWords,
@@ -48,6 +49,7 @@ export default function ConnectionsPage() {
   const [startedAt, setStartedAt] = useState<number>(() => Date.now());
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [winModalDismissed, setWinModalDismissed] = useState(false);
   // Snapshot of "groups the player actually solved" (0-4) at game-end —
   // captured BEFORE the lost-state auto-fill so the leaderboard score
   // reflects the player's real performance, not the autopaste.
@@ -69,6 +71,7 @@ export default function ConnectionsPage() {
     setShakeFlash(false);
     setSubmitted(null);
     setEligibleToSubmit(false);
+    setWinModalDismissed(false);
     setPlayerScore(null);
     setFinalElapsed(null);
     setStartedAt(Date.now());
@@ -302,40 +305,49 @@ export default function ConnectionsPage() {
         </div>
       ) : null}
 
+      <GameWinModal
+        open={done && !winModalDismissed}
+        onClose={() => setWinModalDismissed(true)}
+        title={won ? t("solved") : t("connections_lost")}
+        status={won ? "win" : "lose"}
+      >
+        <p className="mt-2 text-sm text-gray-300">
+          {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? elapsed}s</span>
+        </p>
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+        {!eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        <ScoreEndLeaderboard
+          game="connections"
+          playerName={getName()}
+          playerScore={playerScore ?? 0}
+          submittedRank={submitted?.rank}
+          formatScore={(e) => `${e.score}/4`}
+        />
+        <WinActions>
+          <button
+            onClick={() => { onNewPuzzle(); setWinModalDismissed(true); }}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
+            {t("win_new_puzzle")}
+          </button>
+        </WinActions>
+      </GameWinModal>
+
       {done ? (
-        <>
-          <div className="mt-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm">
-            <p className="font-bold text-emerald-200">
-              {won ? t("solved") : t("connections_lost")}
-            </p>
-            <p className="mt-1 text-emerald-100">
-              {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? elapsed}s</span>
-            </p>
-            {submitted ? (
-              <p className="mt-2 text-sm text-emerald-300">
-                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-              </p>
-            ) : null}
-            {!eligibleToSubmit && !submitted ? (
-              <p className="mt-3 text-xs text-amber-300">
-                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-              </p>
-            ) : null}
-            <ScoreEndLeaderboard
-              game="connections"
-              playerName={getName()}
-              playerScore={playerScore ?? 0}
-              submittedRank={submitted?.rank}
-              formatScore={(e) => `${e.score}/4`}
-            />
-          </div>
-          <EndScreenAddon
-            game="connections"
-            score={playerScore ?? 0}
-            time={finalElapsed ?? elapsed}
-            meta={{ mistakes, won }}
-          />
-        </>
+        <EndScreenAddon
+          game="connections"
+          score={playerScore ?? 0}
+          time={finalElapsed ?? elapsed}
+          meta={{ mistakes, won }}
+        />
       ) : null}
     </div>
   );
