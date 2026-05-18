@@ -53,6 +53,12 @@ function smartCycle(s: CellState, idx: number, cells: CellState[], size: number)
   const startIdx = order.indexOf(s);
   for (let step = 1; step <= 3; step++) {
     const cand = order[(startIdx + step) % 3];
+    // Skip the candidate that loops back to the starting state — applyMove
+    // rejects same-state moves and the cell would silently swallow the click.
+    // This previously stranded an empty cell when both sun and moon were
+    // capped: the loop's step=3 returned -1 (the starting state) before the
+    // fallback below could fire.
+    if (cand === s) continue;
     if (cand === 1 && (rowSuns + 1 > cap || colSuns + 1 > cap)) continue;
     if (cand === 0 && (rowMoons + 1 > cap || colMoons + 1 > cap)) continue;
     return cand;
