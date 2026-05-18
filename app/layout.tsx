@@ -7,6 +7,7 @@ import NameGate from "@/components/NameGate";
 import CookieBanner from "@/components/CookieBanner";
 import FooterNav from "@/components/FooterNav";
 import JsonLd from "@/components/JsonLd";
+import ChunkErrorRecovery from "@/components/ChunkErrorRecovery";
 import {
   canonicalUrlFor,
   generateHreflangAlternates,
@@ -121,6 +122,7 @@ export default function RootLayout({
           src="https://plausible.io/js/script.js"
           strategy="afterInteractive"
         />
+        <ChunkErrorRecovery />
         <NavBar />
         <main className="flex-1">{children}</main>
         <AchievementToast />
