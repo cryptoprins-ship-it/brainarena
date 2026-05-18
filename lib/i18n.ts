@@ -2444,16 +2444,24 @@ export function useLocale() {
       ? normalizeStored(localStorage.getItem(STORAGE_KEY))
       : null;
     const initial: Locale = fromPath ?? stored ?? detectFromBrowser();
+    // Update the module-level current only when it actually changes —
+    // avoids redundant localStorage writes for components that re-mount.
     if (initial !== current) {
       current = initial;
-      document.documentElement.setAttribute("lang", initial);
-      // Persist normalised value so the legacy "pt" entry is rewritten.
       if (typeof window !== "undefined") {
         try { localStorage.setItem(STORAGE_KEY, initial); } catch {}
       }
+    }
+    document.documentElement.setAttribute("lang", initial);
+    // Update this component's own state whenever its initial render
+    // value differs from the resolved locale. Comparing to the module
+    // `current` instead of the local `locale` was the bug: if a sibling
+    // component mounted first and already advanced `current` to "nl",
+    // NavBar's useEffect would skip `set()` and leave its English-default
+    // state intact — the navigation links stayed labelled "Patches /
+    // Sun & Moon / Crowns" instead of "Vlakken / Zon & Maan / Kronen".
+    if (initial !== locale) {
       set(initial);
-    } else {
-      document.documentElement.setAttribute("lang", current);
     }
     const fn = (l: Locale) => set(l);
     subs.add(fn);
