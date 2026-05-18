@@ -19,6 +19,7 @@ import {
 } from "@/lib/games/wordleState";
 import ShareButton from "@/components/ShareButton";
 import WordleEndLeaderboard from "@/components/WordleEndLeaderboard";
+import GameWinModal, { WinActions } from "@/components/GameWinModal";
 
 const ROWS = 6;
 const COLS = 5;
@@ -162,17 +163,6 @@ export default function WordlePage() {
     const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
   }, [showModal, unlimited]);
-
-  // ESC closes the end-of-game modal — backdrop click already does the same,
-  // but keyboard users (and screen-reader users) need a non-pointer escape.
-  useEffect(() => {
-    if (!showModal) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setShowModal(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [showModal]);
 
   const submitGuess = useCallback(() => {
     if (done) return;
@@ -406,76 +396,71 @@ export default function WordlePage() {
         />
       ) : null}
 
-      {showModal ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 p-4" onClick={() => setShowModal(false)}>
-          <div className="relative w-full max-w-sm rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-6 text-center" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              aria-label="Close"
-              className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-gray-400 hover:bg-[#0a0a0a] hover:text-white"
-            >
-              ×
-            </button>
-            <h2 className="text-2xl font-black">{done === "win" ? t("wordle_win_title") : t("wordle_lose_title")}</h2>
-            {done === "win" ? (
-              <p className="mt-2 text-sm text-gray-300">
-                {t("wordle_solved_in", { n: guesses.length })}<br />
-                {t("wordle_time")} <span className="tabular-nums">{elapsed}s</span>
-              </p>
-            ) : (
-              <p className="mt-2 text-sm text-gray-300">{t("wordle_word_was")} <span className="font-bold uppercase text-emerald-400">{target}</span></p>
-            )}
+      <GameWinModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        title={done === "win" ? t("wordle_win_title") : t("wordle_lose_title")}
+        status={done === "lose" ? "lose" : "win"}
+      >
+        {done === "win" ? (
+          <p className="mt-2 text-sm text-gray-300">
+            {t("wordle_solved_in", { n: guesses.length })}<br />
+            {t("wordle_time")} <span className="tabular-nums">{elapsed}s</span>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-gray-300">{t("wordle_word_was")} <span className="font-bold uppercase text-emerald-400">{target}</span></p>
+        )}
 
-            {done === "win" && !unlimited ? (
-              <WordleEndLeaderboard
-                locale={locale}
-                playerName={getName()}
-                playerGuesses={guesses.length}
-                playerTime={elapsed}
-                submittedRank={submitted?.rank}
-              />
-            ) : null}
+        {done === "win" && !unlimited ? (
+          <WordleEndLeaderboard
+            locale={locale}
+            playerName={getName()}
+            playerGuesses={guesses.length}
+            playerTime={elapsed}
+            submittedRank={submitted?.rank}
+          />
+        ) : null}
 
-            {!unlimited ? (
-              <div className="mt-5 flex items-baseline justify-center gap-2 border-t border-[#2a2a2a] pt-4">
-                <span className="text-xs uppercase tracking-wider text-gray-400">{t("wordle_next")}</span>
-                <span className="font-mono text-xl font-bold tabular-nums text-indigo-300">{countdown || "—"}</span>
-              </div>
-            ) : null}
-
-            {/* New users are prompted for a name by the global NameGate
-                modal — no inline name input here. Showing both led to a
-                double-submit (auto-submit + inline OK), which is why
-                the leaderboard listed the same play twice and the
-                player landed in #4 instead of #1. */}
-            {done && !unlimited && !eligibleToSubmit && !submitted ? (
-              <p className="mt-3 text-xs text-amber-300">
-                {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
-              </p>
-            ) : null}
-            {submitted ? (
-              <p className="mt-3 text-sm text-emerald-300">
-                <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
-              </p>
-            ) : null}
-
-            <div className="mt-4 flex gap-2">
-              <ShareButton
-                game="wordle"
-                score={done === "win" ? ROWS - guesses.length + 1 : 0}
-                time={elapsed}
-                locale={locale}
-                meta={{ guesses: guesses.length, won: done === "win", states: stateGrid }}
-                className="flex-1 rounded-lg border border-[#2a2a2a] bg-[#0a0a0a] py-2 text-sm font-bold hover:border-indigo-400/40"
-              />
-              <button onClick={() => { setShowModal(false); setUnlimited(true); }} className="flex-1 rounded-lg bg-indigo-600 py-2 text-sm font-bold">
-                {t("win_play_again")}
-              </button>
-            </div>
+        {!unlimited ? (
+          <div className="mt-5 flex items-baseline justify-center gap-2 border-t border-[#2a2a2a] pt-4">
+            <span className="text-xs uppercase tracking-wider text-gray-400">{t("wordle_next")}</span>
+            <span className="font-mono text-xl font-bold tabular-nums text-indigo-300">{countdown || "—"}</span>
           </div>
-        </div>
-      ) : null}
+        ) : null}
+
+        {/* New users are prompted for a name by the global NameGate
+            modal — no inline name input here. Showing both led to a
+            double-submit (auto-submit + inline OK), which is why
+            the leaderboard listed the same play twice and the
+            player landed in #4 instead of #1. */}
+        {done && !unlimited && !eligibleToSubmit && !submitted ? (
+          <p className="mt-3 text-xs text-amber-300">
+            {t("practice_play_used", { max: MAX_LEADERBOARD_ATTEMPTS })}
+          </p>
+        ) : null}
+        {submitted ? (
+          <p className="mt-3 text-sm text-emerald-300">
+            <span className="font-bold">{getName() || "Anonymous"}</span> · {t("you_ranked", { rank: submitted.rank })}
+          </p>
+        ) : null}
+
+        <WinActions>
+          <ShareButton
+            game="wordle"
+            score={done === "win" ? ROWS - guesses.length + 1 : 0}
+            time={elapsed}
+            locale={locale}
+            meta={{ guesses: guesses.length, won: done === "win", states: stateGrid }}
+            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold hover:border-indigo-400/40"
+          />
+          <button
+            onClick={() => { setShowModal(false); setUnlimited(true); }}
+            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+          >
+            {t("win_play_again")}
+          </button>
+        </WinActions>
+      </GameWinModal>
     </div>
   );
 }

@@ -6,6 +6,11 @@ import StreakBanner from "@/components/StreakBanner";
 import EndScreenAddon from "@/components/EndScreenAddon";
 import TimeEndLeaderboard from "@/components/TimeEndLeaderboard";
 import ShareButton from "@/components/ShareButton";
+import GameWinModal, {
+  NewBestBanner,
+  WinActions,
+  WinStatsGrid,
+} from "@/components/GameWinModal";
 import { useLocale } from "@/lib/i18n";
 import {
   chordTargets,
@@ -456,75 +461,41 @@ function WinModal({
   onClose: () => void;
 }) {
   const { t } = useLocale();
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 px-4 py-6"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        className="relative w-full max-w-md rounded-2xl border border-[#2a2a2a] bg-[#13141c] p-5 shadow-2xl"
-      >
+    <GameWinModal open onClose={onClose} title={t("win_title")} status="win">
+      <WinStatsGrid
+        items={[
+          { label: t("win_your_time"), value: formatDuration(elapsed) },
+          { label: t("minesweeper_flags_placed"), value: `${flagsPlaced} / ${mineCount}` },
+          { label: t("win_best_time"), value: bestSeconds != null ? formatDuration(bestSeconds) : "—" },
+        ]}
+      />
+      {isNewBest ? <NewBestBanner label={t("win_new_record")} /> : null}
+      <WinActions>
         <button
           type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="absolute right-3 top-3 grid h-8 w-8 place-items-center rounded-full text-gray-400 hover:bg-[#1a1a1a] hover:text-white"
+          onClick={onPlayAgain}
+          className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold"
         >
-          ×
+          {t("win_play_again")}
         </button>
-        <h2 className="text-2xl font-black text-emerald-300">{t("win_title")}</h2>
-        <dl className="mt-4 grid grid-cols-2 gap-y-2 text-sm">
-          <dt className="text-gray-400">{t("win_your_time")}</dt>
-          <dd className="text-right font-mono text-white">{formatDuration(elapsed)}</dd>
-          <dt className="text-gray-400">{t("minesweeper_flags_placed")}</dt>
-          <dd className="text-right font-mono text-white">{flagsPlaced} / {mineCount}</dd>
-          <dt className="text-gray-400">{t("win_best_time")}</dt>
-          <dd className="text-right font-mono text-white">{bestSeconds != null ? formatDuration(bestSeconds) : "—"}</dd>
-        </dl>
-        {isNewBest ? (
-          <p className="mt-3 rounded-lg bg-amber-500/15 px-3 py-2 text-center text-sm font-bold text-amber-300">
-            ★ {t("win_new_record")}
-          </p>
-        ) : null}
-        <div className="mt-5 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onPlayAgain}
-            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm font-bold"
-          >
-            {t("win_play_again")}
-          </button>
-          <button
-            type="button"
-            onClick={onNewPuzzle}
-            className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
-          >
-            {t("win_new_puzzle")}
-          </button>
-          <ShareButton
-            game="minesweeper"
-            score={Math.max(1, 100000 - elapsed)}
-            time={elapsed}
-            meta={{ difficulty, won: true, flagsPlaced, mineCount }}
-            label={t("win_share")}
-            className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm"
-          />
-        </div>
-      </div>
-    </div>
+        <button
+          type="button"
+          onClick={onNewPuzzle}
+          className="min-h-[44px] flex-1 rounded-md bg-indigo-600 px-3 py-2.5 text-sm font-bold hover:opacity-90"
+        >
+          {t("win_new_puzzle")}
+        </button>
+        <ShareButton
+          game="minesweeper"
+          score={Math.max(1, 100000 - elapsed)}
+          time={elapsed}
+          meta={{ difficulty, won: true, flagsPlaced, mineCount }}
+          label={t("win_share")}
+          className="min-h-[44px] flex-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2.5 text-sm"
+        />
+      </WinActions>
+    </GameWinModal>
   );
 }
 
