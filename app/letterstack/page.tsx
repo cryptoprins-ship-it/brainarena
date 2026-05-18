@@ -14,10 +14,21 @@ const LETTER_BAG = "AAAABBCCDDDEEEEEEEEFFGGHHHIIIIIJKLLLMMNNNNOOOOPPQRRRRSSSSTTT
 const STACK_LIMIT = 10;
 const POINTS = (len: number) => len < 3 ? 0 : len === 3 ? 10 : len === 4 ? 25 : len === 5 ? 50 : 100;
 
+type Difficulty = "easy" | "medium" | "hard";
+
+// Difficulty multipliers tune both the spawn cadence and the per-letter
+// fall duration. Easy gives more reaction time across both axes; hard
+// compresses both so the player has to chain words faster to keep up.
+const SPAWN_MULT: Record<Difficulty, number> = { easy: 1.5, medium: 1.0, hard: 0.65 };
+const FALL_MULT: Record<Difficulty, number> = { easy: 1.5, medium: 1.0, hard: 0.65 };
+
+const DIFFICULTY_KEY = "brainarena-letterstack-difficulty";
+
 type FallingLetter = { id: number; ch: string; x: number; t: number };
 
 export default function LetterStackPage() {
   const { locale, t } = useLocale();
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [stack, setStack] = useState<string[]>([]);
   const [falling, setFalling] = useState<FallingLetter[]>([]);
   const [score, setScore] = useState(0);
@@ -35,26 +46,66 @@ export default function LetterStackPage() {
   const idRef = useRef(0);
   const startRef = useRef<number>(Date.now());
   const todayIdx = useMemo(() => dayIndex(), []);
-  const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, locale);
+  const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, `${locale}-${difficulty}`);
+
+  // Restore persisted difficulty preference on mount — without this a
+  // hard-mode player would be silently downgraded to medium every new
+  // tab. The localStorage write happens in the difficulty-change effect
+  // below.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = localStorage.getItem(DIFFICULTY_KEY);
+    if (raw === "easy" || raw === "medium" || raw === "hard") {
+      setDifficulty(raw);
+    }
+  }, []);
+
+  // Persist + reset on difficulty change. A switch mid-game wipes the
+  // current attempt (state, stack, falling letters, score) so the timer
+  // and rate ramps start fresh — otherwise an "easy" prefix would
+  // contaminate a "hard" attempt's score.
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try { localStorage.setItem(DIFFICULTY_KEY, difficulty); } catch {}
+    }
+    setStack([]);
+    setFalling([]);
+    setScore(0);
+    setMissed(0);
+    setOver(false);
+    setInput("");
+    setSlowMs(0);
+    setWildAvailable(false);
+    setBombAvailable(false);
+    setMilestones(0);
+    setSubmitted(null);
+    setEligibleToSubmit(false);
+    recordedRef.current = false;
+    startRef.current = Date.now();
+  }, [difficulty]);
 
 
   // Spawn falling letters.
   useEffect(() => {
     if (over) return;
+    const spawnMult = SPAWN_MULT[difficulty];
+    const baseSpawn = Math.max(500, 1300 - Math.floor((Date.now() - startRef.current) / 8000) * 100);
     const id = window.setInterval(() => {
       idRef.current += 1;
       const ch = LETTER_BAG[Math.floor(Math.random() * LETTER_BAG.length)].toLowerCase();
       const x = Math.floor(Math.random() * 90) + 5;
       setFalling((f) => [...f, { id: idRef.current, ch, x, t: Date.now() }]);
-    }, Math.max(500, 1300 - Math.floor((Date.now() - startRef.current) / 8000) * 100));
+    }, Math.max(300, Math.round(baseSpawn * spawnMult)));
     return () => window.clearInterval(id);
-  }, [over]);
+  }, [over, difficulty]);
 
   // Tick: advance falling, drop expired.
   useEffect(() => {
     if (over) return;
+    const fallMult = FALL_MULT[difficulty];
     const id = window.setInterval(() => {
-      const fallDur = slowMs > 0 ? 8000 : 5500 - Math.min(2500, Math.floor((Date.now() - startRef.current) / 5000) * 200);
+      const baseFall = slowMs > 0 ? 8000 : 5500 - Math.min(2500, Math.floor((Date.now() - startRef.current) / 5000) * 200);
+      const fallDur = Math.max(1200, Math.round(baseFall * fallMult));
       setFalling((f) => {
         const now = Date.now();
         const survivors: FallingLetter[] = [];
@@ -69,7 +120,7 @@ export default function LetterStackPage() {
       if (slowMs > 0) setSlowMs((s) => Math.max(0, s - 100));
     }, 100);
     return () => window.clearInterval(id);
-  }, [over, slowMs]);
+  }, [over, slowMs, difficulty]);
 
   const tryCatch = useCallback((ch: string) => {
     setFalling((f) => {
@@ -166,10 +217,10 @@ export default function LetterStackPage() {
         name: getName() || "Anonymous",
         score,
         language: locale,
-        meta: { missed },
+        meta: { missed, difficulty },
       }).then((r) => r && setSubmitted(r));
     }
-  }, [locale, missed, over, record, score, submitted]);
+  }, [difficulty, locale, missed, over, record, score, submitted]);
 
   const useBomb = () => {
     if (!bombAvailable) return;
@@ -197,7 +248,23 @@ export default function LetterStackPage() {
         </div>
       </div>
 
-      <div className="mt-4 relative h-64 overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#0a0a0a]">
+      <div className="mt-3 inline-flex rounded-md border border-[#2a2a2a] bg-[#1a1a1a] p-1 text-xs">
+        {(["easy", "medium", "hard"] as Difficulty[]).map((d) => (
+          <button
+            key={d}
+            type="button"
+            onClick={() => setDifficulty(d)}
+            className={
+              "rounded px-3 py-1 capitalize " +
+              (difficulty === d ? "bg-indigo-600 font-bold text-white" : "text-gray-400 hover:text-white")
+            }
+          >
+            {t(d)}
+          </button>
+        ))}
+      </div>
+
+      <div className="mt-3 relative h-64 overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#0a0a0a]">
         {falling.map((l) => {
           const fallDur = slowMs > 0 ? 8000 : 5500;
           const elapsed = (Date.now() - l.t) / fallDur;
