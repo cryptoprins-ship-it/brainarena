@@ -34,7 +34,13 @@ export function loadDictionary(locale: BoggleLocale): Promise<Set<string>> {
     })
     .then((text) => {
       // One word per line, already lowercased + a-z only by build script.
-      const set = new Set(text.split("\n").filter((w) => w.length >= 3));
+      // Split on \r?\n so files committed with CRLF line endings on
+      // Windows don't end up with trailing \r on every word — that
+      // poisoned every `set.has(w)` lookup and silently rejected valid
+      // dictionary words like "heet" / "hel".
+      const set = new Set(
+        text.split(/\r?\n/).filter((w) => w.length >= 3),
+      );
       cache.set(locale, set);
       inflight.delete(locale);
       return set;
