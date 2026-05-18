@@ -616,6 +616,7 @@ export default function VlakkenPage() {
               playerName={getName()}
               playerTime={elapsed}
               submittedRank={submitted?.rank}
+              playerEligible={eligibleToSubmit}
               metaFilter={(e) =>
                 (e.meta as { difficulty?: string } | undefined)?.difficulty === difficulty
               }

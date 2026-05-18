@@ -109,7 +109,7 @@ type TranslationKey =
   | "wordle_distribution" | "wordle_next"
   | "wordle_lb_title" | "wordle_lb_col_attempts" | "wordle_lb_col_time"
   | "wordle_lb_empty" | "wordle_lb_you"
-  | "time_lb_title" | "time_lb_empty"
+  | "time_lb_title" | "time_lb_empty" | "time_lb_first_today" | "time_lb_local_capped" | "time_lb_local_pending"
   | "score_lb_title" | "score_lb_empty"
   // Boggle
   | "boggle_status" | "boggle_word" | "boggle_start" | "boggle_kbd_hint"
@@ -337,6 +337,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "You",
     time_lb_title: "Today's fastest times",
     time_lb_empty: "No times yet today",
+    time_lb_first_today: "🏆 You're first today — your time sets the benchmark.",
+    time_lb_local_capped: "local · daily limit",
+    time_lb_local_pending: "local · pending",
     score_lb_title: "Today's top scores",
     score_lb_empty: "No scores yet today",
     boggle_status: "Daily 4×4 · find words 3+ letters · {seconds}s",
@@ -604,6 +607,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "Jij",
     time_lb_title: "Snelste tijden vandaag",
     time_lb_empty: "Nog geen tijden vandaag",
+    time_lb_first_today: "🏆 Jij bent vandaag de eerste — jouw tijd is de benchmark.",
+    time_lb_local_capped: "lokaal · daglimiet",
+    time_lb_local_pending: "lokaal · in afwachting",
     score_lb_title: "Beste scores vandaag",
     score_lb_empty: "Nog geen scores vandaag",
     boggle_status: "Dagelijks 4×4 · vind woorden van 3+ letters · {seconds}s",
@@ -872,6 +878,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "Du",
     time_lb_title: "Schnellste Zeiten heute",
     time_lb_empty: "Heute noch keine Zeiten",
+    time_lb_first_today: "🏆 Du bist heute der Erste — deine Zeit ist der Maßstab.",
+    time_lb_local_capped: "lokal · Tageslimit",
+    time_lb_local_pending: "lokal · ausstehend",
     score_lb_title: "Beste Punkte heute",
     score_lb_empty: "Heute noch keine Ergebnisse",
     boggle_status: "Täglich 4×4 · finde Wörter mit 3+ Buchstaben · {seconds}s",
@@ -1140,6 +1149,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "Toi",
     time_lb_title: "Meilleurs temps du jour",
     time_lb_empty: "Aucun temps aujourd'hui",
+    time_lb_first_today: "🏆 Tu es le premier aujourd'hui — ton temps fait la référence.",
+    time_lb_local_capped: "local · limite quotidienne",
+    time_lb_local_pending: "local · en attente",
     score_lb_title: "Meilleurs scores du jour",
     score_lb_empty: "Aucun score aujourd'hui",
     boggle_status: "Quotidien 4×4 · trouve des mots de 3+ lettres · {seconds}s",
@@ -1408,6 +1420,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "Tú",
     time_lb_title: "Mejores tiempos de hoy",
     time_lb_empty: "Aún no hay tiempos hoy",
+    time_lb_first_today: "🏆 Eres el primero hoy — tu tiempo marca la referencia.",
+    time_lb_local_capped: "local · límite diario",
+    time_lb_local_pending: "local · pendiente",
     score_lb_title: "Mejores puntuaciones de hoy",
     score_lb_empty: "Aún no hay puntuaciones hoy",
     boggle_status: "Diario 4×4 · encuentra palabras de 3+ letras · {seconds}s",
@@ -1676,6 +1691,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "आप",
     time_lb_title: "आज के सबसे तेज़ समय",
     time_lb_empty: "आज अभी कोई समय नहीं",
+    time_lb_first_today: "🏆 आज आप पहले हैं — आपका समय बेंचमार्क बनेगा।",
+    time_lb_local_capped: "स्थानीय · दैनिक सीमा",
+    time_lb_local_pending: "स्थानीय · लंबित",
     score_lb_title: "आज के सबसे ज़्यादा अंक",
     score_lb_empty: "आज अभी कोई स्कोर नहीं",
     boggle_status: "दैनिक 4×4 · 3+ अक्षरों के शब्द खोजें · {seconds}s",
@@ -1946,6 +1964,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "Você",
     time_lb_title: "Tempos mais rápidos de hoje",
     time_lb_empty: "Ainda não há tempos hoje",
+    time_lb_first_today: "🏆 Você é o primeiro hoje — seu tempo vira referência.",
+    time_lb_local_capped: "local · limite diário",
+    time_lb_local_pending: "local · pendente",
     score_lb_title: "Maiores pontuações de hoje",
     score_lb_empty: "Ainda não há pontuações hoje",
     boggle_status: "Diário 4×4 · encontre palavras de 3+ letras · {seconds}s",
@@ -2214,6 +2235,9 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     wordle_lb_you: "あなた",
     time_lb_title: "本日の最速タイム",
     time_lb_empty: "今日はまだタイムがありません",
+    time_lb_first_today: "🏆 本日の一番乗りです — あなたのタイムが基準になります。",
+    time_lb_local_capped: "ローカル · 一日上限",
+    time_lb_local_pending: "ローカル · 保留",
     score_lb_title: "本日のトップスコア",
     score_lb_empty: "今日はまだスコアがありません",
     boggle_status: "デイリー 4×4 · 3 文字以上の単語を探そう · {seconds}s",
