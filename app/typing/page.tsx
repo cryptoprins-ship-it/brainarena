@@ -113,7 +113,10 @@ export default function TypingPage() {
       <HowToPlay game="typing" />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black">{t("typing_title")}</h1>
+          {/* h2, not h1: the md:hidden mobile branch above already
+              renders the page h1. Two h1 in the DOM (CSS-toggled, not
+              branch-toggled) is a duplicate-heading signal. */}
+          <h2 className="text-2xl font-black">{t("typing_title")}</h2>
           <p className="text-xs text-gray-400">
             {locale.toUpperCase()} · {t("typing_test_label", { seconds: DURATION })} ·{" "}
             <span className={dailyAttempts >= MAX_LEADERBOARD_ATTEMPTS ? "text-amber-300" : ""}>
