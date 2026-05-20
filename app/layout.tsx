@@ -93,6 +93,11 @@ export default function RootLayout({
         className="min-h-[100dvh] flex flex-col bg-[#0a0a0a] text-white"
         style={{ background: "#0a0a0a", color: "#ffffff" }}
       >
+        {/* Recovers from the host serving a stylesheet that 404s due to
+            build skew between backend instances — see public/css-recovery.js.
+            Plain <script src> (not next/script) so it runs even when JS
+            chunks fail too; the path is stable and unaffected by the skew. */}
+        <script src="/css-recovery.js" defer />
         {/* Site-wide structured data — Organization + WebSite. Game-specific
             VideoGame schemas live in each game's layout.tsx; homepage adds
             an ItemList of games. */}
