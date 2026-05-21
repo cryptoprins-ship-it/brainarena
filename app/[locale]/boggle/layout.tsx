@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildHowToPlayGameMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildHowToPlayGameMetadata({
     params: props.params,
     path: "/boggle",
-    title: "Free Online Boggle Game",
-    description:
-      "Play free Boggle online — find as many words as you can in 3 minutes on a daily 4×4 grid. Compete on the global BrainArena leaderboard.",
+    slug: "boggle",
   });
 
 export default function LocaleBoggleLayout({

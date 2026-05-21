@@ -316,6 +316,7 @@ export default function HomeClient() {
             <Link
               key={g.href}
               href={g.href}
+              aria-label={entry.label}
               className={`group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40 ${
                 g.desktopOnly ? "hidden md:flex" : ""
               }`}

@@ -8,9 +8,9 @@ import {
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Play Wordle Free — Dutch, German, French, Spanish",
+  title: "Play Wordle Free — Daily Word in 6 Languages",
   description:
-    "Free daily Wordle in 5 languages — English, Dutch, German, French, Spanish. Same answer for everyone, share your streak.",
+    "Free daily Wordle in 6 languages — English, Dutch, German, French, Spanish, Portuguese. Same answer for everyone, share your streak.",
   alternates: {
     canonical: canonicalUrlFor("/wordle", "en"),
     languages: generateHreflangAlternates("/wordle"),

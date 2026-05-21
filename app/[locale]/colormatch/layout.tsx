@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildHowToPlayGameMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildHowToPlayGameMetadata({
     params: props.params,
     path: "/colormatch",
-    title: "ColorMatch — RAL Color Code Quiz Game",
-    description:
-      "Identify RAL colors used by professional painters and facade specialists. 10 rounds, multiple choice, 5-second rounds. Used by Renisual professionals.",
+    slug: "colormatch",
   });
 
 export default function LocaleColorMatchLayout({

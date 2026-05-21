@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildHowToPlayGameMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildHowToPlayGameMetadata({
     params: props.params,
     path: "/tiledrop",
-    title: "TileDrop — Free Online Tile Puzzle Game",
-    description:
-      "Play TileDrop free online — the addictive falling-tile puzzle game. Stack the tiles, clear the lines, and compete globally for the highest score.",
+    slug: "tiledrop",
   });
 
 export default function LocaleTileDropLayout({

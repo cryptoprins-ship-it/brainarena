@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildHowToPlayGameMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildHowToPlayGameMetadata({
     params: props.params,
     path: "/typing",
-    title: "Typing Speed Test Online Free",
-    description:
-      "Free online typing speed test in 5 languages. Measure your WPM and accuracy in 60 seconds. Compete on the global BrainArena leaderboard.",
+    slug: "typing",
   });
 
 export default function LocaleTypingLayout({

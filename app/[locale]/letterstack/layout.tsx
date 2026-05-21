@@ -1,17 +1,15 @@
 import GameJsonLd from "@/components/GameJsonLd";
-import { buildLocaleMetadata } from "@/lib/seo/localeMetadata";
+import { buildHowToPlayGameMetadata } from "@/lib/seo/localeMetadata";
 
 export const dynamic = "force-dynamic";
 
 export const generateMetadata = (props: {
   params: Promise<{ locale: string }>;
 }) =>
-  buildLocaleMetadata({
+  buildHowToPlayGameMetadata({
     params: props.params,
     path: "/letterstack",
-    title: "LetterStack — Catch & Form Words",
-    description:
-      "Catch falling letters, stack them and spell words for points. Power-ups, increasing speed, and a global leaderboard.",
+    slug: "letterstack",
   });
 
 export default function LocaleLetterStackLayout({

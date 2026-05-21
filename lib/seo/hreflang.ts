@@ -27,7 +27,11 @@ const LOCALIZED_PATHS: ReadonlySet<string> = new Set<string>([
   "/minesweeper",
   "/connections",
   "/how-to-play",
-  "/about",
+  // /about is intentionally NOT here: its copy only exists in EN + NL
+  // (other locales fall back to English). Emitting de/fr/es/hi/pt-BR/ja
+  // hreflang would point Google at English content under a foreign-lang
+  // annotation, which gets the whole cluster dropped. About self-
+  // canonicalizes per locale; that's enough.
 ]);
 
 function normalizePath(pathname: string): string {

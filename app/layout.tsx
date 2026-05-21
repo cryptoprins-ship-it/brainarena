@@ -20,11 +20,15 @@ const BASE = process.env.NEXT_PUBLIC_APP_URL ?? "https://brainarena.fun";
 // hi (Devanagari) and ja (CJK). The CSS variables are wired up in
 // globals.css behind html[lang="..."] selectors so the rest of the UI
 // keeps using its default sans without swapping the entire stack.
+// preload: false — these only apply on html[lang="hi"] / html[lang="ja"]
+// (see globals.css). Preloading them on every locale shipped ~150-300KB
+// of font data to the ~6 locales that never use them, hurting mobile LCP.
 const notoDevanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari", "latin"],
   weight: ["400", "500", "600", "700"],
   variable: "--font-noto-deva",
   display: "swap",
+  preload: false,
 });
 
 const notoJp = Noto_Sans_JP({
@@ -32,6 +36,7 @@ const notoJp = Noto_Sans_JP({
   weight: ["400", "500", "700"],
   variable: "--font-noto-jp",
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
@@ -111,7 +116,6 @@ export default function RootLayout({
                 name: "BrainArena",
                 url: BASE,
                 logo: `${BASE}/icon.png`,
-                sameAs: [],
               },
               {
                 "@type": "WebSite",
@@ -121,7 +125,7 @@ export default function RootLayout({
                 description:
                   "Free daily puzzles and word games — Wordle, Boggle, Sudoku, logic puzzles and more.",
                 publisher: { "@id": `${BASE}#organization` },
-                inLanguage: ["en", "nl", "de", "fr", "es", "pt-BR"],
+                inLanguage: ["en", "nl", "de", "fr", "es", "hi", "pt-BR", "ja"],
               },
             ],
           }}

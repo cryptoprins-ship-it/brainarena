@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { SUPPORTED, type Locale } from "@/lib/locales";
+import { getHowToPlay } from "@/lib/howToPlay";
+import type { GameKey } from "@/lib/scores";
 import { canonicalUrlFor, generateHreflangAlternates } from "./hreflang";
 
 // Server-safe game-title table. Cannot import `translate` from
@@ -136,6 +138,37 @@ export async function buildGameLocaleMetadata({
   return {
     title: `${name} — ${desc}`,
     description: desc,
+    alternates: {
+      canonical: canonicalUrlFor(path, safeLocale),
+      languages: generateHreflangAlternates(path),
+    },
+  };
+}
+
+// Game-route variant for the older games (wordle, sudoku, boggle, typing,
+// tiledrop, colormatch, letterstack) that have no entry in the GAME_NAME /
+// GAME_DESC tables above. Their label + summary are already translated in
+// all 8 locales in lib/howToPlay.ts, which is server-safe (type-only
+// imports, no "use client"), so we reuse that instead of duplicating a
+// translation table. Without this, /<locale>/<game> shipped an English
+// <title> on a localized page.
+export async function buildHowToPlayGameMetadata({
+  params,
+  path,
+  slug,
+}: {
+  params: Promise<{ locale: string }>;
+  path: string;
+  slug: GameKey;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const safeLocale: Locale = (SUPPORTED as readonly string[]).includes(locale)
+    ? (locale as Locale)
+    : "en";
+  const entry = getHowToPlay(safeLocale)[slug];
+  return {
+    title: `${entry.label} — ${entry.summary.replace(/\.$/, "")}`,
+    description: entry.summary,
     alternates: {
       canonical: canonicalUrlFor(path, safeLocale),
       languages: generateHreflangAlternates(path),

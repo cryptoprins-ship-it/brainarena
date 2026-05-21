@@ -83,7 +83,7 @@ export default function GameJsonLd({ slug }: { slug: GameSlug }) {
         gamePlatform: "Web",
         applicationCategory: "Game",
         operatingSystem: "Any",
-        inLanguage: ["en", "nl", "de", "fr", "es", "pt-BR"],
+        inLanguage: ["en", "nl", "de", "fr", "es", "hi", "pt-BR", "ja"],
         offers: { "@type": "Offer", price: 0, priceCurrency: "EUR" },
         publisher: {
           "@type": "Organization",

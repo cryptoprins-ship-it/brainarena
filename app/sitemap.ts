@@ -22,7 +22,27 @@ const LOCALIZED_SITEMAP_PATHS: ReadonlySet<string> = new Set<string>([
   "/minesweeper",
   "/connections",
   "/how-to-play",
-  "/about",
+]);
+
+// Pages whose content genuinely changes daily (a new daily puzzle, live
+// scores). Everything else is near-static and gets a "monthly" hint so
+// the sitemap doesn't claim a freshness it doesn't have.
+const DAILY_PATHS: ReadonlySet<string> = new Set<string>([
+  "",
+  "wordle",
+  "boggle",
+  "sudoku",
+  "typing",
+  "tiledrop",
+  "colormatch",
+  "letterstack",
+  "vlakken",
+  "verbind",
+  "zonmaan",
+  "kronen",
+  "minesweeper",
+  "connections",
+  "leaderboard",
 ]);
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -45,6 +65,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "achievements",
     "leaderboard",
     "how-to-play",
+    "about",
     "privacy",
     "contact",
   ];
@@ -53,7 +74,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     const entry: MetadataRoute.Sitemap[number] = {
       url: p ? `${BASE}/${p}` : BASE,
       lastModified: now,
-      changeFrequency: "daily" as const,
+      changeFrequency: DAILY_PATHS.has(p) ? "daily" : "monthly",
       priority: p === "" ? 1.0 : 0.8,
     };
     if (LOCALIZED_SITEMAP_PATHS.has(path)) {
