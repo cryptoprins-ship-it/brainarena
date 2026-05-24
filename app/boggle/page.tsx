@@ -180,6 +180,13 @@ export default function BogglePage() {
       const target = e.target as HTMLElement | null;
       if (target && target.tagName === "INPUT") return;
 
+      // Once the round is over, the daily is locked — ignore keyboard
+      // input so typing a letter doesn't quietly restart the game. The
+      // start button is already hidden via `!done`, but the hardware
+      // keyboard had its own fast-path into setRunning(true) which
+      // bypassed every UI gate.
+      if (done) return;
+
       if (e.key === "Enter") {
         e.preventDefault();
         tryCommitRef.current();
