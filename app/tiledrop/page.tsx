@@ -487,10 +487,11 @@ export default function TileDropPage() {
       <GameWinModal
         open={over && !winModalDismissed}
         onClose={() => setWinModalDismissed(true)}
-        title={t("td_game_over", { score })}
+        title={t("td_game_over")}
         status="win"
       >
-        <p className="mt-2 text-sm text-gray-300">
+        <p className="mt-2 text-3xl font-black tabular-nums text-white">{score} <span className="text-base font-normal text-gray-400">pts</span></p>
+        <p className="mt-1 text-sm text-gray-300">
           {t("td_lines", { n: lines })} · {t("td_level", { n: level })}
         </p>
         {submitted ? (
