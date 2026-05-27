@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import {
   SUPPORTED,
   REVIEW_PENDING,
@@ -2389,6 +2389,22 @@ export function translate(
 let current: Locale = "en";
 const subs = new Set<(l: Locale) => void>();
 
+// Context lets the server-rendered layout pass the URL locale to every
+// client component on the same tree, so the first client render matches
+// the server HTML and React doesn't throw a hydration mismatch. Without
+// this the module-level `current` was "en" on first paint, which mangled
+// any localized text in components that render before useEffect runs.
+// The Provider component lives in `lib/LocaleProvider.tsx` because this
+// file is `.ts` and cannot host JSX.
+export const LocaleContext = createContext<Locale | null>(null);
+
+// Synchronously seed the module-level current. Called from the Provider
+// during render — keeps legacy callers that read `current` via the
+// module path in sync with the React-context value.
+export function seedCurrentLocale(l: Locale) {
+  if (current !== l) current = l;
+}
+
 // Migrate a stored locale from the legacy "pt" tag to "pt-BR" — production
 // users who picked Portuguese before the rename should not silently fall
 // back to English.
@@ -2430,7 +2446,13 @@ function setLocale(l: Locale) {
 }
 
 export function useLocale() {
-  const [locale, set] = useState<Locale>(current);
+  // If the tree was wrapped in <LocaleProvider initialLocale={...}>, use
+  // the server-supplied locale as the initial state. That matches what
+  // SSR rendered, so the first client render produces identical HTML and
+  // hydration succeeds without a flash of English. Falls back to the
+  // module-level `current` for legacy routes that don't wrap.
+  const ctx = useContext(LocaleContext);
+  const [locale, set] = useState<Locale>(ctx ?? current);
 
   useEffect(() => {
     // Priority order: URL path > stored preference > browser language.

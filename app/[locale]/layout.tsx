@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { SUPPORTED, type Locale } from "@/lib/locales";
+import LocaleProvider from "@/lib/LocaleProvider";
 
 // Only enumerate the locales whose per-route subtrees actually exist.
 // Adding a locale here without the matching app/[locale]/<route>
@@ -20,7 +21,10 @@ export default async function LocaleLayout({
   if (!(SUPPORTED as readonly string[]).includes(locale)) {
     notFound();
   }
-  return <>{children}</>;
+  // Pass the URL locale into the client tree via context so useLocale's
+  // first render matches the server-rendered HTML and avoids a hydration
+  // mismatch on /nl, /de, /fr, /es, /hi, /pt-BR, /ja routes.
+  return <LocaleProvider initialLocale={locale as Locale}>{children}</LocaleProvider>;
 }
 
 // Treat any locale not in SUPPORTED as a hard 404. Without this Next
