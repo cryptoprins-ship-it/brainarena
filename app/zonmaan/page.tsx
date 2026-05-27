@@ -185,30 +185,28 @@ export default function ZonMaanPage() {
     }
   }, [cells, puzzle, done, difficulty, elapsed]);
 
-  const applyMove = useCallback(
-    (idx: number, nxt: CellState) => {
-      if (done || !puzzle) return;
-      if (idx in puzzle.clues) return;
-      if (!startedAt.current) startedAt.current = Date.now();
-      const cur = cells[idx];
-      if (cur === nxt) return;
-      setCells((prev) => {
-        const next = [...prev];
-        next[idx] = nxt;
-        return next;
-      });
-      setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
-    },
-    [cells, done, puzzle]
-  );
-
+  // Cycle the cell inside the functional updater so back-to-back clicks
+  // (touch double-tap, rapid mouse) always see the latest grid. The old
+  // closure-based version read `cells` from render scope, so a second click
+  // before the next render computed the same next-state as the first and
+  // the user perceived "I clicked but nothing happened" — sometimes needing
+  // 4–6 taps to advance moon → empty → sun.
   const onCellClick = useCallback(
     (idx: number) => {
       if (done || !puzzle) return;
       if (idx in puzzle.clues) return;
-      applyMove(idx, smartCycle(cells[idx], idx, cells, puzzle.size));
+      if (!startedAt.current) startedAt.current = Date.now();
+      setCells((prev) => {
+        const cur = prev[idx];
+        const nxt = smartCycle(cur, idx, prev, puzzle.size);
+        if (cur === nxt) return prev;
+        setHistory((h) => [...h, { idx, prev: cur, next: nxt }]);
+        const next = [...prev];
+        next[idx] = nxt;
+        return next;
+      });
     },
-    [applyMove, cells, done, puzzle]
+    [done, puzzle]
   );
 
   // Triplet violation cells — the 3 cells forming any run of 3 same symbols
