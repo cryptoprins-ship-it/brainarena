@@ -328,15 +328,28 @@ export function generateVlakken(
     }
     s = (s + 0x9e3779b9) | 0;
   }
-  // Last-ditch fallback: tile then make all anchors strict.
-  const rng = mulberry32(seed);
-  const tiling = tileGrid(size, rng) ?? { rects: [], assignment: new Array(size * size).fill(-1) };
-  const anchors: VlakkenAnchor[] = tiling.rects.map((r) => ({
-    idx: r.anchorIdx,
-    size: r.width * r.height,
-    mode: (r.width === r.height ? "square" : r.height > r.width ? "tall" : "wide") as AnchorMode,
-  }));
-  return { size, anchors, solution: tiling.assignment, rects: tiling.rects, seed };
+  // Last-ditch fallback: re-tile with fully-strict anchors and verify
+  // uniqueness. If even that can't produce a uniquely solvable puzzle
+  // within another 60 attempts, throw so the caller can surface an
+  // error / retry with a different seed family instead of shipping a
+  // broken puzzle (anchor placed with no valid rectangle, multiple
+  // solutions, etc. — what surfaced as "1 anker teveel" in the wild).
+  for (let attempt = 0; attempt < 60; attempt++) {
+    const fbSeed = (seed + (attempt + 1) * 0x85ebca6b) | 0;
+    const rng = mulberry32(fbSeed);
+    const tiling = tileGrid(size, rng);
+    if (!tiling) continue;
+    const anchors: VlakkenAnchor[] = tiling.rects.map((r) => ({
+      idx: r.anchorIdx,
+      size: r.width * r.height,
+      mode: (r.width === r.height ? "square" : r.height > r.width ? "tall" : "wide") as AnchorMode,
+    }));
+    const sols = solveVlakken(size, anchors, 2);
+    if (sols.length === 1) {
+      return { size, anchors, solution: tiling.assignment, rects: tiling.rects, seed: fbSeed };
+    }
+  }
+  throw new Error(`generateVlakken: no uniquely solvable puzzle for size=${size} seed=${seed}`);
 }
 
 export function verifyVlakken(p: VlakkenPuzzle): {

@@ -101,7 +101,14 @@ export default function VlakkenPage() {
 
   useEffect(() => {
     const size = SIZE_FOR[difficulty];
-    const p = generateVlakken(size, seed, FLEX_FOR[difficulty], HIDE_FOR[difficulty]);
+    let p: VlakkenPuzzle | null = null;
+    for (let bump = 0; bump < 5 && !p; bump++) {
+      try {
+        p = generateVlakken(size, seed + bump * 7919, FLEX_FOR[difficulty], HIDE_FOR[difficulty]);
+      } catch {
+        // Generator exhausted its retries for this seed family; bump and retry.
+      }
+    }
     setPuzzle(p);
     setStates({});
     setHistory([]);

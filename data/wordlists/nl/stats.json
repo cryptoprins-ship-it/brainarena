@@ -23,8 +23,8 @@
   },
   "counts": {
     "source_lines": 50000,
-    "distinct_5letter": 5002,
-    "guesses": 5002,
+    "distinct_5letter": 5018,
+    "guesses": 5018,
     "solutions": 1861,
     "slur_filtered": 0,
     "proper_noun_filtered": 3141
