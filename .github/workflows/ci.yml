@@ -30,6 +30,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Puzzle smoke tests
+        run: npm run test:puzzles
+
       - name: Build
         run: npm run build
         env:

@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "test:puzzles": "node scripts/test-vlakken.mjs && node scripts/test-daily-puzzles.mjs",
     "audit": "npm audit --omit=dev",
     "audit:fix": "npm audit fix"
   },
