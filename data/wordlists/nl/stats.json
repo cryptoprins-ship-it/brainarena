@@ -23,15 +23,15 @@
   },
   "counts": {
     "source_lines": 50000,
-    "distinct_5letter": 5021,
-    "guesses": 5021,
-    "solutions": 1864,
+    "distinct_5letter": 5022,
+    "guesses": 5022,
+    "solutions": 1865,
     "slur_filtered": 0,
     "proper_noun_filtered": 3141
   },
   "shuffle_seed": 1313627953,
   "output_sha256": {
-    "solutions": "018e504394e00239e93a1ba7275b958db8a46a87c6ecef1dcec2e6d32152df31",
-    "guesses": "39aa588827121f3418f1547a3fe259cf854ba62a8722dea02b91d6307ecc39d5"
+    "solutions": "3c8b31fa565867f8b2a2ebc00577207354237e98a5c5f5cc2b364269a8ffab7e",
+    "guesses": "bbdf7d085a71898af4836e9415d95e360d0ed852ebeb8bcc6a0e2fe8fac59202"
   }
 }
