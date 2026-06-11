@@ -1,6 +1,8 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import Script from "next/script";
 import { useLocale } from "@/lib/i18n";
 
@@ -219,12 +221,12 @@ export default function CookieBanner() {
                   >
                     {t("cookie_customise")}
                   </button>
-                  <a
+                  <Link
                     href="/privacy"
                     className="ml-auto self-center text-xs text-gray-400 underline hover:text-indigo-300"
                   >
                     {t("cookie_privacy")}
-                  </a>
+                  </Link>
                 </div>
               </>
             ) : (
