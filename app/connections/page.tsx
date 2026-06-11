@@ -175,7 +175,6 @@ export default function ConnectionsPage() {
 
   const onNewPuzzle = useCallback(() => setSeedNonce((n) => n + 1), []);
 
-  const elapsed = Math.floor((Date.now() - startedAt) / 1000);
   const won = state === "won";
   const lost = state === "lost";
   const done = won || lost;
@@ -311,7 +310,7 @@ export default function ConnectionsPage() {
               {won ? t("solved") : t("connections_lost")}
             </p>
             <p className="mt-1 text-emerald-100">
-              {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? elapsed}s</span>
+              {playerScore ?? 0}/4 groups · {t("your_time")}: <span className="font-mono">{finalElapsed ?? 0}s</span>
             </p>
             {submitted ? (
               <p className="mt-2 text-sm text-emerald-300">
@@ -334,7 +333,7 @@ export default function ConnectionsPage() {
           <EndScreenAddon
             game="connections"
             score={playerScore ?? 0}
-            time={finalElapsed ?? elapsed}
+            time={finalElapsed ?? 0}
             meta={{ mistakes, won }}
           />
         </>

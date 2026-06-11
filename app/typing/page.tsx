@@ -61,21 +61,17 @@ export default function TypingPage() {
   }, [done, text.length]);
 
   const stats = useMemo(() => {
-    const elapsedSec = startedAt.current ? Math.min(DURATION, (Date.now() - startedAt.current) / 1000) : 0;
+    // Derive elapsed from the `time` countdown (maintained by the 250ms
+    // timer effect) instead of reading the clock/ref during render — keeps
+    // this useMemo pure. `time` ticks DURATION→0, so DURATION-time is the
+    // seconds elapsed, and re-renders on each tick keep the live WPM moving.
+    const elapsedSec = DURATION - time;
     let correct = 0;
     for (let i = 0; i < typed.length; i++) if (typed[i] === text[i]) correct++;
     const accuracy = typed.length ? Math.round((correct / typed.length) * 100) : 100;
     const wpm = elapsedSec > 0 ? Math.round((correct / 5) / (elapsedSec / 60)) : 0;
     return { accuracy, wpm, correct, elapsed: Math.round(elapsedSec) };
-  }, [text, typed]);
-
-  // Recompute live stats every second.
-  const [, force] = useState(0);
-  useEffect(() => {
-    if (done) return;
-    const id = window.setInterval(() => force((n) => n + 1), 500);
-    return () => window.clearInterval(id);
-  }, [done]);
+  }, [text, typed, time]);
 
   // Submit on done, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {

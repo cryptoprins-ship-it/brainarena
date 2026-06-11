@@ -79,6 +79,15 @@ export default function ColorMatchPage() {
   const { attempts: dailyAttempts, record } = useDailyAttempts("colormatch", todayIdx);
 
 
+  const advance = useCallback(() => {
+    setAnswered(null);
+    setRound((r) => {
+      const next = r + 1;
+      if (next >= ROUNDS) setDone(true);
+      return next;
+    });
+  }, []);
+
   // Timer per round.
   useEffect(() => {
     if (done || answered) return;
@@ -97,22 +106,14 @@ export default function ColorMatchPage() {
       }
     }, 100);
     return () => window.clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, answered, done]);
-
-  const advance = useCallback(() => {
-    setAnswered(null);
-    setRound((r) => {
-      const next = r + 1;
-      if (next >= ROUNDS) setDone(true);
-      return next;
-    });
-  }, []);
+  }, [round, answered, done, advance]);
 
   const pick = (choiceIdx: number) => {
     if (answered) return;
     const q = questions[round];
-    const left = ROUND_MS - (Date.now() - (startedAt.current ?? Date.now()));
+    // `remaining` is kept current (within 100ms) by the per-round timer
+    // effect, so read it instead of the clock — keeps `pick` pure.
+    const left = remaining;
     setAnswered({ pickedIdx: choiceIdx, remaining: left });
     if (choiceIdx === q.answerIdx) {
       const speedBonus = Math.max(0, Math.floor((left / ROUND_MS) * 50));

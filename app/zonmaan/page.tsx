@@ -92,6 +92,7 @@ export default function ZonMaanPage() {
   const [winModalDismissed, setWinModalDismissed] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [newBest, setNewBest] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
@@ -165,7 +166,6 @@ export default function ZonMaanPage() {
   // version called the win-check inside the setCells updater, which is
   // unsafe under React 18 strict mode (updaters re-run) and missed any
   // path that mutated cells outside that callback.
-  const [newBest, setNewBest] = useState(false);
   useEffect(() => {
     if (!puzzle || done) return;
     if (cells.length !== puzzle.solution.length) return;

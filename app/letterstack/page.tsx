@@ -42,9 +42,15 @@ export default function LetterStackPage() {
   const [bombAvailable, setBombAvailable] = useState(false);
   const [milestones, setMilestones] = useState<number>(0);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  // Clock snapshot driven by the 100ms tick below, so the falling-tile
+  // positions can be computed during render without calling Date.now()
+  // (which is impure in render).
+  const [now, setNow] = useState(0);
   const recordedRef = useRef(false);
   const idRef = useRef(0);
-  const startRef = useRef<number>(Date.now());
+  // Seeded to 0; the real start timestamp is written on spawn-start. Using
+  // Date.now() as the initializer would read the clock during render.
+  const startRef = useRef<number>(0);
   const todayIdx = useMemo(() => dayIndex(), []);
   const { attempts: dailyAttempts, record } = useDailyAttempts("letterstack", todayIdx, `${locale}-${difficulty}`);
 
@@ -104,6 +110,7 @@ export default function LetterStackPage() {
     if (over) return;
     const fallMult = FALL_MULT[difficulty];
     const id = window.setInterval(() => {
+      setNow(Date.now());
       const baseFall = slowMs > 0 ? 8000 : 5500 - Math.min(2500, Math.floor((Date.now() - startRef.current) / 5000) * 200);
       const fallDur = Math.max(1200, Math.round(baseFall * fallMult));
       setFalling((f) => {
@@ -138,23 +145,6 @@ export default function LetterStackPage() {
       return [...f.slice(0, idx), ...f.slice(idx + 1)];
     });
   }, []);
-
-  // Keyboard catch.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (over) return;
-      if (e.key === "Enter") { e.preventDefault(); submitWord(); return; }
-      if (e.key === "Backspace") { e.preventDefault(); setInput((i) => i.slice(0, -1)); return; }
-      if (/^[a-zA-Z]$/.test(e.key)) {
-        const ch = e.key.toLowerCase();
-        tryCatch(ch);
-        setInput((i) => (i + ch).slice(0, 16));
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [over, tryCatch]);
 
   const submitWord = useCallback(() => {
     if (over) return;
@@ -202,6 +192,22 @@ export default function LetterStackPage() {
       return next;
     });
   }, [input, locale, milestones, over, stack, wildAvailable]);
+
+  // Keyboard catch.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (over) return;
+      if (e.key === "Enter") { e.preventDefault(); submitWord(); return; }
+      if (e.key === "Backspace") { e.preventDefault(); setInput((i) => i.slice(0, -1)); return; }
+      if (/^[a-zA-Z]$/.test(e.key)) {
+        const ch = e.key.toLowerCase();
+        tryCatch(ch);
+        setInput((i) => (i + ch).slice(0, 16));
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [over, tryCatch, submitWord]);
 
   // Stack overflow → game over (already handled in tryCatch). Submit on game
   // over, gated by the 3-attempt daily cap (per locale).
@@ -267,8 +273,8 @@ export default function LetterStackPage() {
       <div className="mt-3 relative h-64 overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#0a0a0a]">
         {falling.map((l) => {
           const fallDur = slowMs > 0 ? 8000 : 5500;
-          const elapsed = (Date.now() - l.t) / fallDur;
-          const top = Math.min(98, elapsed * 100);
+          const elapsed = (now - l.t) / fallDur;
+          const top = Math.max(0, Math.min(98, elapsed * 100));
           return (
             <div
               key={l.id}
