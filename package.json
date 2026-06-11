@@ -11,6 +11,9 @@
     "audit": "npm audit --omit=dev",
     "audit:fix": "npm audit fix"
   },
+  "overrides": {
+    "postcss": "^8.5.10"
+  },
   "dependencies": {
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.38.0",
@@ -25,7 +28,7 @@
     "@types/node": "^25",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^10",
+    "eslint": "^9.39.4",
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^6"
