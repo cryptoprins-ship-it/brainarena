@@ -122,23 +122,24 @@ export default function ConnectionsPage() {
         setState("won");
       }
     } else {
-      setMistakes((m) => {
-        const next = m + 1;
-        if (next >= MAX_MISTAKES) {
-          // Capture the player's real groups-solved BEFORE we auto-fill
-          // the rest — otherwise the leaderboard score would always
-          // record 4 even on a 0-correct loss.
-          setPlayerScore(solved.length);
-          setFinalElapsed(Math.floor((Date.now() - startedAt) / 1000));
-          // Reveal the remaining groups as auto-solved so the player can
-          // see the answers.
-          const solvedColors = new Set(solved.map((g) => g.color));
-          const left = puzzle.groups.filter((g) => !solvedColors.has(g.color));
-          setSolved((s) => [...s, ...left]);
-          setState("lost");
-        }
-        return next;
-      });
+      // Keep the updater pure: side effects inside setMistakes would run
+      // twice under StrictMode/updater re-basing and queue the auto-reveal
+      // groups twice (duplicate keys on the loss screen).
+      const next = mistakes + 1;
+      setMistakes(next);
+      if (next >= MAX_MISTAKES) {
+        // Capture the player's real groups-solved BEFORE we auto-fill
+        // the rest — otherwise the leaderboard score would always
+        // record 4 even on a 0-correct loss.
+        setPlayerScore(solved.length);
+        setFinalElapsed(Math.floor((Date.now() - startedAt) / 1000));
+        // Reveal the remaining groups as auto-solved so the player can
+        // see the answers.
+        const solvedColors = new Set(solved.map((g) => g.color));
+        const left = puzzle.groups.filter((g) => !solvedColors.has(g.color));
+        setSolved((s) => [...s, ...left]);
+        setState("lost");
+      }
       setShakeFlash(true);
       setTimeout(() => setShakeFlash(false), 600);
       if (oneAway) {
@@ -146,7 +147,7 @@ export default function ConnectionsPage() {
         setTimeout(() => setOneAwayFlash(false), 2200);
       }
     }
-  }, [puzzle, selected, solved, startedAt, state]);
+  }, [puzzle, selected, solved, startedAt, state, mistakes]);
 
   // Submit to leaderboard on game end (won OR lost), gated by 3-attempt
   // cap. Score = groups solved by the player (0-4), time = elapsed —

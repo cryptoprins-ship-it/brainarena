@@ -112,9 +112,13 @@ export default function ColorMatchPage() {
   const pick = (choiceIdx: number) => {
     if (answered) return;
     const q = questions[round];
-    // `remaining` is kept current (within 100ms) by the per-round timer
-    // effect, so read it instead of the clock — keeps `pick` pure.
-    const left = remaining;
+    // Read the clock directly: `pick` only runs from onClick, so an impure
+    // read is fine — and `remaining` state lags up to 100ms behind (or
+    // seconds, when a backgrounded tab throttles the interval), which
+    // would inflate the ranked speed bonus. The compiler can't tell this
+    // function is handler-only, hence the targeted opt-out.
+    // eslint-disable-next-line react-hooks/purity -- event-handler-only clock read, see above
+    const left = Math.max(0, ROUND_MS - (Date.now() - (startedAt.current ?? Date.now())));
     setAnswered({ pickedIdx: choiceIdx, remaining: left });
     if (choiceIdx === q.answerIdx) {
       const speedBonus = Math.max(0, Math.floor((left / ROUND_MS) * 50));

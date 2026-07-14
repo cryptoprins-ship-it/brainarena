@@ -21,6 +21,10 @@ export default function TypingPage() {
   const [typed, setTyped] = useState("");
   const [time, setTime] = useState(DURATION);
   const [done, setDone] = useState(false);
+  // Fractional elapsed captured at the moment the text is completed —
+  // `time` only ticks in whole seconds, and flooring the elapsed would
+  // inflate the submitted WPM for early finishers (20.9s scored as 20s).
+  const [finalElapsedMs, setFinalElapsedMs] = useState<number | null>(null);
   const startedAt = useRef<number | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
@@ -35,6 +39,7 @@ export default function TypingPage() {
     setTyped("");
     setTime(DURATION);
     setDone(false);
+    setFinalElapsedMs(null);
     setSubmitted(null);
     startedAt.current = null;
     setTimeout(() => inputRef.current?.focus(), 0);
@@ -58,21 +63,26 @@ export default function TypingPage() {
     if (!startedAt.current) startedAt.current = Date.now();
     const v = e.target.value;
     setTyped(v.slice(0, text.length));
-    if (v.length >= text.length) setDone(true);
+    if (v.length >= text.length) {
+      setFinalElapsedMs(startedAt.current ? Date.now() - startedAt.current : 0);
+      setDone(true);
+    }
   }, [done, text.length]);
 
   const stats = useMemo(() => {
-    // Derive elapsed from the `time` countdown (maintained by the 250ms
-    // timer effect) instead of reading the clock/ref during render — keeps
-    // this useMemo pure. `time` ticks DURATION→0, so DURATION-time is the
-    // seconds elapsed, and re-renders on each tick keep the live WPM moving.
-    const elapsedSec = DURATION - time;
+    // Live display derives elapsed from the `time` countdown (whole
+    // seconds, maintained by the 250ms timer effect) — no clock/ref read
+    // during render. Once the text is completed, `finalElapsedMs` gives
+    // the fractional elapsed so the submitted WPM isn't floor-inflated.
+    const elapsedSec = finalElapsedMs !== null
+      ? Math.min(DURATION, finalElapsedMs / 1000)
+      : DURATION - time;
     let correct = 0;
     for (let i = 0; i < typed.length; i++) if (typed[i] === text[i]) correct++;
     const accuracy = typed.length ? Math.round((correct / typed.length) * 100) : 100;
     const wpm = elapsedSec > 0 ? Math.round((correct / 5) / (elapsedSec / 60)) : 0;
     return { accuracy, wpm, correct, elapsed: Math.round(elapsedSec) };
-  }, [text, typed, time]);
+  }, [text, typed, time, finalElapsedMs]);
 
   // Submit on done, gated by the 3-attempt daily cap (per locale).
   useEffect(() => {

@@ -8,6 +8,7 @@ import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
 import NextPuzzleCountdown from "@/components/NextPuzzleCountdown";
+import { msUntilNextUtcMidnight } from "@/lib/games/wordleState";
 
 // Game cards — title + blurb come from lib/howToPlay.ts (already translated
 // in 8 locales) at render time. Keep this array purely structural: the
@@ -228,17 +229,23 @@ export default function HomeClient() {
   }, [stats]);
 
   const showWelcome = stats && stats.streakDays > 0;
-  // UTC day as state, re-checked every 30s: when the countdown beside the
-  // tiles rolls past UTC midnight, the "played today" badges, emerald
-  // borders and welcome strip must roll over with it instead of showing
-  // yesterday's state until a manual refresh.
+  // UTC day as state, re-armed exactly at each UTC midnight (same anchor
+  // the countdown pill uses): when the countdown rolls over, the "played
+  // today" badges, emerald borders and welcome strip roll over in the
+  // same moment instead of showing yesterday's state until a refresh.
+  // +1s guard keeps a clock that fires a hair early from re-arming a
+  // near-zero timeout in a loop.
   const [today, setToday] = useState(() => new Date().toISOString().slice(0, 10));
   useEffect(() => {
-    const id = window.setInterval(() => {
-      const d = new Date().toISOString().slice(0, 10);
-      setToday((prev) => (prev === d ? prev : d));
-    }, 30_000);
-    return () => window.clearInterval(id);
+    let id: number;
+    const arm = () => {
+      id = window.setTimeout(() => {
+        setToday(new Date().toISOString().slice(0, 10));
+        arm();
+      }, msUntilNextUtcMidnight() + 1000);
+    };
+    arm();
+    return () => window.clearTimeout(id);
   }, []);
   const playedToday = stats?.lastPlayed === today;
   // Distinct games touched today — drives the "Games today" stat. Derived
@@ -281,8 +288,17 @@ export default function HomeClient() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
 
-      {showWelcome ? (
-        <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
+      {/* Single stable mount for the countdown: rendering it in two ternary
+          branches would unmount/remount it (interval restart + placeholder
+          flash) when `stats` loads and `showWelcome` flips. */}
+      <section
+        className={
+          showWelcome
+            ? "mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm"
+            : "mt-6 flex justify-end"
+        }
+      >
+        {showWelcome ? (
           <div>
             <span className="font-bold">{t("home_welcome_back")}</span>{" "}
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 font-black tabular-nums text-amber-100">
@@ -290,13 +306,9 @@ export default function HomeClient() {
             </span>{" "}
             {playedToday ? t("home_locked_today") : t("home_keep_alive")}
           </div>
-          <NextPuzzleCountdown />
-        </section>
-      ) : (
-        <section className="mt-6 flex justify-end">
-          <NextPuzzleCountdown />
-        </section>
-      )}
+        ) : null}
+        <NextPuzzleCountdown />
+      </section>
 
       {stats && stats.totalGames > 0 ? (
         <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">

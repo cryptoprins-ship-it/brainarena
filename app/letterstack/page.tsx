@@ -194,21 +194,31 @@ export default function LetterStackPage() {
     });
   }, [input, locale, milestones, over, stack, wildAvailable]);
 
-  // Keyboard catch.
+  // Keyboard catch. The handlers are read through refs so the global
+  // keydown listener stays registered once per game instead of being torn
+  // down and re-added on every keystroke (submitWord's identity changes
+  // with `input`/`stack`).
+  const tryCatchRef = useRef(tryCatch);
+  const submitWordRef = useRef(submitWord);
+  useEffect(() => {
+    tryCatchRef.current = tryCatch;
+    submitWordRef.current = submitWord;
+  }, [tryCatch, submitWord]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (over) return;
-      if (e.key === "Enter") { e.preventDefault(); submitWord(); return; }
+      if (e.key === "Enter") { e.preventDefault(); submitWordRef.current(); return; }
       if (e.key === "Backspace") { e.preventDefault(); setInput((i) => i.slice(0, -1)); return; }
       if (/^[a-zA-Z]$/.test(e.key)) {
         const ch = e.key.toLowerCase();
-        tryCatch(ch);
+        tryCatchRef.current(ch);
         setInput((i) => (i + ch).slice(0, 16));
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [over, tryCatch, submitWord]);
+  }, [over]);
 
   // Stack overflow → game over (already handled in tryCatch). Submit on game
   // over, gated by the 3-attempt daily cap (per locale).
