@@ -33,6 +33,9 @@ jobs:
       - name: Puzzle smoke tests
         run: npm run test:puzzles
 
+      - name: Share-card tests
+        run: node scripts/test-shareCard.mjs
+
       - name: Build
         run: npm run build
         env:
