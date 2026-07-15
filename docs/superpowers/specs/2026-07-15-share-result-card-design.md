@@ -57,8 +57,12 @@ terug die op de kaart komt te staan (bv. `"4/6"`, `"2:34"`, `"1.240"`,
 `"💥"`) — geen volzin, geen "BrainArena"-prefix (die staat al op het logo).
 Hergebruikt de bestaande `num()/str()/bool()`-helpers en `formatTime()`.
 
-Nieuwe `canShareFiles(): boolean` naast bestaande `hasNativeShare()` —
-feature-detect via `navigator.canShare?.({ files: [...] })`.
+`hasNativeShare()` blijft ongewijzigd. De file-capability-check
+(`navigator.canShare?.({ files: [...] })`) komt **in** `nativeShare()` zelf
+te zitten (zie onder) in plaats van als losse geëxporteerde functie — die
+check heeft altijd een concreet `File`-object nodig om zinvol te zijn, dus
+een losstaande `canShareFiles()` zonder argument zou toch alleen maar
+opnieuw aangeroepen worden met het bestand erbij.
 
 ### `lib/shareCard.ts` (nieuw)
 
@@ -80,9 +84,8 @@ feature-detect via `navigator.canShare?.({ files: [...] })`.
 ### `components/ShareButton.tsx` (uitbreiding)
 
 `onShareClick()`:
-1. `hasNativeShare() && canShareFiles()` → bouw blob → `File` → `navigator.share({ text, url, files: [file] })`. Blob is `null` → val terug op de bestaande tekst-only `nativeShare()`-aanroep.
-2. `hasNativeShare()` zonder file-support → huidig gedrag (tekst-only native share), ongewijzigd.
-3. Geen native share → huidig menu, met één nieuwe regel **"Download afbeelding"** die de blob bouwt en via een tijdelijke `Blob`-URL + onzichtbare `<a download>` een PNG-download triggert (URL direct daarna `revokeObjectURL`).
+1. `hasNativeShare()` → bouw blob → `File` (of `null` bij zeldzame `toBlob()`-fout) → geef mee aan de (uitgebreide) `nativeShare(game, payload, file)`. Die functie beslist zelf, met het concrete bestand, of `navigator.canShare({ files: [file] })` het toestaat — zo ja, bestand gaat mee de deelsheet in; zo nee (of geen bestand), tekst-only zoals nu.
+2. Geen native share → huidig menu, met één nieuwe regel **"Download afbeelding"** die de blob bouwt en via een tijdelijke `Blob`-URL + onzichtbare `<a download>` een PNG-download triggert (URL direct daarna `revokeObjectURL`).
 
 Geen wijziging aan de bestaande platform-link-regels (X/WhatsApp/Telegram/Facebook/Reddit/Email) of aan `copyShareText()` — die blijven exact zoals ze zijn.
 
