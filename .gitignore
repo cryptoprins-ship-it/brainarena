@@ -47,3 +47,6 @@ NOTES_*.md
 
 # wordlist generator cache — re-downloads on demand
 /data/wordlists/.cache/
+
+# brainstorming visual companion session files
+.superpowers/
