@@ -87,7 +87,7 @@ type TranslationKey =
   | "end_try_another" | "end_view_leaderboard" | "end_exit_game" | "end_game_now"
   | "end_missing_game" | "end_let_us_know"
   | "share_copied" | "share_copy_dialog" | "share_copy_failed"
-  | "share_copy_text" | "share_to_aria"
+  | "share_copy_text" | "share_to_aria" | "share_download_image"
   | "achievement_unlocked"
   // Leaderboard page + monthly champion panel
   | "lb_title" | "lb_subtitle"
@@ -294,6 +294,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "Couldn't copy — try again",
     share_copy_text: "Copy text",
     share_to_aria: "Share to",
+    share_download_image: "Download image",
     achievement_unlocked: "Achievement unlocked",
     lb_title: "Global Leaderboard",
     lb_subtitle: "Top scores from BrainArena players worldwide.",
@@ -575,6 +576,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "Kopiëren mislukt — probeer opnieuw",
     share_copy_text: "Tekst kopiëren",
     share_to_aria: "Delen via",
+    share_download_image: "Download afbeelding",
     achievement_unlocked: "Prestatie ontgrendeld",
     lb_title: "Wereldwijde ranglijst",
     lb_subtitle: "Topscores van BrainArena-spelers wereldwijd.",
@@ -857,6 +859,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "Kopieren fehlgeschlagen — nochmal versuchen",
     share_copy_text: "Text kopieren",
     share_to_aria: "Teilen mit",
+    share_download_image: "Bild herunterladen",
     achievement_unlocked: "Erfolg freigeschaltet",
     lb_title: "Weltrangliste",
     lb_subtitle: "Top-Ergebnisse von BrainArena-Spielern weltweit.",
@@ -1139,6 +1142,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "Échec de la copie — réessaie",
     share_copy_text: "Copier le texte",
     share_to_aria: "Partager sur",
+    share_download_image: "Télécharger l'image",
     achievement_unlocked: "Succès débloqué",
     lb_title: "Classement mondial",
     lb_subtitle: "Meilleurs scores des joueurs BrainArena du monde entier.",
@@ -1421,6 +1425,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "No se pudo copiar — inténtalo de nuevo",
     share_copy_text: "Copiar texto",
     share_to_aria: "Compartir en",
+    share_download_image: "Descargar imagen",
     achievement_unlocked: "Logro desbloqueado",
     lb_title: "Clasificación mundial",
     lb_subtitle: "Mejores puntuaciones de jugadores de BrainArena en todo el mundo.",
@@ -1703,6 +1708,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "कॉपी नहीं हुआ — फिर कोशिश करें",
     share_copy_text: "टेक्स्ट कॉपी करें",
     share_to_aria: "इसमें शेयर करें",
+    share_download_image: "छवि डाउनलोड करें",
     achievement_unlocked: "उपलब्धि अनलॉक",
     lb_title: "वैश्विक लीडरबोर्ड",
     lb_subtitle: "दुनिया भर के BrainArena खिलाड़ियों के टॉप स्कोर।",
@@ -1987,6 +1993,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "Não foi possível copiar — tente de novo",
     share_copy_text: "Copiar texto",
     share_to_aria: "Compartilhar em",
+    share_download_image: "Baixar imagem",
     achievement_unlocked: "Conquista desbloqueada",
     lb_title: "Ranking global",
     lb_subtitle: "Melhores pontuações de jogadores do BrainArena no mundo todo.",
@@ -2269,6 +2276,7 @@ const T: Record<Locale, Record<TranslationKey, string>> = {
     share_copy_failed: "コピーできませんでした — もう一度",
     share_copy_text: "テキストをコピー",
     share_to_aria: "シェア先",
+    share_download_image: "画像をダウンロード",
     achievement_unlocked: "実績解除",
     lb_title: "グローバルランキング",
     lb_subtitle: "世界中の BrainArena プレイヤーのトップスコア。",
