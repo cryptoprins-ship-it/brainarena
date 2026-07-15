@@ -23,6 +23,11 @@ const TILE_COLORS: Record<string, string> = {
 };
 const TILE_DEFAULT = "#3a3a3c";
 
+// Locale suffix on the card label only applies to games whose puzzle
+// content is language-specific — mirrors which FORMATTERS in
+// lib/share.ts read payload.locale.
+const PER_LOCALE_GAMES: ReadonlySet<GameKey> = new Set(["wordle", "boggle", "typing", "letterstack"]);
+
 function drawBackground(ctx: CanvasRenderingContext2D) {
   ctx.fillStyle = BG;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
@@ -56,7 +61,7 @@ function drawHeader(ctx: CanvasRenderingContext2D) {
 }
 
 function drawLabel(ctx: CanvasRenderingContext2D, game: GameKey, payload: SharePayload) {
-  const loc = payload.locale ? ` ${payload.locale.toUpperCase()}` : "";
+  const loc = PER_LOCALE_GAMES.has(game) && payload.locale ? ` ${payload.locale.toUpperCase()}` : "";
   const label = `${GAME_NAMES[game]}${loc} #${dayNumber()}`;
   ctx.fillStyle = TEXT_MUTED;
   ctx.font = "600 26px system-ui, sans-serif";
