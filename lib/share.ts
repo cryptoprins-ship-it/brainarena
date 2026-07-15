@@ -19,7 +19,7 @@ export function dayNumber(date: Date = new Date()): number {
 
 const SHARE_BASE_URL = "https://brainarena.fun";
 
-const GAME_NAMES: Record<GameKey, string> = {
+export const GAME_NAMES: Record<GameKey, string> = {
   wordle: "Wordle",
   boggle: "Boggle",
   sudoku: "Sudoku",
@@ -143,6 +143,31 @@ function timePuzzle(name: string, p: SharePayload): string {
   const q = diff ? ` (${diff})` : "";
   return `BrainArena ${name}${q} #${dayNumber()} — ${formatTime(p.time ?? 0)}`;
 }
+
+// One big headline value per game for the visual result-card — no full
+// sentence, no "BrainArena" prefix (the card's logo already carries
+// that). Reuses the same num()/str()/bool()/formatTime() helpers as
+// FORMATTERS above so there is exactly one place per game that reads
+// its meta shape.
+export const SHARE_HEADLINES: Record<GameKey, (p: SharePayload) => string> = {
+  wordle: (p) => {
+    const won = bool(p.meta, "won");
+    const guesses = num(p.meta, "guesses") ?? 0;
+    return won ? `${guesses}/6` : "X/6";
+  },
+  boggle: (p) => `${p.score}`,
+  sudoku: (p) => formatTime(p.time ?? 0),
+  typing: (p) => `${p.score} WPM`,
+  tiledrop: (p) => `${p.score}`,
+  colormatch: (p) => `${p.score}`,
+  letterstack: (p) => `${p.score}`,
+  vlakken: (p) => formatTime(p.time ?? 0),
+  verbind: (p) => formatTime(p.time ?? 0),
+  zonmaan: (p) => formatTime(p.time ?? 0),
+  kronen: (p) => formatTime(p.time ?? 0),
+  minesweeper: (p) => (bool(p.meta, "won") === false ? "💥" : formatTime(p.time ?? 0)),
+  connections: (p) => `${p.score}/4`,
+};
 
 // Full shareable text: per-game body + the game URL on its own line.
 // Spoiler-free by construction — no formatter emits the answer. Used by
