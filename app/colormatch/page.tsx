@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RAL } from "@/lib/ralColors";
@@ -79,6 +80,15 @@ export default function ColorMatchPage() {
   const { attempts: dailyAttempts, record } = useDailyAttempts("colormatch", todayIdx);
 
 
+  const advance = useCallback(() => {
+    setAnswered(null);
+    setRound((r) => {
+      const next = r + 1;
+      if (next >= ROUNDS) setDone(true);
+      return next;
+    });
+  }, []);
+
   // Timer per round.
   useEffect(() => {
     if (done || answered) return;
@@ -97,22 +107,18 @@ export default function ColorMatchPage() {
       }
     }, 100);
     return () => window.clearInterval(id);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [round, answered, done]);
-
-  const advance = useCallback(() => {
-    setAnswered(null);
-    setRound((r) => {
-      const next = r + 1;
-      if (next >= ROUNDS) setDone(true);
-      return next;
-    });
-  }, []);
+  }, [round, answered, done, advance]);
 
   const pick = (choiceIdx: number) => {
     if (answered) return;
     const q = questions[round];
-    const left = ROUND_MS - (Date.now() - (startedAt.current ?? Date.now()));
+    // Read the clock directly: `pick` only runs from onClick, so an impure
+    // read is fine — and `remaining` state lags up to 100ms behind (or
+    // seconds, when a backgrounded tab throttles the interval), which
+    // would inflate the ranked speed bonus. The compiler can't tell this
+    // function is handler-only, hence the targeted opt-out.
+    // eslint-disable-next-line react-hooks/purity -- event-handler-only clock read, see above
+    const left = Math.max(0, ROUND_MS - (Date.now() - (startedAt.current ?? Date.now())));
     setAnswered({ pickedIdx: choiceIdx, remaining: left });
     if (choiceIdx === q.answerIdx) {
       const speedBonus = Math.max(0, Math.floor((left / ROUND_MS) * 50));

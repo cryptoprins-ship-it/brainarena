@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import { useEffect, useMemo, useState } from "react";
 import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib/achievements";
@@ -31,7 +32,7 @@ export default function AchievementsPage() {
   useEffect(() => { setStats(loadStats()); }, []);
 
   const achievements = useMemo<Achievement[]>(() => stats ? listAchievements(stats) : [], [stats]);
-  const days = useMemo(calendarDates, []);
+  const days = useMemo(() => calendarDates(), []);
 
   if (!stats) {
     return <div className="mx-auto max-w-4xl px-4 py-8 text-gray-400">{t("home_loading")}</div>;

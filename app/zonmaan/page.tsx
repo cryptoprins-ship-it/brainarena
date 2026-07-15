@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import HowToPlay from "@/components/HowToPlay";
@@ -92,6 +93,7 @@ export default function ZonMaanPage() {
   const [winModalDismissed, setWinModalDismissed] = useState(false);
   const [submitted, setSubmitted] = useState<{ rank: number } | null>(null);
   const [eligibleToSubmit, setEligibleToSubmit] = useState(false);
+  const [newBest, setNewBest] = useState(false);
   const recordedRef = useRef(false);
   const startedAt = useRef<number | null>(null);
 
@@ -165,7 +167,6 @@ export default function ZonMaanPage() {
   // version called the win-check inside the setCells updater, which is
   // unsafe under React 18 strict mode (updaters re-run) and missed any
   // path that mutated cells outside that callback.
-  const [newBest, setNewBest] = useState(false);
   useEffect(() => {
     if (!puzzle || done) return;
     if (cells.length !== puzzle.solution.length) return;

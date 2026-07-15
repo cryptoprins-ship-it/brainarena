@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, type Locale } from "@/lib/i18n";

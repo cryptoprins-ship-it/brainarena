@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 // Daily attempt counter.
 //
 // To keep the leaderboard honest without killing engagement, each daily-

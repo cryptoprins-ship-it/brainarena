@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect -- intentional client-only init (localStorage reads / daily-puzzle generation on mount) that must run post-hydration; a lazy useState initializer would run on the server and cause hydration mismatches */
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
@@ -6,6 +7,8 @@ import { type GameKey } from "@/lib/scores";
 import { listAchievements, loadStats, type Achievement, type Stats } from "@/lib/achievements";
 import { useLocale } from "@/lib/i18n";
 import { getHowToPlay } from "@/lib/howToPlay";
+import NextPuzzleCountdown from "@/components/NextPuzzleCountdown";
+import { msUntilNextUtcMidnight } from "@/lib/games/wordleState";
 
 // Game cards — title + blurb come from lib/howToPlay.ts (already translated
 // in 8 locales) at render time. Keep this array purely structural: the
@@ -226,8 +229,30 @@ export default function HomeClient() {
   }, [stats]);
 
   const showWelcome = stats && stats.streakDays > 0;
-  const today = new Date().toISOString().slice(0, 10);
+  // UTC day as state, re-armed exactly at each UTC midnight (same anchor
+  // the countdown pill uses): when the countdown rolls over, the "played
+  // today" badges, emerald borders and welcome strip roll over in the
+  // same moment instead of showing yesterday's state until a refresh.
+  // +1s guard keeps a clock that fires a hair early from re-arming a
+  // near-zero timeout in a loop.
+  const [today, setToday] = useState(() => new Date().toISOString().slice(0, 10));
+  useEffect(() => {
+    let id: number;
+    const arm = () => {
+      id = window.setTimeout(() => {
+        setToday(new Date().toISOString().slice(0, 10));
+        arm();
+      }, msUntilNextUtcMidnight() + 1000);
+    };
+    arm();
+    return () => window.clearTimeout(id);
+  }, []);
   const playedToday = stats?.lastPlayed === today;
+  // Distinct games touched today — drives the "Games today" stat. Derived
+  // from the same per-game map as the tile badges so the two always agree.
+  const gamesToday = stats
+    ? Object.values(stats.lastPlayedPerGame).filter((d) => d === today).length
+    : 0;
 
   const BASE = "https://brainarena.fun";
   const itemListJsonLd = {
@@ -260,21 +285,34 @@ export default function HomeClient() {
     <div className="mx-auto w-full max-w-6xl px-4 py-8">
       <script
         type="application/ld+json"
-        // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
 
-      {showWelcome ? (
-        <section className="mt-6 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
-          <span className="font-bold">{t("home_welcome_back")}</span>{" "}
-          <span className="text-amber-200">{t("home_day_streak", { days: stats!.streakDays })}</span>{" "}
-          {playedToday ? t("home_locked_today") : t("home_keep_alive")}
-        </section>
-      ) : null}
+      {/* Single stable mount for the countdown: rendering it in two ternary
+          branches would unmount/remount it (interval restart + placeholder
+          flash) when `stats` loads and `showWelcome` flips. */}
+      <section
+        className={
+          showWelcome
+            ? "mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm"
+            : "mt-6 flex justify-end"
+        }
+      >
+        {showWelcome ? (
+          <div>
+            <span className="font-bold">{t("home_welcome_back")}</span>{" "}
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 font-black tabular-nums text-amber-100">
+              🔥 {t("home_day_streak", { days: stats!.streakDays })}
+            </span>{" "}
+            {playedToday ? t("home_locked_today") : t("home_keep_alive")}
+          </div>
+        ) : null}
+        <NextPuzzleCountdown />
+      </section>
 
       {stats && stats.totalGames > 0 ? (
         <section className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <Mini label={t("home_games_today")} value={Object.values(stats.gamesPerType).reduce((a, b) => a + b, 0) - (stats.totalGames - (playedToday ? 1 : 0))} />
+          <Mini label={t("home_games_today")} value={gamesToday} />
           <Mini label={t("home_total_games")} value={stats.totalGames} />
           <Mini label={t("home_best_streak")} value={`${stats.bestStreak} ${t("home_days_short")}`} />
           <Mini label={t("home_medals")} value={Object.keys(stats.unlocked).length} />
@@ -312,12 +350,19 @@ export default function HomeClient() {
       <section className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3">
         {GAMES.map((g) => {
           const entry = howTo[g.game];
+          // Tile carries a small status pill: green check for games already
+          // touched today, faint "play today" for the rest. LinkedIn Queens
+          // uses the same affordance to nudge players through every daily.
+          const tileLastPlayed = stats?.lastPlayedPerGame[g.game];
+          const gamePlayedToday = tileLastPlayed === today;
           return (
             <Link
               key={g.href}
               href={g.href}
               aria-label={entry.label}
-              className={`group relative overflow-hidden rounded-2xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40 ${
+              className={`group relative overflow-hidden rounded-2xl border ${
+                gamePlayedToday ? "border-emerald-500/40" : "border-[#2a2a2a]"
+              } bg-[#1a1a1a] p-5 transition hover:-translate-y-0.5 hover:border-indigo-400/40 ${
                 g.desktopOnly ? "hidden md:flex" : ""
               }`}
             >
@@ -330,9 +375,20 @@ export default function HomeClient() {
                   <h2 className="text-lg font-bold">{entry.label}</h2>
                   <p className="mt-1 text-xs text-gray-400">{entry.summary}</p>
                 </div>
-                <span className="mt-auto text-xs font-semibold text-indigo-300 group-hover:text-indigo-200">
-                  →
-                </span>
+                <div className="mt-auto flex items-center justify-between gap-2">
+                  {stats ? (
+                    gamePlayedToday ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-200">
+                        ✓ {t("home_played_today_badge")}
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[#0a0a0a] px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-gray-500">
+                        {t("home_play_today_badge")}
+                      </span>
+                    )
+                  ) : <span />}
+                  <span className="text-xs font-semibold text-indigo-300 group-hover:text-indigo-200">→</span>
+                </div>
               </div>
             </Link>
           );

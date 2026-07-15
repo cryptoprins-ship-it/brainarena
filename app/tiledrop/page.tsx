@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/immutability, react-hooks/refs, react-hooks/preserve-manual-memoization -- deliberate ref-mirror game loop: boardRef/pieceRef/overRef/pausedRef mirror state so the gravity interval avoids stale closures. The React Compiler can't model this pattern; the behaviour is intentional and covered by the puzzle smoke tests. */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getName, submitScore } from "@/lib/scores";

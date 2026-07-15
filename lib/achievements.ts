@@ -26,6 +26,13 @@ export type Stats = {
   totalGames: number;
   totalSeconds: number;
   gamesPerType: Partial<Record<GameKey, number>>;
+  // Most recent ISO date the player touched each individual game. Powers
+  // the per-tile "played today" checkmarks on the home grid — the home
+  // page reads this and compares against today's ISO to decorate each
+  // card without round-tripping to the score API. Canonical store: the
+  // similar-looking LAST_PLAY_KEY in lib/scores.ts is internal to
+  // wordle's own streak bookkeeping and is not written by other games.
+  lastPlayedPerGame: Partial<Record<GameKey, string>>;
   playDays: Record<string, true>;       // ISO date → true
   unlocked: Partial<Record<AchievementId, string>>;  // id → ISO date
   records: {
@@ -47,6 +54,7 @@ function defaults(): Stats {
     totalGames: 0,
     totalSeconds: 0,
     gamesPerType: {},
+    lastPlayedPerGame: {},
     playDays: {},
     unlocked: {},
     records: {
@@ -201,6 +209,10 @@ export function recordGame(payload: GameResultPayload): RecordResult {
   stats.totalGames += 1;
   stats.totalSeconds += Math.max(0, Math.round(payload.secondsPlayed));
   stats.gamesPerType[payload.game] = (stats.gamesPerType[payload.game] ?? 0) + 1;
+  // Record per-game per-day so the home grid can render a green check on
+  // tiles the player already opened today and an empty state on the rest.
+  // (loadStats merges defaults() over stored blobs, so the map always exists.)
+  stats.lastPlayedPerGame[payload.game] = today;
 
   const r = stats.records;
   if (payload.game === "tiledrop") r.bestTileDropScore = Math.max(r.bestTileDropScore, payload.score);
