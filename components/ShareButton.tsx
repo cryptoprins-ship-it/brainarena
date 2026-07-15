@@ -11,6 +11,7 @@ import {
   nativeShare,
   type SharePayload,
 } from "@/lib/share";
+import { buildShareCardBlob } from "@/lib/shareCard";
 
 // Single share entry point for every game's end screen.
 //
@@ -97,11 +98,21 @@ export default function ShareButton({
     setMenu({ left, bottom: window.innerHeight - r.top + 8 });
   }
 
+  async function buildCardFile(): Promise<File | null> {
+    const blob = await buildShareCardBlob(game, payload);
+    if (!blob) return null;
+    return new File([blob], `brainarena-${game}.png`, { type: "image/png" });
+  }
+
   async function onShareClick() {
     // Web Share-capable browser: the OS sheet already covers every
-    // installed app, so use it directly and skip the menu.
+    // installed app, so use it directly and skip the menu. The
+    // share-card image rides along when the platform supports file
+    // attachments (nativeShare re-checks navigator.canShare with the
+    // concrete File — capability can't be tested without one).
     if (hasNativeShare()) {
-      const outcome = await nativeShare(game, payload);
+      const file = await buildCardFile();
+      const outcome = await nativeShare(game, payload, file);
       if (outcome === "shared" || outcome === "dismissed") return;
       // unavailable / failed → fall through to the explicit menu
     }
@@ -115,6 +126,24 @@ export default function ShareButton({
     if (outcome === "copied") flashToast(t("share_copied"));
     else if (outcome === "prompted") flashToast(t("share_copy_dialog"));
     else flashToast(t("share_copy_failed"));
+  }
+
+  // Platform-intent links (X/WhatsApp/...) are URL-based and can only
+  // carry text, never a file — downloading is the only way a desktop
+  // visitor without Web Share gets the actual image.
+  async function onDownload() {
+    setMenu(null);
+    const file = await buildCardFile();
+    if (!file) {
+      flashToast(t("share_copy_failed"));
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   return (
@@ -161,6 +190,14 @@ export default function ShareButton({
             className="block w-full border-t border-[#2a2a2a] px-3 py-2 text-left text-sm text-gray-200 hover:bg-[#1a1a1a]"
           >
             {t("share_copy_text")}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={onDownload}
+            className="block w-full px-3 py-2 text-left text-sm text-gray-200 hover:bg-[#1a1a1a]"
+          >
+            {t("share_download_image")}
           </button>
         </div>
       ) : null}
