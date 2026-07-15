@@ -35,5 +35,34 @@ check("minesweeper loss", SHARE_HEADLINES.minesweeper({ score: 0, meta: { won: f
 check("connections win", SHARE_HEADLINES.connections({ score: 4 }), "4/4");
 check("connections partial", SHARE_HEADLINES.connections({ score: 2 }), "2/4");
 
+// --- nativeShare() file-attachment branching (mocked navigator) ---
+
+let lastShareCall = null;
+let canShareResult = true;
+
+Object.defineProperty(globalThis, "navigator", {
+  value: {
+    share: async (data) => { lastShareCall = data; },
+    canShare: () => canShareResult,
+  },
+  configurable: true,
+});
+
+const { nativeShare } = await import("../lib/share.ts");
+const testFile = new File([], "card.png", { type: "image/png" });
+
+canShareResult = true;
+await nativeShare("wordle", { score: 0, meta: { won: true, guesses: 3 } }, testFile);
+check("nativeShare attaches file when canShare allows it", Array.isArray(lastShareCall?.files), true);
+
+canShareResult = false;
+lastShareCall = null;
+await nativeShare("wordle", { score: 0, meta: { won: true, guesses: 3 } }, testFile);
+check("nativeShare omits file when canShare rejects it", lastShareCall?.files, undefined);
+
+lastShareCall = null;
+await nativeShare("wordle", { score: 0, meta: { won: true, guesses: 3 } });
+check("nativeShare omits file when none passed", lastShareCall?.files, undefined);
+
 console.log(`\nShare-card headline tests: PASS ${pass} · FAIL ${fail}`);
 if (fail > 0) process.exit(1);

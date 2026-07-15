@@ -245,15 +245,24 @@ export type NativeShareOutcome = "shared" | "dismissed" | "unavailable" | "faile
 // Invoke the OS share sheet. "dismissed" if the user cancels (so the
 // caller doesn't fall through to a misleading "copied" toast),
 // "unavailable" if there's no Web Share API, "failed" on anything else.
+// `file` (the rendered share-card PNG) rides along when the platform
+// supports file attachments — navigator.canShare must be re-checked
+// with the concrete File, since the capability can't be tested
+// abstractly (canShareResult can differ per file type/size).
 export async function nativeShare(
   game: GameKey,
   payload: SharePayload,
+  file?: File | null,
 ): Promise<NativeShareOutcome> {
   if (!hasNativeShare()) return "unavailable";
   const text = buildShareText(game, payload);
   const url = gameUrl(game);
+  const shareData: ShareData =
+    file && navigator.canShare?.({ files: [file] })
+      ? { text, url, files: [file] }
+      : { text, url };
   try {
-    await navigator.share({ text, url });
+    await navigator.share(shareData);
     return "shared";
   } catch (err) {
     if (err instanceof DOMException && err.name === "AbortError") return "dismissed";
